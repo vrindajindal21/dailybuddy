@@ -29,7 +29,7 @@ const translations = {
     analytics: "Analytics",
     settings: "Settings",
     health: "Health Tracker",
-    studyFlow: "StudyFlow",
+    dailyBuddy: "DailyBuddy",
     tutorial: "Tutorial",
 
     // Common
@@ -61,7 +61,7 @@ const translations = {
     getStarted: "Get Started",
 
     // Tutorial
-    welcomeToStudyFlow: "Welcome to StudyFlow!",
+    welcomeToDailyBuddy: "Welcome to DailyBuddy!",
     tutorialDescription: "Let's take a quick tour to help you get the most out of your productivity app.",
     tutorialStep1Title: "Dashboard Overview",
     tutorialStep1Description:
@@ -81,7 +81,7 @@ const translations = {
     tutorialStep6Title: "AI Assistant",
     tutorialStep6Description: "Get personalized productivity insights and recommendations from our AI assistant.",
     tutorialComplete: "Tutorial Complete!",
-    tutorialCompleteDescription: "You're all set! Start using StudyFlow to boost your productivity.",
+    tutorialCompleteDescription: "You're all set! Start using DailyBuddy to boost your productivity.",
     startTutorial: "Start Tutorial",
     skipTutorial: "Skip Tutorial",
     tutorialProgress: "Tutorial Progress",
@@ -167,7 +167,7 @@ const translations = {
     analytics: "विश्लेषण",
     settings: "सेटिंग्स",
     health: "स्वास्थ्य ट्रैकर",
-    studyFlow: "स्टडीफ्लो",
+    dailyBuddy: "दैनिक बुद्धि",
     tutorial: "ट्यूटोरियल",
 
     // Common
@@ -199,7 +199,7 @@ const translations = {
     getStarted: "शुरू करें",
 
     // Tutorial
-    welcomeToStudyFlow: "स्टडीफ्लो में आपका स्वागत है!",
+    welcomeToDailyBuddy: "दैनिक बुद्धि में आपका स्वागत है!",
     tutorialDescription: "आइए एक त्वरित दौरा करते हैं जो आपको अपने उत्पादकता ऐप का अधिकतम लाभ उठाने में मदद करेगा।",
     tutorialStep1Title: "डैशबोर्ड अवलोकन",
     tutorialStep1Description: "आपका डैशबोर्ड आपकी दैनिक गतिविधियों, लंबित कार्यों और प्रगति ट्रैकिंग का अवलोकन दिखाता है।",
@@ -216,7 +216,7 @@ const translations = {
     tutorialStep6Title: "एआई सहायक",
     tutorialStep6Description: "हमारे एआई सहायक से व्यक्तिगत उत्पादकता अंतर्दृष्टि और सिफारिशें प्राप्त करें।",
     tutorialComplete: "ट्यूटोरियल पूरा!",
-    tutorialCompleteDescription: "आप तैयार हैं! अपनी उत्पादकता बढ़ाने के लिए स्टडीफ्लो का उपयोग शुरू करें।",
+    tutorialCompleteDescription: "आप तैयार हैं! अपनी उत्पादकता बढ़ाने के लिए दैनिक बुद्धि का उपयोग शुरू करें।",
     startTutorial: "ट्यूटोरियल शुरू करें",
     skipTutorial: "ट्यूटोरियल छोड़ें",
     tutorialProgress: "ट्यूटोरियल प्रगति",

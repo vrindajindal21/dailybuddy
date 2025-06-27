@@ -59,14 +59,14 @@ export function FirstTimeTutorial() {
   const tutorialSteps: TutorialStep[] = [
     {
       id: "welcome",
-      title: `🎉 Welcome to StudyFlow!`,
+      title: `🎉 Welcome to DailyBuddy!`,
       description: "Your all-in-one productivity companion for students and professionals",
       icon: <Sparkles className="h-8 w-8 text-yellow-500" />,
       content: (
         <div className="text-center space-y-4">
           <div className="text-4xl sm:text-6xl mb-4">🚀</div>
           <p className="text-base sm:text-lg px-2">
-            StudyFlow helps you stay focused, track your health, manage tasks, and achieve your goals with AI-powered
+            DailyBuddy helps you stay focused, track your health, manage tasks, and achieve your goals with AI-powered
             insights.
           </p>
           <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-6">
@@ -413,7 +413,7 @@ export function FirstTimeTutorial() {
             </Button>
           </div>
           <div className="bg-gradient-to-r from-green-50 to-blue-50 p-3 sm:p-4 rounded-lg text-center">
-            <p className="text-sm font-medium mb-2">🎉 Welcome to StudyFlow!</p>
+            <p className="text-sm font-medium mb-2">🎉 Welcome to DailyBuddy!</p>
             <p className="text-xs text-gray-600">You can always access this tutorial again from the Settings page.</p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# 📱 Google Play Store Launch Guide for StudyFlow
+# 📱 Google Play Store Launch Guide for DailyBuddy
 
 ## 🚀 Pre-Launch Checklist
 
@@ -63,9 +63,9 @@ Your app is already configured as a PWA with:
 3. Click "Start" and let it analyze your PWA
 4. Click "Package For Stores" → "Android"
 5. Configure settings:
-   - **Package ID**: `com.studyflow.app`
-   - **App Name**: `StudyFlow`
-   - **Launcher Name**: `StudyFlow`
+   - **Package ID**: `com.dailybuddy.app`
+   - **App Name**: `DailyBuddy`
+   - **Launcher Name**: `DailyBuddy`
    - **Theme Color**: `#000000`
    - **Background Color**: `#ffffff`
 6. Download the generated APK/AAB file
@@ -78,7 +78,7 @@ Your app is already configured as a PWA with:
 android {
     compileSdkVersion 34
     defaultConfig {
-        applicationId "com.studyflow.app"
+        applicationId "com.dailybuddy.app"
         minSdkVersion 19
         targetSdkVersion 34
         versionCode 1

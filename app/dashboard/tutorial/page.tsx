@@ -95,13 +95,13 @@ export default function TutorialPage() {
     {
       id: "getting-started",
       title: "🚀 Getting Started",
-      description: "Learn the basics of StudyFlow and set up your workspace",
+      description: "Learn the basics of DailyBuddy and set up your workspace",
       icon: <Sparkles className="h-6 w-6 text-yellow-500" />,
       content: (
         <div className="space-y-6">
           <div className="text-center">
             <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-2xl font-bold mb-4">Welcome to StudyFlow!</h3>
+            <h3 className="text-2xl font-bold mb-4">Welcome to DailyBuddy!</h3>
             <p className="text-lg text-muted-foreground mb-6">
               Your all-in-one productivity companion designed to help you focus, learn, and achieve your goals.
             </p>
@@ -1009,7 +1009,7 @@ export default function TutorialPage() {
             <div className="text-4xl mb-4">🚀</div>
             <h3 className="text-xl font-bold mb-4">Power User Features</h3>
             <p className="text-muted-foreground mb-6">
-              Unlock the full potential of StudyFlow with advanced productivity tools and integrations.
+              Unlock the full potential of DailyBuddy with advanced productivity tools and integrations.
             </p>
           </div>
 
@@ -1246,7 +1246,7 @@ export default function TutorialPage() {
             <div className="flex items-center gap-3">
               <HelpCircle className="h-8 w-8 text-blue-500" />
               <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200">New to StudyFlow?</h3>
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200">New to DailyBuddy?</h3>
                 <p className="text-sm text-blue-600 dark:text-blue-300">
                   Take our interactive tutorial to get started quickly and learn all the essential features.
                 </p>

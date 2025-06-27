@@ -30,7 +30,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
   let data = {
-    title: "StudyFlow Reminder",
+    title: "DailyBuddy Reminder",
     body: "You have a new reminder",
     icon: "/favicon.ico",
     badge: "/favicon.ico",
