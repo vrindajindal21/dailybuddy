@@ -220,40 +220,82 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
-            <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto mt-2 sm:mt-0">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Habit
+    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
+          <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Habit
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Habit</DialogTitle>
+              <DialogDescription>Create a new habit to track daily</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Habit Name</Label>
+                <Input
+                  id="name"
+                  placeholder="What habit do you want to track?"
+                  value={newHabit.name}
+                  onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={newHabit.category}
+                  onValueChange={(value) => setNewHabit({ ...newHabit, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="health">Health</SelectItem>
+                    <SelectItem value="learning">Learning</SelectItem>
+                    <SelectItem value="mindfulness">Mindfulness</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Habit</DialogTitle>
-                <DialogDescription>Create a new habit to track daily</DialogDescription>
-              </DialogHeader>
+              <Button onClick={addHabit}>Add Habit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Habit</DialogTitle>
+              <DialogDescription>Update your habit details</DialogDescription>
+            </DialogHeader>
+            {editingHabit && (
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Habit Name</Label>
+                  <Label htmlFor="edit-name">Habit Name</Label>
                   <Input
-                    id="name"
-                    placeholder="What habit do you want to track?"
-                    value={newHabit.name}
-                    onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+                    id="edit-name"
+                    placeholder="Habit name"
+                    value={editingHabit.name}
+                    onChange={(e) => setEditingHabit({ ...editingHabit, name: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="edit-category">Category</Label>
                   <Select
-                    value={newHabit.category}
-                    onValueChange={(value) => setNewHabit({ ...newHabit, category: value })}
+                    value={editingHabit.category}
+                    onValueChange={(value) => setEditingHabit({ ...editingHabit, category: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -266,168 +308,124 @@ export default function HabitsPage() {
                   </Select>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={addHabit}>Add Habit</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={updateHabit}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Habit</DialogTitle>
-                <DialogDescription>Update your habit details</DialogDescription>
-              </DialogHeader>
-              {editingHabit && (
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-name">Habit Name</Label>
-                    <Input
-                      id="edit-name"
-                      placeholder="Habit name"
-                      value={editingHabit.name}
-                      onChange={(e) => setEditingHabit({ ...editingHabit, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-category">Category</Label>
-                    <Select
-                      value={editingHabit.category}
-                      onValueChange={(value) => setEditingHabit({ ...editingHabit, category: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="health">Health</SelectItem>
-                        <SelectItem value="learning">Learning</SelectItem>
-                        <SelectItem value="mindfulness">Mindfulness</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={updateHabit}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Daily Habit Tracker</CardTitle>
-            <CardDescription>Track your habits for the last 7 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto w-full">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left p-2 min-w-[200px]">Habit</th>
+      <Card>
+        <CardHeader>
+          <CardTitle>Daily Habit Tracker</CardTitle>
+          <CardDescription>Track your habits for the last 7 days</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="text-left p-2 min-w-[200px]">Habit</th>
+                  {last7Days.map((day, i) => (
+                    <th key={i} className="text-center p-2 min-w-[60px]">
+                      <div className="text-xs font-normal text-muted-foreground">{format(day, "EEE")}</div>
+                      <div className={`text-sm ${isSameDay(day, today) ? "font-bold" : ""}`}>{format(day, "d")}</div>
+                    </th>
+                  ))}
+                  <th className="text-center p-2 min-w-[80px]">Streak</th>
+                  <th className="text-center p-2 min-w-[100px]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {habits.map((habit: HabitType) => (
+                  <tr key={habit.id} className="border-t">
+                    <td className="p-2">
+                      <div className="flex items-center gap-2">
+                        {getCategoryIcon(habit.category)}
+                        <span>{habit.name}</span>
+                      </div>
+                    </td>
                     {last7Days.map((day, i) => (
-                      <th key={i} className="text-center p-2 min-w-[60px]">
-                        <div className="text-xs font-normal text-muted-foreground">{format(day, "EEE")}</div>
-                        <div className={`text-sm ${isSameDay(day, today) ? "font-bold" : ""}`}>{format(day, "d")}</div>
-                      </th>
+                      <td key={i} className="text-center p-2">
+                        <button
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                            isHabitCompletedOnDate(habit, day)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted hover:bg-muted/80"
+                          }`}
+                          onClick={() => toggleHabitCompletion(habit.id, day)}
+                        >
+                          {isHabitCompletedOnDate(habit, day) ? "✓" : ""}
+                        </button>
+                      </td>
                     ))}
-                    <th className="text-center p-2 min-w-[80px]">Streak</th>
-                    <th className="text-center p-2 min-w-[100px]">Actions</th>
+                    <td className="text-center p-2">
+                      <div className="flex items-center justify-center gap-1">
+                        <Flame
+                          className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`}
+                        />
+                        <span className="font-medium">{habit.streak}</span>
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex justify-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {habits.map((habit: HabitType) => (
-                    <tr key={habit.id} className="border-t">
-                      <td className="p-2">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(habit.category)}
-                          <span>{habit.name}</span>
-                        </div>
-                      </td>
-                      {last7Days.map((day, i) => (
-                        <td key={i} className="text-center p-2">
-                          <button
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                              isHabitCompletedOnDate(habit, day)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                            onClick={() => toggleHabitCompletion(habit.id, day)}
-                          >
-                            {isHabitCompletedOnDate(habit, day) ? "✓" : ""}
-                          </button>
-                        </td>
-                      ))}
-                      <td className="text-center p-2">
-                        <div className="flex items-center justify-center gap-1">
-                          <Flame
-                            className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`}
-                          />
-                          <span className="font-medium">{habit.streak}</span>
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <div className="flex justify-center gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
-          {habits.map((habit: HabitType) => (
-            <Card key={habit.id}>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-base">{habit.name}</CardTitle>
-                  {getCategoryIcon(habit.category)}
-                </div>
-                <CardDescription>{habit.category.charAt(0).toUpperCase() + habit.category.slice(1)}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <Flame className={`h-5 w-5 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                  <span className="text-2xl font-bold">{habit.streak}</span>
-                  <span className="text-muted-foreground">day streak</span>
-                </div>
-                <div className="mt-4 flex gap-1">
-                  {last7Days.slice(-5).map((day, i) => (
-                    <div key={i} className="flex-1">
-                      <div
-                        className={`h-2 rounded-full ${isHabitCompletedOnDate(habit, day) ? "bg-primary" : "bg-muted"}`}
-                      ></div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button
-                  variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
-                  className="w-full"
-                  onClick={() => toggleHabitCompletion(habit.id, today)}
-                >
-                  {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
+        {habits.map((habit: HabitType) => (
+          <Card key={habit.id}>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-base">{habit.name}</CardTitle>
+                {getCategoryIcon(habit.category)}
+              </div>
+              <CardDescription>{habit.category.charAt(0).toUpperCase() + habit.category.slice(1)}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Flame className={`h-5 w-5 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
+                <span className="text-2xl font-bold">{habit.streak}</span>
+                <span className="text-muted-foreground">day streak</span>
+              </div>
+              <div className="mt-4 flex gap-1">
+                {last7Days.slice(-5).map((day, i) => (
+                  <div key={i} className="flex-1">
+                    <div
+                      className={`h-2 rounded-full ${isHabitCompletedOnDate(habit, day) ? "bg-primary" : "bg-muted"}`}
+                    ></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Button
+                variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
+                className="w-full"
+                onClick={() => toggleHabitCompletion(habit.id, today)}
+              >
+                {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
       </div>
     </div>
   )
