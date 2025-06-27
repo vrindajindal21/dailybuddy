@@ -397,7 +397,7 @@ export default function BudgetPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-full w-full overflow-x-hidden">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Budget</h2>

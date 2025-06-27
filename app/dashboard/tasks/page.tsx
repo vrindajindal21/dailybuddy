@@ -360,16 +360,16 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden mobile-safe">
+      <div className="container max-w-screen px-2 sm:px-4 py-4 sm:py-6 w-full mx-auto overflow-x-hidden">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
-            <p className="text-muted-foreground">Manage your assignments and personal tasks</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-responsive">Tasks</h2>
+            <p className="text-muted-foreground text-responsive">Manage your assignments and personal tasks</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto mb-2 sm:mb-0 text-responsive">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Task
               </Button>
@@ -609,245 +609,201 @@ export default function TasksPage() {
           </Dialog>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:items-center mb-2">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filter:</span>
+            <span className="text-sm font-medium text-responsive">Filter:</span>
           </div>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tasks</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-full sm:w-auto">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tasks</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="school">School</SelectItem>
-              <SelectItem value="work">Work</SelectItem>
-              <SelectItem value="personal">Personal</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-auto">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="school">School</SelectItem>
+                <SelectItem value="work">Work</SelectItem>
+                <SelectItem value="personal">Personal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <Tabs defaultValue="list" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="list">List View</TabsTrigger>
-            <TabsTrigger value="board">Board View</TabsTrigger>
+          <TabsList className="w-full flex gap-2">
+            <TabsTrigger value="list" className="flex-1">List View</TabsTrigger>
+            <TabsTrigger value="board" className="flex-1">Board View</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-4 overflow-x-auto">
             {filteredTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center">
                 <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No tasks found</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-lg font-medium text-responsive">No tasks found</h3>
+                <p className="text-sm text-muted-foreground text-responsive">
                   {filter !== "all" || categoryFilter !== "all"
                     ? "Try changing your filters or add a new task"
                     : "Add your first task to get started"}
                 </p>
               </div>
             ) : (
-              <div className="space-y-2 overflow-x-auto">
-                {filteredTasks.map((task) => (
-                  <Card key={task.id} className={task.completed ? "opacity-70" : ""}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          <input
-                            type="checkbox"
-                            checked={task.completed}
-                            onChange={(e) => toggleTaskCompletion(task.id)}
-                            className="h-5 w-5 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <div className="space-y-1">
-                            <h3 className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
-                              {task.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">{task.description}</p>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Due: {task.dueDate}
-                              </span>
-                              <span
-                                className={`px-2 py-0.5 rounded-full ${
-                                  task.priority === "high"
-                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                    : task.priority === "medium"
-                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                }`}
-                              >
-                                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                              </span>
-                              <span className="px-2 py-0.5 bg-muted rounded-full">
-                                {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
-                              </span>
-                              {task.notificationEnabled && (
-                                <span className="flex items-center text-muted-foreground">
-                                  <Bell className="h-3 w-3 mr-1" />
-                                  {task.notifyBefore === 0
-                                    ? "On due date"
-                                    : `${task.notifyBefore} day${task.notifyBefore !== 1 ? "s" : ""} before`}
+              <div className="overflow-x-auto w-full">
+                <div className="space-y-2 min-w-0">
+                  {filteredTasks.map((task) => (
+                    <Card key={task.id} className={`w-full min-w-0 break-words card-mobile ${task.completed ? "opacity-70" : ""}`}>
+                      <CardContent className="p-4 w-full break-words">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                          <div className="flex items-start gap-3 w-full min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              onChange={() => toggleTaskCompletion(task.id)}
+                              className="h-5 w-5 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <div className="space-y-1 min-w-0">
+                              <h3 className={`font-medium text-responsive truncate ${task.completed ? "line-through text-muted-foreground" : ""}`}>{task.title}</h3>
+                              <p className="text-sm text-muted-foreground text-responsive break-words">{task.description}</p>
+                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                                <span className="flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Due: {task.dueDate}
                                 </span>
-                              )}
+                                <span className={`px-2 py-0.5 rounded-full ${task.priority === "high" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : task.priority === "medium" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"}`}>{task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+                                <span className="px-2 py-0.5 bg-muted rounded-full">{task.category.charAt(0).toUpperCase() + task.category.slice(1)}</span>
+                                {task.notificationEnabled && (
+                                  <span className="flex items-center text-muted-foreground">
+                                    <Bell className="h-3 w-3 mr-1" />
+                                    {task.notifyBefore === 0 ? "On due date" : `${task.notifyBefore} day${task.notifyBefore !== 1 ? "s" : ""} before`}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          <div className="flex gap-1 mt-2 sm:mt-0">
+                            <Button variant="ghost" size="icon" onClick={() => startEditTask(task)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEditTask(task)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="board" className="space-y-4 overflow-x-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="bg-muted/50 pb-3">
-                  <CardTitle className="text-sm font-medium">To Do</CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 space-y-2">
-                  {filteredTasks
-                    .filter((task) => !task.completed)
-                    .filter((task) => task.priority === "high")
-                    .map((task) => (
-                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 grid-responsive min-w-0">
+              <div className="min-w-[280px] w-full">
+                <Card>
+                  <CardHeader className="bg-muted/50 pb-3">
+                    <CardTitle className="text-sm font-medium text-responsive">To Do</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-2">
+                    {filteredTasks.filter((task) => !task.completed && task.priority === "high").map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm card-mobile">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <h4 className="font-medium text-sm text-responsive">{task.title}</h4>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleTaskCompletion(task.id)}
-                            >
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleTaskCompletion(task.id)}>
                               <CheckSquare className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mt-2 text-xs">
-                          <span className="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
-                            High
-                          </span>
+                          <span className="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">High</span>
                           <span className="text-muted-foreground">{task.dueDate}</span>
                           {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
                         </div>
                       </div>
                     ))}
-                  {filteredTasks
-                    .filter((task) => !task.completed)
-                    .filter((task) => task.priority === "medium")
-                    .map((task) => (
-                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+                    {filteredTasks.filter((task) => !task.completed && task.priority === "medium").map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm card-mobile">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <h4 className="font-medium text-sm text-responsive">{task.title}</h4>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleTaskCompletion(task.id)}
-                            >
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleTaskCompletion(task.id)}>
                               <CheckSquare className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mt-2 text-xs">
-                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">
-                            Medium
-                          </span>
+                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">Medium</span>
                           <span className="text-muted-foreground">{task.dueDate}</span>
                           {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
                         </div>
                       </div>
                     ))}
-                  {filteredTasks
-                    .filter((task) => !task.completed)
-                    .filter((task) => task.priority === "low")
-                    .map((task) => (
-                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+                    {filteredTasks.filter((task) => !task.completed && task.priority === "low").map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm card-mobile">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <h4 className="font-medium text-sm text-responsive">{task.title}</h4>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleTaskCompletion(task.id)}
-                            >
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleTaskCompletion(task.id)}>
                               <CheckSquare className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mt-2 text-xs">
-                          <span className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
-                            Low
-                          </span>
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">Low</span>
                           <span className="text-muted-foreground">{task.dueDate}</span>
                           {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
                         </div>
                       </div>
                     ))}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <Card>
-                <CardHeader className="bg-muted/50 pb-3">
-                  <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 space-y-2">
-                  <div className="flex flex-col items-center justify-center p-6 text-center h-32 border border-dashed rounded-lg">
-                    <p className="text-sm text-muted-foreground">Tasks in progress will appear here</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="min-w-[280px] w-full">
+                <Card>
+                  <CardHeader className="bg-muted/50 pb-3">
+                    <CardTitle className="text-sm font-medium text-responsive">In Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex flex-col items-center justify-center p-6 text-center h-32 border border-dashed rounded-lg">
+                      <p className="text-sm text-muted-foreground text-responsive">Tasks in progress will appear here</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <Card>
-                <CardHeader className="bg-muted/50 pb-3">
-                  <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 space-y-2">
-                  {filteredTasks
-                    .filter((task) => task.completed)
-                    .map((task) => (
-                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm opacity-70">
+              <div className="min-w-[280px] w-full">
+                <Card>
+                  <CardHeader className="bg-muted/50 pb-3">
+                    <CardTitle className="text-sm font-medium text-responsive">Completed</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-2">
+                    {filteredTasks.filter((task) => task.completed).map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm opacity-70 card-mobile">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-sm line-through text-muted-foreground">{task.title}</h4>
+                          <h4 className="font-medium text-sm line-through text-muted-foreground text-responsive">{task.title}</h4>
                           <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleTaskCompletion(task.id)}
-                            >
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleTaskCompletion(task.id)}>
                               <CheckSquare className="h-3 w-3" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteTask(task.id)}>
@@ -856,23 +812,14 @@ export default function TasksPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mt-2 text-xs">
-                          <span
-                            className={`px-2 py-0.5 rounded-full ${
-                              task.priority === "high"
-                                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                : task.priority === "medium"
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                  : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            }`}
-                          >
-                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                          </span>
+                          <span className={`px-2 py-0.5 rounded-full ${task.priority === "high" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : task.priority === "medium" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"}`}>{task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
                           <span className="text-muted-foreground">{task.dueDate}</span>
                         </div>
                       </div>
                     ))}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
