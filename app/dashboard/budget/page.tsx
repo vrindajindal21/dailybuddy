@@ -623,39 +623,82 @@ export default function BudgetPage() {
                   <p className="text-sm text-muted-foreground">Add your first expense to start tracking</p>
                 </div>
               ) : (
-                <div className="space-y-2 overflow-x-auto">
-                  {expenses
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map((expense) => (
-                      <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-10 rounded-full ${getCategoryColor(expense.category)}`}></div>
-                          <div>
-                            <h4 className="font-medium">{expense.title}</h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>{expense.date}</span>
-                              <span>•</span>
-                              <span>{expense.category.charAt(0).toUpperCase() + expense.category.slice(1)}</span>
+                <div className="overflow-x-auto w-full hidden md:block">
+                  <div className="space-y-2 overflow-x-auto">
+                    {expenses
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .map((expense) => (
+                        <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-2 h-10 rounded-full ${getCategoryColor(expense.category)}`}></div>
+                            <div>
+                              <h4 className="font-medium">{expense.title}</h4>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{expense.date}</span>
+                                <span>•</span>
+                                <span>{expense.category.charAt(0).toUpperCase() + expense.category.slice(1)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="font-medium">{formatCurrency(expense.amount)}</span>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => startEditExpense(expense)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => deleteExpense(expense.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="font-medium">{formatCurrency(expense.amount)}</span>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEditExpense(expense)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteExpense(expense.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          <div className="block md:hidden space-y-4">
+            {expenses.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <DollarSign className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">No expenses yet</h3>
+                <p className="text-sm text-muted-foreground">Add your first expense to start tracking</p>
+              </div>
+            ) : (
+              <div className="space-y-2 overflow-x-auto">
+                {expenses
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((expense) => (
+                    <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-10 rounded-full ${getCategoryColor(expense.category)}`}></div>
+                        <div>
+                          <h4 className="font-medium">{expense.title}</h4>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{expense.date}</span>
+                            <span>•</span>
+                            <span>{expense.category.charAt(0).toUpperCase() + expense.category.slice(1)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium">{formatCurrency(expense.amount)}</span>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEditExpense(expense)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteExpense(expense.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
 
           <Dialog open={isEditExpenseDialogOpen} onOpenChange={setIsEditExpenseDialogOpen}>
             <DialogContent>
@@ -752,37 +795,78 @@ export default function BudgetPage() {
                   <p className="text-sm text-muted-foreground">Add your first budget category to start tracking</p>
                 </div>
               ) : (
-                <div className="space-y-6 overflow-x-auto">
-                  {budgets.map((budget) => (
-                    <div key={budget.category} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
-                          <span className="font-medium">
-                            {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-sm">
-                            {formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}
+                <div className="overflow-x-auto w-full hidden md:block">
+                  <div className="space-y-6 overflow-x-auto">
+                    {budgets.map((budget) => (
+                      <div key={budget.category} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
+                            <span className="font-medium">
+                              {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
+                            </span>
                           </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEditBudget(budget)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteBudget(budget.category)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm">
+                              {formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}
+                            </div>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => startEditBudget(budget)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => deleteBudget(budget.category)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
+                        <Progress value={getBudgetProgress(budget.category)} className="h-2" />
                       </div>
-                      <Progress value={getBudgetProgress(budget.category)} className="h-2" />
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          <div className="block md:hidden space-y-4">
+            {budgets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <PieChart className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">No budget categories</h3>
+                <p className="text-sm text-muted-foreground">Add your first budget category to start tracking</p>
+              </div>
+            ) : (
+              <div className="space-y-6 overflow-x-auto">
+                {budgets.map((budget) => (
+                  <div key={budget.category} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
+                        <span className="font-medium">
+                          {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm">
+                          {formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEditBudget(budget)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteBudget(budget.category)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <Progress value={getBudgetProgress(budget.category)} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <Dialog open={isEditBudgetDialogOpen} onOpenChange={setIsEditBudgetDialogOpen}>
             <DialogContent>

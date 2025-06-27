@@ -1443,7 +1443,7 @@ export default function MedicationsPage() {
               <CardDescription>Your medication schedule for the week</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto w-full hidden md:block">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
@@ -1489,6 +1489,25 @@ export default function MedicationsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="block md:hidden space-y-4">
+                {filteredMedications.map((medication: MedicationType, index: number) => (
+                  <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div
+                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                    ></div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{medication.name}</h4>
+                        <Badge>{medication.formattedTime || medication.dueTime}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+                      {medication.instructions && (
+                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
