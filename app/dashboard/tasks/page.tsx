@@ -26,6 +26,18 @@ import { CalendarIcon, CheckSquare, Clock, Plus, Trash2, Edit, Filter, Bell } fr
 import { NotificationService } from "@/lib/notification-service"
 import * as React from 'react'
 
+type TaskType = {
+  id: number;
+  title: string;
+  description: string;
+  dueDate: string | Date;
+  completed: boolean;
+  priority: string;
+  category: string;
+  notifyBefore: number;
+  notificationEnabled: boolean;
+};
+
 export default function TasksPage() {
   const { toast } = useToast()
   const [tasks, setTasks] = useState([
@@ -96,7 +108,7 @@ export default function TasksPage() {
     notificationEnabled: true,
   })
 
-  const [editingTask, setEditingTask] = useState(null)
+  const [editingTask, setEditingTask] = useState<TaskType | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [filter, setFilter] = useState("all")
@@ -254,7 +266,7 @@ export default function TasksPage() {
     let hasErrors = false
     const errorFields = []
 
-    if (!editingTask.title.trim()) {
+    if (!editingTask?.title?.trim()) {
       hasErrors = true
       errorFields.push("edit-title")
       toast({
@@ -291,6 +303,8 @@ export default function TasksPage() {
       return
     }
 
+    if (!editingTask) return
+
     setTasks(
       tasks.map((task) =>
         task.id === editingTask.id
@@ -300,8 +314,8 @@ export default function TasksPage() {
               description: editingTask.description,
               dueDate:
                 typeof editingTask.dueDate === "object"
-                  ? format(editingTask.dueDate, "yyyy-MM-dd")
-                  : editingTask.dueDate,
+                  ? format(editingTask.dueDate as Date, "yyyy-MM-dd")
+                  : (editingTask.dueDate as string),
               priority: editingTask.priority,
               category: editingTask.category,
               notifyBefore: editingTask.notifyBefore,
@@ -374,15 +388,15 @@ export default function TasksPage() {
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4 overflow-x-hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
-          <p className="text-muted-foreground">Manage your assignments and personal tasks</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tasks</h2>
+          <p className="text-muted-foreground text-base sm:text-lg">Manage your assignments and personal tasks</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               Add Task
             </Button>
@@ -515,7 +529,7 @@ export default function TasksPage() {
                   <Input
                     id="edit-title"
                     placeholder="Task title"
-                    value={editingTask.title}
+                    value={editingTask?.title ?? ''}
                     onChange={(e) => {
                       setEditingTask({ ...editingTask, title: e.target.value })
                       // Remove error styling on input
@@ -530,7 +544,7 @@ export default function TasksPage() {
                   <Textarea
                     id="edit-description"
                     placeholder="Task details"
-                    value={editingTask.description}
+                    value={editingTask?.description ?? ''}
                     onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
                   />
                 </div>
@@ -539,14 +553,14 @@ export default function TasksPage() {
                   <Input
                     id="edit-dueDate"
                     type="date"
-                    value={typeof editingTask.dueDate === 'string' ? editingTask.dueDate : editingTask.dueDate.toISOString().split('T')[0]}
+                    value={typeof editingTask?.dueDate === 'string' ? editingTask?.dueDate : editingTask?.dueDate?.toISOString().split('T')[0]}
                     onChange={e => setEditingTask({ ...editingTask, dueDate: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="edit-priority">Priority</Label>
                   <Select
-                    value={editingTask.priority}
+                    value={editingTask?.priority ?? ''}
                     onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}
                   >
                     <SelectTrigger>
@@ -562,7 +576,7 @@ export default function TasksPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="edit-category">Category</Label>
                   <Select
-                    value={editingTask.category}
+                    value={editingTask?.category ?? ''}
                     onValueChange={(value) => setEditingTask({ ...editingTask, category: value })}
                   >
                     <SelectTrigger>
@@ -583,15 +597,15 @@ export default function TasksPage() {
                     </div>
                     <Switch
                       id="edit-notification"
-                      checked={editingTask.notificationEnabled}
+                      checked={!!editingTask?.notificationEnabled}
                       onCheckedChange={(checked) => setEditingTask({ ...editingTask, notificationEnabled: checked })}
                     />
                   </div>
-                  {editingTask.notificationEnabled && (
+                  {editingTask?.notificationEnabled && (
                     <div className="grid gap-2 mt-2">
                       <Label htmlFor="edit-notifyBefore">Notify me</Label>
                       <Select
-                        value={editingTask.notifyBefore.toString()}
+                        value={editingTask?.notifyBefore?.toString() ?? '0'}
                         onValueChange={(value) =>
                           setEditingTask({ ...editingTask, notifyBefore: Number.parseInt(value) })
                         }
@@ -622,7 +636,7 @@ export default function TasksPage() {
         </Dialog>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Filter:</span>
@@ -651,18 +665,18 @@ export default function TasksPage() {
         </Select>
       </div>
 
-      <Tabs defaultValue="list" className="space-y-4">
-        <TabsList>
+      <Tabs defaultValue="list" className="space-y-2 sm:space-y-4 px-2 sm:px-4">
+        <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="list">List View</TabsTrigger>
           <TabsTrigger value="board">Board View</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="list" className="space-y-4">
+        <TabsContent value="list" className="space-y-2 sm:space-y-4">
           {filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center">
+            <div className="flex flex-col items-center justify-center p-4 sm:p-8 text-center">
               <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No tasks found</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-base sm:text-lg font-medium">No tasks found</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {filter !== "all" || categoryFilter !== "all"
                   ? "Try changing your filters or add a new task"
                   : "Add your first task to get started"}
@@ -672,8 +686,8 @@ export default function TasksPage() {
             <div className="space-y-2">
               {filteredTasks.map((task) => (
                 <Card key={task.id} className={task.completed ? "opacity-70" : ""}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       <div className="flex items-start gap-3">
                         <input
                           type="checkbox"
@@ -732,8 +746,8 @@ export default function TasksPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="board" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <TabsContent value="board" className="space-y-2 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             <Card>
               <CardHeader className="bg-muted/50 pb-3">
                 <CardTitle className="text-sm font-medium">To Do</CardTitle>
@@ -889,6 +903,6 @@ export default function TasksPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </>
+    </div>
   )
 }

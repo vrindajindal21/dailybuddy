@@ -716,26 +716,26 @@ export default function PomodoroPage() {
 
   // Timer effect
   return (
-    <>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
-        <p className="text-muted-foreground">{t("pomodoroDescription")}</p>
+    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
+      <div className="mb-6 px-2 sm:px-4">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
+        <p className="text-muted-foreground text-base sm:text-lg">{t("pomodoroDescription")}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-4">
         {/* Main Timer */}
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2 lg:col-span-2">
           {/* Quick Custom Time Input */}
-          <Card className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
+          <Card className="mb-4 sm:mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
+              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200 text-lg sm:text-xl">
                 <Clock className="h-5 w-5" />
                 Quick Custom Time
               </CardTitle>
-              <CardDescription>Set any custom time instantly - no need to go to settings!</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Set any custom time instantly - no need to go to settings!</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
@@ -743,12 +743,11 @@ export default function PomodoroPage() {
                     max="999"
                     value={customMinutes}
                     onChange={(e) => setCustomMinutes(Math.max(0, Math.min(999, Number.parseInt(e.target.value) || 0)))}
-                    className="w-20 text-center"
+                    className="w-16 sm:w-20 text-center"
                     placeholder="25"
                   />
-                  <span className="text-sm text-muted-foreground font-medium">min</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground font-medium">min</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
@@ -756,43 +755,41 @@ export default function PomodoroPage() {
                     max="59"
                     value={customSeconds}
                     onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)))}
-                    className="w-20 text-center"
+                    className="w-16 sm:w-20 text-center"
                     placeholder="00"
                   />
-                  <span className="text-sm text-muted-foreground font-medium">sec</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground font-medium">sec</span>
                 </div>
-
                 <Button
                   onClick={handleSetCustomTime}
                   disabled={timer.isActive || (customMinutes === 0 && customSeconds === 0)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm px-3 sm:px-4"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Set Timer
                 </Button>
-
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   Total: {customMinutes}:{customSeconds.toString().padStart(2, "0")}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="mb-6">
+          <Card className="mb-4 sm:mb-6">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   {getModeIcon()}
                   {timer.mode === "pomodoro" ? "Focus Time" : timer.mode === "shortBreak" ? "Short Break" : "Long Break"}
                 </CardTitle>
-                <Badge variant="outline" className="capitalize">
+                <Badge variant="outline" className="capitalize text-xs sm:text-sm">
                   Session {sessionCount + 1}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               {/* Mode Selector */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant={timer.mode === "pomodoro" ? "default" : "outline"}
                   size="sm"
@@ -826,12 +823,10 @@ export default function PomodoroPage() {
               </div>
 
               {/* Timer Display */}
-              <div className="text-center space-y-4">
-                <div className="text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
-
-                <Progress value={getProgress()} className="h-3" />
-
-                <div className="flex justify-center gap-3">
+              <div className="text-center space-y-2 sm:space-y-4">
+                <div className="text-5xl sm:text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
+                <Progress value={getProgress()} className="h-2 sm:h-3" />
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                   {!timer.isActive ? (
                     <Button onClick={startTimer} size="lg" className="px-8">
                       <Play className="h-5 w-5 mr-2" />
@@ -862,14 +857,15 @@ export default function PomodoroPage() {
               </div>
 
               {/* Current Task */}
-              <div className="space-y-2">
-                <Label htmlFor="current-task">What are you working on?</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="current-task" className="text-xs sm:text-sm">What are you working on?</Label>
                 <Input
                   id="current-task"
                   value={currentTask}
                   onChange={(e) => setCurrentTask(e.target.value)}
                   placeholder="Enter your current task..."
                   disabled={timer.isActive && !timer.isPaused}
+                  className="text-xs sm:text-sm"
                 />
               </div>
             </CardContent>
@@ -877,7 +873,7 @@ export default function PomodoroPage() {
         </div>
 
         {/* Stats & Settings */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Today's Stats */}
           <Card>
             <CardHeader>
@@ -1090,8 +1086,8 @@ export default function PomodoroPage() {
 
       {/* Custom Timer Creation Dialog */}
       {showCustomTimerDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <Card className="w-full max-w-xs sm:max-w-md">
             <CardHeader>
               <CardTitle>Create Custom Timer</CardTitle>
               <CardDescription>Design your own Pomodoro preset</CardDescription>
@@ -1153,6 +1149,6 @@ export default function PomodoroPage() {
           </Card>
         </div>
       )}
-    </>
+    </div>
   )
 }
