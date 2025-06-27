@@ -107,7 +107,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
                 <Clock className="h-8 w-8 text-red-500" />
@@ -207,7 +207,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
               <Target className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-semibold mb-1">Focus</h4>
@@ -312,7 +312,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -349,7 +349,7 @@ export default function TutorialPage() {
               <Zap className="h-5 w-5 text-blue-500" />
               Smart Features
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <Bell className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -438,7 +438,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4 text-center">
               <Heart className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Heart Rate</h4>
@@ -466,7 +466,7 @@ export default function TutorialPage() {
               <BarChart3 className="h-5 w-5 text-green-500" />
               Health Metrics Dashboard
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
               <div>
                 <h5 className="font-medium mb-3">Daily Tracking</h5>
                 <div className="space-y-2">
@@ -518,7 +518,7 @@ export default function TutorialPage() {
               <Shield className="h-5 w-5 text-red-500" />
               Health & Safety Features
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">Medication Reminders</h5>
                 <p className="text-sm text-muted-foreground mb-3">
@@ -571,7 +571,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
@@ -671,7 +671,7 @@ export default function TutorialPage() {
 
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-lg">
             <h4 className="font-semibold mb-3">🎯 Notification Best Practices</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">✅ Do's</h5>
                 <ul className="space-y-1 text-sm">
@@ -723,7 +723,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950">
               <div className="flex items-center gap-3 mb-3">
                 <TrendingUp className="h-8 w-8 text-purple-500" />
@@ -782,7 +782,7 @@ export default function TutorialPage() {
               <BarChart3 className="h-5 w-5 text-indigo-500" />
               AI Analytics Dashboard
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">87%</div>
                 <div className="text-sm text-muted-foreground">Productivity Score</div>
@@ -806,7 +806,7 @@ export default function TutorialPage() {
               <Sparkles className="h-5 w-5 text-indigo-500" />
               AI-Powered Features
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">🎯 Smart Scheduling</h5>
                 <p className="text-sm text-muted-foreground mb-3">
@@ -863,7 +863,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4 border-pink-200 bg-pink-50 dark:border-pink-800 dark:bg-pink-950">
               <div className="flex items-center gap-3 mb-3">
                 <Brain className="h-8 w-8 text-pink-500" />
@@ -916,7 +916,7 @@ export default function TutorialPage() {
               <Trophy className="h-5 w-5 text-yellow-500" />
               Available Games
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-950 rounded-lg">
                   <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
@@ -962,7 +962,7 @@ export default function TutorialPage() {
 
           <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950 p-6 rounded-lg">
             <h4 className="font-semibold mb-3">🧠 Benefits of Brain Training</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">🎯 Cognitive Benefits</h5>
                 <ul className="space-y-1 text-sm">
@@ -1013,7 +1013,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
                 <Users className="h-8 w-8 text-blue-500" />
@@ -1072,7 +1072,7 @@ export default function TutorialPage() {
               <Settings className="h-5 w-5 text-gray-500" />
               Customization Options
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">🎨 Themes & Appearance</h5>
                 <ul className="space-y-1 text-sm text-muted-foreground">
@@ -1108,7 +1108,7 @@ export default function TutorialPage() {
               <Sparkles className="h-5 w-5 text-yellow-500" />
               Pro Tips for Power Users
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h5 className="font-medium mb-2">🎯 Productivity Hacks</h5>
                 <ul className="space-y-1 text-sm">
@@ -1150,7 +1150,7 @@ export default function TutorialPage() {
   const completionPercentage = (completedSections.size / tutorialSections.length) * 100
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutorial</h2>
