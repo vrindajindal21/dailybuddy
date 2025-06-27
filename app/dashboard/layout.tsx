@@ -34,7 +34,7 @@ import { useLanguage } from "@/components/language-provider"
 import { SmartPopupSystem } from "@/components/smart-popup-system"
 import { GlobalNotificationService } from "@/components/global-notification-service"
 import Image from "next/image"
-import { SidebarMenuButton, SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarMenuButton, SidebarProvider, useSidebar } from "@/components/ui/sidebar"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -44,10 +44,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [isMounted, setIsMounted] = useState(false)
   const { language, setLanguage, t } = useLanguage()
+  const { isMobile, setOpenMobile } = useSidebar ? useSidebar() : { isMobile: false, setOpenMobile: () => {} }
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [pathname, isMobile, setOpenMobile])
 
   if (!isMounted) {
     return null
@@ -87,7 +94,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
-                <nav className="grid gap-2 text-lg font-medium">
+                <nav className="grid gap-2">
                   {navItems.map((item) => (
                     <SidebarMenuButton asChild key={item.href}>
                       <Link
@@ -144,7 +151,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
           <div className="flex flex-1">
             <aside className="hidden w-64 border-r bg-muted/40 md:block">
-              <nav className="grid gap-2 p-4 text-sm font-medium">
+              <nav className="grid gap-2 p-4">
                 {navItems.map((item) => (
                   <SidebarMenuButton asChild key={item.href}>
                     <Link
