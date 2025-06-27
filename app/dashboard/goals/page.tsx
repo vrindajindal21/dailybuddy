@@ -26,9 +26,27 @@ import { CalendarIcon, Plus, Trash2, Edit, Target, Trophy, Flag, BarChart, Arrow
 import { Badge } from "@/components/ui/badge"
 import { NotificationService } from '@/lib/notification-service'
 
+type Milestone = {
+  id: number;
+  title: string;
+  completed: boolean;
+};
+
+type Goal = {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  targetDate: string | Date;
+  progress: number;
+  milestones: Milestone[];
+  priority: string;
+  status: string;
+};
+
 export default function GoalsPage() {
   const { toast } = useToast()
-  const [goals, setGoals] = useState([
+  const [goals, setGoals] = useState<Goal[]>([
     {
       id: 1,
       title: "Complete Math Course",
@@ -96,7 +114,7 @@ export default function GoalsPage() {
     },
   ])
 
-  const [newGoal, setNewGoal] = useState({
+  const [newGoal, setNewGoal] = useState<Goal>({
     title: "",
     description: "",
     category: "academic",
@@ -105,15 +123,17 @@ export default function GoalsPage() {
     milestones: [{ id: Date.now(), title: "", completed: false }],
     priority: "medium",
     status: "not-started",
+    id: Date.now(),
   })
 
-  const [editingGoal, setEditingGoal] = useState(null)
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [filter, setFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
 
   const [isMounted, setIsMounted] = useState(false)
+  const [addGoalError, setAddGoalError] = useState<string | null>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -161,27 +181,25 @@ export default function GoalsPage() {
   }, [isMounted, goals]);
 
   const addGoal = () => {
+    let errorMsg = ''
     if (!newGoal.title.trim()) {
-      toast({
-        title: "Error",
-        description: "Goal title is required",
-        variant: "destructive",
-      })
-      return
+      errorMsg += 'Goal title is required. '
     }
-
     // Filter out empty milestones
     const filteredMilestones = newGoal.milestones.filter((m: any) => m.title.trim() !== "")
-
     if (filteredMilestones.length === 0) {
+      errorMsg += 'At least one milestone is required.'
+    }
+    if (errorMsg) {
+      setAddGoalError(errorMsg)
       toast({
         title: "Error",
-        description: "At least one milestone is required",
+        description: errorMsg,
         variant: "destructive",
       })
       return
     }
-
+    setAddGoalError(null)
     const goal = {
       id: Date.now(),
       title: newGoal.title,
@@ -193,7 +211,6 @@ export default function GoalsPage() {
       priority: newGoal.priority,
       status: newGoal.status,
     }
-
     setGoals([...goals, goal])
     setNewGoal({
       title: "",
@@ -204,9 +221,9 @@ export default function GoalsPage() {
       milestones: [{ id: Date.now(), title: "", completed: false }],
       priority: "medium",
       status: "not-started",
+      id: Date.now(),
     })
     setIsAddDialogOpen(false)
-
     toast({
       title: "Goal added",
       description: "Your new goal has been added successfully.",
@@ -270,7 +287,7 @@ export default function GoalsPage() {
     })
   }
 
-  const deleteGoal = (id) => {
+  const deleteGoal = (id: number) => {
     setGoals(goals.filter((goal) => goal.id !== id))
 
     toast({
@@ -279,7 +296,7 @@ export default function GoalsPage() {
     })
   }
 
-  const startEditGoal = (goal) => {
+  const startEditGoal = (goal: Goal) => {
     setEditingGoal({
       ...goal,
       targetDate: new Date(goal.targetDate),
@@ -294,14 +311,14 @@ export default function GoalsPage() {
     })
   }
 
-  const removeMilestone = (id) => {
+  const removeMilestone = (id: number) => {
     setNewGoal({
       ...newGoal,
       milestones: newGoal.milestones.filter((m) => m.id !== id),
     })
   }
 
-  const updateMilestone = (id, title) => {
+  const updateMilestone = (id: number, title: string) => {
     setNewGoal({
       ...newGoal,
       milestones: newGoal.milestones.map((m) => (m.id === id ? { ...m, title } : m)),
@@ -310,34 +327,35 @@ export default function GoalsPage() {
 
   // Same functions for editing
   const addEditMilestone = () => {
+    if (!editingGoal) return
     setEditingGoal({
       ...editingGoal,
       milestones: [...editingGoal.milestones, { id: Date.now(), title: "", completed: false }],
     })
   }
 
-  const removeEditMilestone = (id: any) => {
-    if (!editingGoal) return;
+  const removeEditMilestone = (id: number) => {
+    if (!editingGoal) return
     setEditingGoal({
       ...editingGoal,
-      milestones: editingGoal.milestones.filter((m: any) => m.id !== id),
-    });
+      milestones: editingGoal.milestones.filter((m) => m.id !== id),
+    })
   }
 
-  const updateEditMilestone = (id: any, title: any) => {
-    if (!editingGoal) return;
+  const updateEditMilestone = (id: number, title: string) => {
+    if (!editingGoal) return
     setEditingGoal({
       ...editingGoal,
-      milestones: editingGoal.milestones.map((m: any) => (m.id === id ? { ...m, title } : m)),
-    });
+      milestones: editingGoal.milestones.map((m) => (m.id === id ? { ...m, title } : m)),
+    })
   }
 
-  const toggleEditMilestone = (id: any) => {
-    if (!editingGoal) return;
+  const toggleEditMilestone = (id: number) => {
+    if (!editingGoal) return
     setEditingGoal({
       ...editingGoal,
-      milestones: editingGoal.milestones.map((m: any) => (m.id === id ? { ...m, completed: !m.completed } : m)),
-    });
+      milestones: editingGoal.milestones.map((m) => (m.id === id ? { ...m, completed: !m.completed } : m)),
+    })
   }
 
   const toggleMilestone = (goalId: any, milestoneId: any) => {
@@ -547,7 +565,7 @@ export default function GoalsPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title">Goal Title</Label>
+                <Label htmlFor="title">Goal Title <span className="text-red-500">*</span></Label>
                 <Input
                   id="title"
                   placeholder="What do you want to achieve?"
@@ -617,7 +635,7 @@ export default function GoalsPage() {
 
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <Label>Milestones</Label>
+                  <Label>Milestones <span className="text-red-500">*</span></Label>
                   <Button type="button" variant="outline" size="sm" onClick={addMilestone}>
                     <Plus className="h-4 w-4 mr-1" /> Add Milestone
                   </Button>
@@ -659,6 +677,10 @@ export default function GoalsPage() {
               </Button>
               <Button onClick={addGoal}>Add Goal</Button>
             </DialogFooter>
+            {addGoalError && (
+              <div className="text-red-500 text-sm mt-2 text-center">{addGoalError}</div>
+            )}
+            <div className="text-xs text-muted-foreground mt-2 text-center">Fields marked with <span className="text-red-500">*</span> are required.</div>
           </DialogContent>
         </Dialog>
 
