@@ -40,9 +40,25 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+type MedicationType = {
+  id: number;
+  name: string;
+  dosage: string;
+  instructions: string;
+  schedule: { time: string; days: string[] }[];
+  notificationsEnabled: boolean;
+  alarmEnabled: boolean;
+  alarmSound: string;
+  alarmVolume: number;
+  color: string;
+  startDate: string;
+  endDate: string | null;
+  notes: string;
+};
+
 export default function MedicationsPage() {
   const { toast } = useToast()
-  const [medications, setMedications] = useState([
+  const [medications, setMedications] = useState<MedicationType[]>([
     {
       id: 1,
       name: "Vitamin D",
@@ -95,7 +111,8 @@ export default function MedicationsPage() {
     },
   ])
 
-  const [newMedication, setNewMedication] = useState({
+  const [newMedication, setNewMedication] = useState<MedicationType>({
+    id: 0,
     name: "",
     dosage: "",
     instructions: "",
@@ -105,17 +122,17 @@ export default function MedicationsPage() {
     alarmSound: "bell",
     alarmVolume: 70,
     color: "blue",
-    startDate: new Date(),
+    startDate: new Date().toISOString().split('T')[0],
     endDate: null,
     notes: "",
   })
 
-  const [editingMedication, setEditingMedication] = useState(null)
+  const [editingMedication, setEditingMedication] = useState<MedicationType | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [notificationPermission, setNotificationPermission] = useState("default")
-  const [todaysMedications, setTodaysMedications] = useState([])
-  const [upcomingMedications, setUpcomingMedications] = useState([])
+  const [todaysMedications, setTodaysMedications] = useState<MedicationType[]>([])
+  const [upcomingMedications, setUpcomingMedications] = useState<MedicationType[]>([])
   const [filter, setFilter] = useState("all")
   const [isMounted, setIsMounted] = useState(false)
   const [medicationsInitialized, setMedicationsInitialized] = useState(false)
@@ -331,7 +348,7 @@ export default function MedicationsPage() {
 
   // Play alarm sound
   const playAlarm = useCallback(
-    (medication, isRepeat = false) => {
+    (medication: MedicationType, isRepeat = false) => {
       if (!isMounted || !medication.alarmEnabled) return
 
       // Set current alarm
@@ -409,7 +426,7 @@ export default function MedicationsPage() {
 
   // Test alarm sound
   const testAlarmSound = useCallback(
-    (sound, volume) => {
+    (sound: string, volume: number) => {
       let success = false
 
       switch (sound) {
@@ -466,7 +483,7 @@ export default function MedicationsPage() {
     const todaysMeds = []
     const upcomingMeds = []
 
-    medications.forEach((medication) => {
+    medications.forEach((medication: MedicationType) => {
       // Check if medication is active based on start/end dates
       const startDate = medication.startDate ? new Date(medication.startDate) : null
       const endDate = medication.endDate ? new Date(medication.endDate) : null
@@ -474,13 +491,13 @@ export default function MedicationsPage() {
       if (startDate && startDate > now) return
       if (endDate && endDate < now) return
 
-      medication.schedule.forEach((schedule) => {
+      medication.schedule.forEach((schedule: { time: string; days: string[] }) => {
         if (schedule.days.includes(today)) {
           const [hours, minutes] = schedule.time.split(":").map(Number)
           const scheduleTime = new Date(now)
           scheduleTime.setHours(hours, minutes, 0, 0)
 
-          const medicationDue = {
+          const medicationDue: MedicationType = {
             ...medication,
             dueTime: schedule.time,
             formattedTime: formatTime(schedule.time),
@@ -497,8 +514,8 @@ export default function MedicationsPage() {
     })
 
     // Sort by time
-    todaysMeds.sort((a, b) => a.scheduleTime - b.scheduleTime)
-    upcomingMeds.sort((a, b) => a.scheduleTime - b.scheduleTime)
+    todaysMeds.sort((a: MedicationType, b: MedicationType) => a.scheduleTime - b.scheduleTime)
+    upcomingMeds.sort((a: MedicationType, b: MedicationType) => a.scheduleTime - b.scheduleTime)
 
     setTodaysMedications(todaysMeds)
     setUpcomingMedications(upcomingMeds)
@@ -506,7 +523,7 @@ export default function MedicationsPage() {
 
   // Format time based on user preference (12h or 24h)
   const formatTime = useCallback(
-    (timeString) => {
+    (timeString: string) => {
       if (!use12HourFormat) return timeString // Return 24h format as is
 
       try {
@@ -666,7 +683,7 @@ export default function MedicationsPage() {
     }
 
     setMedications((prev) =>
-      prev.map((medication) =>
+      prev.map((medication: MedicationType) =>
         medication.id === editingMedication.id
           ? {
               ...medication,
@@ -702,8 +719,8 @@ export default function MedicationsPage() {
   }, [editingMedication, toast])
 
   const deleteMedication = useCallback(
-    (id) => {
-      setMedications((prev) => prev.filter((medication) => medication.id !== id))
+    (id: number) => {
+      setMedications((prev) => prev.filter((medication: MedicationType) => medication.id !== id))
 
       toast({
         title: "Medication deleted",
@@ -713,7 +730,7 @@ export default function MedicationsPage() {
     [toast],
   )
 
-  const startEditMedication = useCallback((medication) => {
+  const startEditMedication = useCallback((medication: MedicationType) => {
     setEditingMedication({
       ...medication,
       startDate: medication.startDate ? new Date(medication.startDate) : null,
@@ -752,14 +769,14 @@ export default function MedicationsPage() {
     }))
   }, [])
 
-  const removeScheduleTime = useCallback((index) => {
+  const removeScheduleTime = useCallback((index: number) => {
     setNewMedication((prev) => ({
       ...prev,
       schedule: prev.schedule.filter((_, i) => i !== index),
     }))
   }, [])
 
-  const updateScheduleTime = useCallback((index, time) => {
+  const updateScheduleTime = useCallback((index: number, time: string) => {
     setNewMedication((prev) => {
       const updatedSchedule = [...prev.schedule]
       updatedSchedule[index] = { ...updatedSchedule[index], time }
@@ -767,13 +784,13 @@ export default function MedicationsPage() {
     })
   }, [])
 
-  const updateScheduleDays = useCallback((index, day, checked) => {
+  const updateScheduleDays = useCallback((index: number, day: string, checked: boolean) => {
     setNewMedication((prev) => {
       const updatedSchedule = [...prev.schedule]
       if (checked) {
         updatedSchedule[index] = {
           ...updatedSchedule[index],
-          days: [...updatedSchedule[index].days, day].sort((a, b) => {
+          days: [...updatedSchedule[index].days, day].sort((a: string, b: string) => {
             const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
             return days.indexOf(a) - days.indexOf(b)
           }),
@@ -781,7 +798,7 @@ export default function MedicationsPage() {
       } else {
         updatedSchedule[index] = {
           ...updatedSchedule[index],
-          days: updatedSchedule[index].days.filter((d) => d !== day),
+          days: updatedSchedule[index].days.filter((d: string) => d !== day),
         }
       }
       return { ...prev, schedule: updatedSchedule }
@@ -802,7 +819,7 @@ export default function MedicationsPage() {
   }, [editingMedication])
 
   const removeEditScheduleTime = useCallback(
-    (index) => {
+    (index: number) => {
       if (!editingMedication) return
 
       setEditingMedication((prev) => ({
@@ -813,46 +830,40 @@ export default function MedicationsPage() {
     [editingMedication],
   )
 
-  const updateEditScheduleTime = useCallback(
-    (index, time) => {
-      if (!editingMedication) return
+  const updateEditScheduleTime = useCallback((index: number, time: string) => {
+    if (!editingMedication) return
 
-      setEditingMedication((prev) => {
-        const updatedSchedule = [...prev.schedule]
-        updatedSchedule[index] = { ...updatedSchedule[index], time }
-        return { ...prev, schedule: updatedSchedule }
-      })
-    },
-    [editingMedication],
-  )
+    setEditingMedication((prev) => {
+      const updatedSchedule = [...prev.schedule]
+      updatedSchedule[index] = { ...updatedSchedule[index], time }
+      return { ...prev, schedule: updatedSchedule }
+    })
+  }, [editingMedication])
 
-  const updateEditScheduleDays = useCallback(
-    (index, day, checked) => {
-      if (!editingMedication) return
+  const updateEditScheduleDays = useCallback((index: number, day: string, checked: boolean) => {
+    if (!editingMedication) return
 
-      setEditingMedication((prev) => {
-        const updatedSchedule = [...prev.schedule]
-        if (checked) {
-          updatedSchedule[index] = {
-            ...updatedSchedule[index],
-            days: [...updatedSchedule[index].days, day].sort((a, b) => {
-              const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-              return days.indexOf(a) - days.indexOf(b)
-            }),
-          }
-        } else {
-          updatedSchedule[index] = {
-            ...updatedSchedule[index],
-            days: prev.schedule[index].days.filter((d) => d !== day),
-          }
+    setEditingMedication((prev) => {
+      const updatedSchedule = [...prev.schedule]
+      if (checked) {
+        updatedSchedule[index] = {
+          ...updatedSchedule[index],
+          days: [...updatedSchedule[index].days, day].sort((a: string, b: string) => {
+            const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+            return days.indexOf(a) - days.indexOf(b)
+          }),
         }
-        return { ...prev, schedule: updatedSchedule }
-      })
-    },
-    [editingMedication],
-  )
+      } else {
+        updatedSchedule[index] = {
+          ...updatedSchedule[index],
+          days: prev.schedule[index].days.filter((d: string) => d !== day),
+        }
+      }
+      return { ...prev, schedule: updatedSchedule }
+    })
+  }, [editingMedication])
 
-  const getMedicationColor = useCallback((color) => {
+  const getMedicationColor = useCallback((color: string) => {
     switch (color) {
       case "red":
         return "bg-red-500"
@@ -873,7 +884,7 @@ export default function MedicationsPage() {
     }
   }, [])
 
-  const formatDaysList = useCallback((days) => {
+  const formatDaysList = useCallback((days: string[]) => {
     if (days.length === 7) return "Every day"
 
     const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"]
@@ -890,7 +901,7 @@ export default function MedicationsPage() {
     return days.map((day) => day.charAt(0).toUpperCase() + day.slice(1, 3)).join(", ")
   }, [])
 
-  const filteredMedications = medications.filter((medication) => {
+  const filteredMedications = medications.filter((medication: MedicationType) => {
     if (filter === "all") return true
     if (filter === "active") {
       const now = new Date()
@@ -909,121 +920,606 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {showPermissionAlert && (
-        <Alert variant="warning" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Notifications are disabled</AlertTitle>
-          <AlertDescription>
-            Enable notifications to receive medication reminders even when the app is in the background.
-            <Button variant="outline" size="sm" className="ml-2" onClick={() => setIsPermissionDialogOpen(true)}>
-              Enable Notifications
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+        {showPermissionAlert && (
+          <Alert variant="warning" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Notifications are disabled</AlertTitle>
+            <AlertDescription>
+              Enable notifications to receive medication reminders even when the app is in the background.
+              <Button variant="outline" size="sm" className="ml-2" onClick={() => setIsPermissionDialogOpen(true)}>
+                Enable Notifications
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enable Notifications</DialogTitle>
-            <DialogDescription>
-              Notifications allow you to receive medication reminders even when the app is in the background or closed.
-              This is especially important for medication adherence.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="mb-4">By enabling notifications, you'll:</p>
-            <ul className="list-disc pl-5 space-y-2 mb-4">
-              <li>Get timely medication reminders with sound</li>
-              <li>Never miss important doses</li>
-              <li>Receive periodic notifications for critical medications</li>
-              <li>Get vibration alerts on mobile devices</li>
-            </ul>
-            <p>You can always change this setting later in your browser or device settings.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPermissionDialogOpen(false)}>
-              Not Now
-            </Button>
-            <Button onClick={requestNotificationPermission}>Enable Notifications</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Active Alarm Dialog */}
-      {isAlarmPlaying && currentAlarm && (
-        <Dialog open={isAlarmPlaying} onOpenChange={(open) => !open && stopAlarm()}>
-          <DialogContent className="sm:max-w-md">
+        <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>Medication Reminder</DialogTitle>
-              <DialogDescription>It's time to take your medication</DialogDescription>
+              <DialogTitle>Enable Notifications</DialogTitle>
+              <DialogDescription>
+                Notifications allow you to receive medication reminders even when the app is in the background or closed.
+                This is especially important for medication adherence.
+              </DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col items-center justify-center gap-4 py-4">
-              <div
-                className={`w-16 h-16 rounded-full ${getMedicationColor(currentAlarm.color)} flex items-center justify-center`}
-              >
-                <Pill className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-xl font-bold">{currentAlarm.name}</h2>
-              <p className="text-lg">{currentAlarm.dosage}</p>
-              {currentAlarm.instructions && <p className="text-muted-foreground">{currentAlarm.instructions}</p>}
+            <div className="py-4">
+              <p className="mb-4">By enabling notifications, you'll:</p>
+              <ul className="list-disc pl-5 space-y-2 mb-4">
+                <li>Get timely medication reminders with sound</li>
+                <li>Never miss important doses</li>
+                <li>Receive periodic notifications for critical medications</li>
+                <li>Get vibration alerts on mobile devices</li>
+              </ul>
+              <p>You can always change this setting later in your browser or device settings.</p>
             </div>
             <DialogFooter>
-              <Button onClick={stopAlarm}>Dismiss</Button>
+              <Button variant="outline" onClick={() => setIsPermissionDialogOpen(false)}>
+                Not Now
+              </Button>
+              <Button onClick={requestNotificationPermission}>Enable Notifications</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Medications</h2>
-          <p className="text-muted-foreground">Track your medications and get reminders</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="time-format">Use 12-hour format (AM/PM)</Label>
-            <Switch id="time-format" checked={use12HourFormat} onCheckedChange={setUse12HourFormat} />
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={() => {
-                  // Try to initialize audio context on button click
-                  if (!audioContextRef.current && typeof window !== "undefined") {
-                    try {
-                      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
-                      if (AudioContextClass) {
-                        audioContextRef.current = new AudioContextClass()
-                      }
-                    } catch (e) {
-                      console.error("Failed to initialize audio context:", e)
-                    }
-                  }
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Medication
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+        {/* Active Alarm Dialog */}
+        {isAlarmPlaying && currentAlarm && (
+          <Dialog open={isAlarmPlaying} onOpenChange={(open) => !open && stopAlarm()}>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Add New Medication</DialogTitle>
-                <DialogDescription>Add a new medication to your tracking list</DialogDescription>
+                <DialogTitle>Medication Reminder</DialogTitle>
+                <DialogDescription>It's time to take your medication</DialogDescription>
               </DialogHeader>
+              <div className="flex flex-col items-center justify-center gap-4 py-4">
+                <div
+                  className={`w-16 h-16 rounded-full ${getMedicationColor(currentAlarm.color)} flex items-center justify-center`}
+                >
+                  <Pill className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-xl font-bold">{currentAlarm.name}</h2>
+                <p className="text-lg">{currentAlarm.dosage}</p>
+                {currentAlarm.instructions && <p className="text-muted-foreground">{currentAlarm.instructions}</p>}
+              </div>
+              <DialogFooter>
+                <Button onClick={stopAlarm}>Dismiss</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Medications</h2>
+            <p className="text-muted-foreground">Track your medications and get reminders</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="time-format">Use 12-hour format (AM/PM)</Label>
+              <Switch id="time-format" checked={use12HourFormat} onCheckedChange={setUse12HourFormat} />
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    // Try to initialize audio context on button click
+                    if (!audioContextRef.current && typeof window !== "undefined") {
+                      try {
+                        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+                        if (AudioContextClass) {
+                          audioContextRef.current = new AudioContextClass()
+                        }
+                      } catch (e) {
+                        console.error("Failed to initialize audio context:", e)
+                      }
+                    }
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Medication
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Medication</DialogTitle>
+                  <DialogDescription>Add a new medication to your tracking list</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name" className="flex items-center">
+                        Medication Name <span className="text-red-500 ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="name"
+                        placeholder="Medication name"
+                        value={newMedication.name}
+                        onChange={(e) => {
+                          setNewMedication({ ...newMedication, name: e.target.value })
+                          // Remove error styling on input
+                          e.target.removeAttribute("data-error")
+                          e.target.classList.remove("border-red-500", "focus:ring-red-500")
+                        }}
+                        className="focus:ring-primary"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="dosage" className="flex items-center">
+                        Dosage <span className="text-red-500 ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="dosage"
+                        placeholder="e.g., 500mg"
+                        value={newMedication.dosage}
+                        onChange={(e) => {
+                          setNewMedication({ ...newMedication, dosage: e.target.value })
+                          // Remove error styling on input
+                          e.target.removeAttribute("data-error")
+                          e.target.classList.remove("border-red-500", "focus:ring-red-500")
+                        }}
+                        className="focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="instructions">Instructions</Label>
+                    <Input
+                      id="instructions"
+                      placeholder="e.g., Take with food"
+                      value={newMedication.instructions}
+                      onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Schedule</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addScheduleTime}>
+                        <Plus className="h-4 w-4 mr-1" /> Add Time
+                      </Button>
+                    </div>
+
+                    {newMedication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
+                      <div key={index} className="space-y-3 p-3 border rounded-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Label htmlFor={`time-${index}`}>Time</Label>
+                          </div>
+                          {newMedication.schedule.length > 1 && (
+                            <Button type="button" variant="ghost" size="sm" onClick={() => removeScheduleTime(index)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <Input
+                          id={`time-${index}`}
+                          type="time"
+                          value={schedule.time}
+                          onChange={(e) => updateScheduleTime(index, e.target.value)}
+                        />
+
+                        <div className="space-y-2">
+                          <Label>Days</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => (
+                              <div key={day} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`${day}-${index}`}
+                                  checked={schedule.days.includes(day)}
+                                  onChange={(e) => updateScheduleDays(index, day, e.target.checked)}
+                                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <Label htmlFor={`${day}-${index}`} className="text-sm">
+                                  {day.charAt(0).toUpperCase() + day.slice(1, 3)}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="startDate">Start Date</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={typeof newMedication.startDate === 'string' ? newMedication.startDate : newMedication.startDate.toISOString().split('T')[0]}
+                      onChange={e => setNewMedication({ ...newMedication, startDate: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="endDate">End Date (Optional)</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={newMedication.endDate ? (typeof newMedication.endDate === 'string' ? newMedication.endDate : newMedication.endDate.toISOString().split('T')[0]) : ''}
+                      onChange={e => setNewMedication({ ...newMedication, endDate: e.target.value })}
+                      placeholder="No end date"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="color">Color</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color: string) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setNewMedication({ ...newMedication, color })}
+                          className={`w-8 h-8 rounded-full ${getMedicationColor(color)} ${
+                            newMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
+                          }`}
+                          aria-label={`${color} color`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="notifications">Notifications</Label>
+                        <div className="text-xs text-muted-foreground">
+                          Get reminded when it's time to take your medication
+                        </div>
+                      </div>
+                      <Switch
+                        id="notifications"
+                        checked={newMedication.notificationsEnabled}
+                        onCheckedChange={(checked) =>
+                          setNewMedication({ ...newMedication, notificationsEnabled: checked })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="alarm">Alarm Sound</Label>
+                        <div className="text-xs text-muted-foreground">
+                          Play an alarm sound when it's time to take your medication
+                        </div>
+                      </div>
+                      <Switch
+                        id="alarm"
+                        checked={newMedication.alarmEnabled}
+                        onCheckedChange={(checked) => setNewMedication({ ...newMedication, alarmEnabled: checked })}
+                      />
+                    </div>
+
+                    {newMedication.alarmEnabled && (
+                      <div className="space-y-4 mt-2">
+                        <div className="grid gap-2">
+                          <Label htmlFor="alarmSound">Sound</Label>
+                          <div className="flex gap-2">
+                            <Select
+                              value={newMedication.alarmSound}
+                              onValueChange={(value) => setNewMedication({ ...newMedication, alarmSound: value })}
+                            >
+                              <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="Select sound" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bell">Bell</SelectItem>
+                                <SelectItem value="beep">Beep</SelectItem>
+                                <SelectItem value="chime">Chime</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => testAlarmSound(newMedication.alarmSound, newMedication.alarmVolume)}
+                            >
+                              <Volume2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor="alarmVolume">Volume</Label>
+                            <span className="text-sm text-muted-foreground">{newMedication.alarmVolume}%</span>
+                          </div>
+                          <Slider
+                            id="alarmVolume"
+                            min={0}
+                            max={100}
+                            step={10}
+                            value={[newMedication.alarmVolume]}
+                            onValueChange={(value) => setNewMedication({ ...newMedication, alarmVolume: value[0] })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Additional notes"
+                      value={newMedication.notes}
+                      onChange={(e) => setNewMedication({ ...newMedication, notes: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={addMedication}>Add Medication</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter medications" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Medications</SelectItem>
+              <SelectItem value="active">Active Medications</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Medications</CardTitle>
+              <CardDescription>Medications you need to take today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {todaysMedications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  <Check className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">All caught up!</h3>
+                  <p className="text-sm text-muted-foreground">No more medications to take today</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {todaysMedications.map((medication: MedicationType, index: number) => (
+                    <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <div
+                        className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                      ></div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{medication.name}</h4>
+                          <Badge variant="outline">{medication.formattedTime || medication.dueTime}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+                        {medication.instructions && (
+                          <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Medications</CardTitle>
+              <CardDescription>Medications scheduled for later today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {upcomingMedications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  <Check className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">All done for today!</h3>
+                  <p className="text-sm text-muted-foreground">No more medications scheduled for today</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingMedications.map((medication: MedicationType, index: number) => (
+                    <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <div
+                        className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                      ></div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{medication.name}</h4>
+                          <Badge>{medication.formattedTime || medication.dueTime}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+                        {medication.instructions && (
+                          <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Medications</TabsTrigger>
+            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Medication List</CardTitle>
+                <CardDescription>Manage your medications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {filteredMedications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <Pill className="h-10 w-10 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium">No medications found</h3>
+                    <p className="text-sm text-muted-foreground">Add your first medication to get started</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredMedications.map((medication: MedicationType, index: number) => (
+                      <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                        <div
+                          className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                        ></div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{medication.name}</h4>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+
+                          <div className="mt-2 space-y-1">
+                            {medication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
+                              <div key={index} className="flex items-center text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3 mr-1" />
+                                <span>
+                                  {use12HourFormat
+                                    ? format(parse(schedule.time, "HH:mm", new Date()), "h:mm a")
+                                    : schedule.time}{" "}
+                                  - {formatDaysList(schedule.days)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {medication.instructions && (
+                            <p className="text-xs text-muted-foreground mt-2">{medication.instructions}</p>
+                          )}
+
+                          <div className="flex items-center gap-2 mt-2">
+                            {medication.startDate && (
+                              <Badge variant="outline" className="text-xs">
+                                From: {format(new Date(medication.startDate), "MMM d, yyyy")}
+                              </Badge>
+                            )}
+                            {medication.endDate && (
+                              <Badge variant="outline" className="text-xs">
+                                Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
+                              </Badge>
+                            )}
+                            {medication.notificationsEnabled ? (
+                              <Badge variant="secondary" className="text-xs">
+                                <Bell className="h-3 w-3 mr-1" /> Notifications On
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                <BellOff className="h-3 w-3 mr-1" /> Notifications Off
+                              </Badge>
+                            )}
+                            {medication.alarmEnabled && (
+                              <Badge variant="secondary" className="text-xs">
+                                <Volume2 className="h-3 w-3 mr-1" /> Alarm On
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="schedule" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Schedule</CardTitle>
+                <CardDescription>Your medication schedule for the week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="border p-2 text-left">Time</th>
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day: string) => (
+                          <th key={day} className="border p-2 text-center">
+                            {day}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {["08:00", "12:00", "16:00", "20:00"].map((time: string) => (
+                        <tr key={time}>
+                          <td className="border p-2 font-medium">
+                            {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
+                          </td>
+                          {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => {
+                            const medsForTimeAndDay = filteredMedications.filter((med: MedicationType) =>
+                              med.schedule.some((s: { time: string; days: string[] }) => s.time === time && s.days.includes(day)),
+                            )
+
+                            return (
+                              <td key={day} className="border p-2 text-center">
+                                {medsForTimeAndDay.length > 0 ? (
+                                  <div className="flex flex-col gap-1">
+                                    {medsForTimeAndDay.map((med: MedicationType) => (
+                                      <div
+                                        key={med.id}
+                                        className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white`}
+                                      >
+                                        {med.name}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">-</span>
+                                )}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Medication</DialogTitle>
+              <DialogDescription>Update your medication details</DialogDescription>
+            </DialogHeader>
+            {editingMedication && (
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="name" className="flex items-center">
+                    <Label htmlFor="edit-name" className="flex items-center">
                       Medication Name <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
-                      id="name"
+                      id="edit-name"
                       placeholder="Medication name"
-                      value={newMedication.name}
+                      value={editingMedication.name}
                       onChange={(e) => {
-                        setNewMedication({ ...newMedication, name: e.target.value })
+                        setEditingMedication({ ...editingMedication, name: e.target.value })
                         // Remove error styling on input
                         e.target.removeAttribute("data-error")
                         e.target.classList.remove("border-red-500", "focus:ring-red-500")
@@ -1032,15 +1528,15 @@ export default function MedicationsPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="dosage" className="flex items-center">
+                    <Label htmlFor="edit-dosage" className="flex items-center">
                       Dosage <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
-                      id="dosage"
+                      id="edit-dosage"
                       placeholder="e.g., 500mg"
-                      value={newMedication.dosage}
+                      value={editingMedication.dosage}
                       onChange={(e) => {
-                        setNewMedication({ ...newMedication, dosage: e.target.value })
+                        setEditingMedication({ ...editingMedication, dosage: e.target.value })
                         // Remove error styling on input
                         e.target.removeAttribute("data-error")
                         e.target.classList.remove("border-red-500", "focus:ring-red-500")
@@ -1051,57 +1547,57 @@ export default function MedicationsPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="instructions">Instructions</Label>
+                  <Label htmlFor="edit-instructions">Instructions</Label>
                   <Input
-                    id="instructions"
+                    id="edit-instructions"
                     placeholder="e.g., Take with food"
-                    value={newMedication.instructions}
-                    onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
+                    value={editingMedication.instructions}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, instructions: e.target.value })}
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <Label>Schedule</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addScheduleTime}>
+                    <Button type="button" variant="outline" size="sm" onClick={addEditScheduleTime}>
                       <Plus className="h-4 w-4 mr-1" /> Add Time
                     </Button>
                   </div>
 
-                  {newMedication.schedule.map((schedule, index) => (
+                  {editingMedication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
                     <div key={index} className="space-y-3 p-3 border rounded-md">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <Label htmlFor={`time-${index}`}>Time</Label>
+                          <Label htmlFor={`edit-time-${index}`}>Time</Label>
                         </div>
-                        {newMedication.schedule.length > 1 && (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => removeScheduleTime(index)}>
+                        {editingMedication.schedule.length > 1 && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeEditScheduleTime(index)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
 
                       <Input
-                        id={`time-${index}`}
+                        id={`edit-time-${index}`}
                         type="time"
                         value={schedule.time}
-                        onChange={(e) => updateScheduleTime(index, e.target.value)}
+                        onChange={(e) => updateEditScheduleTime(index, e.target.value)}
                       />
 
                       <div className="space-y-2">
                         <Label>Days</Label>
                         <div className="flex flex-wrap gap-2">
-                          {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
+                          {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => (
                             <div key={day} className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
-                                id={`${day}-${index}`}
+                                id={`edit-${day}-${index}`}
                                 checked={schedule.days.includes(day)}
-                                onChange={(e) => updateScheduleDays(index, day, e.target.checked)}
+                                onChange={(e) => updateEditScheduleDays(index, day, e.target.checked)}
                                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                               />
-                              <Label htmlFor={`${day}-${index}`} className="text-sm">
+                              <Label htmlFor={`edit-${day}-${index}`} className="text-sm">
                                 {day.charAt(0).toUpperCase() + day.slice(1, 3)}
                               </Label>
                             </div>
@@ -1113,36 +1609,36 @@ export default function MedicationsPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="startDate">Start Date</Label>
+                  <Label htmlFor="edit-startDate">Start Date</Label>
                   <Input
-                    id="startDate"
+                    id="edit-startDate"
                     type="date"
-                    value={typeof newMedication.startDate === 'string' ? newMedication.startDate : newMedication.startDate.toISOString().split('T')[0]}
-                    onChange={e => setNewMedication({ ...newMedication, startDate: e.target.value })}
+                    value={editingMedication && editingMedication.startDate ? (typeof editingMedication.startDate === 'string' ? editingMedication.startDate : editingMedication.startDate.toISOString().split('T')[0]) : ''}
+                    onChange={e => setEditingMedication({ ...editingMedication, startDate: e.target.value })}
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="endDate">End Date (Optional)</Label>
+                  <Label htmlFor="edit-endDate">End Date (Optional)</Label>
                   <Input
-                    id="endDate"
+                    id="edit-endDate"
                     type="date"
-                    value={newMedication.endDate ? (typeof newMedication.endDate === 'string' ? newMedication.endDate : newMedication.endDate.toISOString().split('T')[0]) : ''}
-                    onChange={e => setNewMedication({ ...newMedication, endDate: e.target.value })}
+                    value={editingMedication && editingMedication.endDate ? (typeof editingMedication.endDate === 'string' ? editingMedication.endDate : editingMedication.endDate.toISOString().split('T')[0]) : ''}
+                    onChange={e => setEditingMedication({ ...editingMedication, endDate: e.target.value })}
                     placeholder="No end date"
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="color">Color</Label>
+                  <Label htmlFor="edit-color">Color</Label>
                   <div className="flex flex-wrap gap-2">
-                    {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color) => (
+                    {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color: string) => (
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setNewMedication({ ...newMedication, color })}
+                        onClick={() => setEditingMedication({ ...editingMedication, color })}
                         className={`w-8 h-8 rounded-full ${getMedicationColor(color)} ${
-                          newMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
+                          editingMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
                         }`}
                         aria-label={`${color} color`}
                       />
@@ -1153,16 +1649,16 @@ export default function MedicationsPage() {
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="notifications">Notifications</Label>
+                      <Label htmlFor="edit-notifications">Notifications</Label>
                       <div className="text-xs text-muted-foreground">
                         Get reminded when it's time to take your medication
                       </div>
                     </div>
                     <Switch
-                      id="notifications"
-                      checked={newMedication.notificationsEnabled}
+                      id="edit-notifications"
+                      checked={editingMedication.notificationsEnabled}
                       onCheckedChange={(checked) =>
-                        setNewMedication({ ...newMedication, notificationsEnabled: checked })
+                        setEditingMedication({ ...editingMedication, notificationsEnabled: checked })
                       }
                     />
                   </div>
@@ -1171,26 +1667,26 @@ export default function MedicationsPage() {
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="alarm">Alarm Sound</Label>
+                      <Label htmlFor="edit-alarm">Alarm Sound</Label>
                       <div className="text-xs text-muted-foreground">
                         Play an alarm sound when it's time to take your medication
                       </div>
                     </div>
                     <Switch
-                      id="alarm"
-                      checked={newMedication.alarmEnabled}
-                      onCheckedChange={(checked) => setNewMedication({ ...newMedication, alarmEnabled: checked })}
+                      id="edit-alarm"
+                      checked={editingMedication.alarmEnabled}
+                      onCheckedChange={(checked) => setEditingMedication({ ...editingMedication, alarmEnabled: checked })}
                     />
                   </div>
 
-                  {newMedication.alarmEnabled && (
+                  {editingMedication.alarmEnabled && (
                     <div className="space-y-4 mt-2">
                       <div className="grid gap-2">
-                        <Label htmlFor="alarmSound">Sound</Label>
+                        <Label htmlFor="edit-alarmSound">Sound</Label>
                         <div className="flex gap-2">
                           <Select
-                            value={newMedication.alarmSound}
-                            onValueChange={(value) => setNewMedication({ ...newMedication, alarmSound: value })}
+                            value={editingMedication.alarmSound}
+                            onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmSound: value })}
                           >
                             <SelectTrigger className="flex-1">
                               <SelectValue placeholder="Select sound" />
@@ -1205,7 +1701,7 @@ export default function MedicationsPage() {
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => testAlarmSound(newMedication.alarmSound, newMedication.alarmVolume)}
+                            onClick={() => testAlarmSound(editingMedication.alarmSound, editingMedication.alarmVolume)}
                           >
                             <Volume2 className="h-4 w-4" />
                           </Button>
@@ -1214,16 +1710,16 @@ export default function MedicationsPage() {
 
                       <div className="grid gap-2">
                         <div className="flex justify-between">
-                          <Label htmlFor="alarmVolume">Volume</Label>
-                          <span className="text-sm text-muted-foreground">{newMedication.alarmVolume}%</span>
+                          <Label htmlFor="edit-alarmVolume">Volume</Label>
+                          <span className="text-sm text-muted-foreground">{editingMedication.alarmVolume}%</span>
                         </div>
                         <Slider
-                          id="alarmVolume"
+                          id="edit-alarmVolume"
                           min={0}
                           max={100}
                           step={10}
-                          value={[newMedication.alarmVolume]}
-                          onValueChange={(value) => setNewMedication({ ...newMedication, alarmVolume: value[0] })}
+                          value={[editingMedication.alarmVolume]}
+                          onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmVolume: value[0] })}
                         />
                       </div>
                     </div>
@@ -1231,508 +1727,25 @@ export default function MedicationsPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Label htmlFor="edit-notes">Notes (Optional)</Label>
                   <Textarea
-                    id="notes"
+                    id="edit-notes"
                     placeholder="Additional notes"
-                    value={newMedication.notes}
-                    onChange={(e) => setNewMedication({ ...newMedication, notes: e.target.value })}
+                    value={editingMedication.notes}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, notes: e.target.value })}
                   />
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={addMedication}>Add Medication</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter medications" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Medications</SelectItem>
-            <SelectItem value="active">Active Medications</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Today's Medications</CardTitle>
-            <CardDescription>Medications you need to take today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {todaysMedications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center">
-                <Check className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">All caught up!</h3>
-                <p className="text-sm text-muted-foreground">No more medications to take today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {todaysMedications.map((medication, index) => (
-                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div
-                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                    ></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{medication.name}</h4>
-                        <Badge variant="outline">{medication.formattedTime || medication.dueTime}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-                      {medication.instructions && (
-                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Medications</CardTitle>
-            <CardDescription>Medications scheduled for later today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {upcomingMedications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center">
-                <Check className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">All done for today!</h3>
-                <p className="text-sm text-muted-foreground">No more medications scheduled for today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingMedications.map((medication, index) => (
-                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div
-                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                    ></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{medication.name}</h4>
-                        <Badge>{medication.formattedTime || medication.dueTime}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-                      {medication.instructions && (
-                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={updateMedication}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Medications</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Medication List</CardTitle>
-              <CardDescription>Manage your medications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredMedications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <Pill className="h-10 w-10 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No medications found</h3>
-                  <p className="text-sm text-muted-foreground">Add your first medication to get started</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredMedications.map((medication) => (
-                    <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div
-                        className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                      ></div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{medication.name}</h4>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-
-                        <div className="mt-2 space-y-1">
-                          {medication.schedule.map((schedule, index) => (
-                            <div key={index} className="flex items-center text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3 mr-1" />
-                              <span>
-                                {use12HourFormat
-                                  ? format(parse(schedule.time, "HH:mm", new Date()), "h:mm a")
-                                  : schedule.time}{" "}
-                                - {formatDaysList(schedule.days)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {medication.instructions && (
-                          <p className="text-xs text-muted-foreground mt-2">{medication.instructions}</p>
-                        )}
-
-                        <div className="flex items-center gap-2 mt-2">
-                          {medication.startDate && (
-                            <Badge variant="outline" className="text-xs">
-                              From: {format(new Date(medication.startDate), "MMM d, yyyy")}
-                            </Badge>
-                          )}
-                          {medication.endDate && (
-                            <Badge variant="outline" className="text-xs">
-                              Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
-                            </Badge>
-                          )}
-                          {medication.notificationsEnabled ? (
-                            <Badge variant="secondary" className="text-xs">
-                              <Bell className="h-3 w-3 mr-1" /> Notifications On
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              <BellOff className="h-3 w-3 mr-1" /> Notifications Off
-                            </Badge>
-                          )}
-                          {medication.alarmEnabled && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Volume2 className="h-3 w-3 mr-1" /> Alarm On
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="schedule" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Schedule</CardTitle>
-              <CardDescription>Your medication schedule for the week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="border p-2 text-left">Time</th>
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                        <th key={day} className="border p-2 text-center">
-                          {day}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {["08:00", "12:00", "16:00", "20:00"].map((time) => (
-                      <tr key={time}>
-                        <td className="border p-2 font-medium">
-                          {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
-                        </td>
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
-                          const medsForTimeAndDay = filteredMedications.filter((med) =>
-                            med.schedule.some((s) => s.time === time && s.days.includes(day)),
-                          )
-
-                          return (
-                            <td key={day} className="border p-2 text-center">
-                              {medsForTimeAndDay.length > 0 ? (
-                                <div className="flex flex-col gap-1">
-                                  {medsForTimeAndDay.map((med) => (
-                                    <div
-                                      key={med.id}
-                                      className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white`}
-                                    >
-                                      {med.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
-                              )}
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Medication</DialogTitle>
-            <DialogDescription>Update your medication details</DialogDescription>
-          </DialogHeader>
-          {editingMedication && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-name" className="flex items-center">
-                    Medication Name <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="edit-name"
-                    placeholder="Medication name"
-                    value={editingMedication.name}
-                    onChange={(e) => {
-                      setEditingMedication({ ...editingMedication, name: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-dosage" className="flex items-center">
-                    Dosage <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="edit-dosage"
-                    placeholder="e.g., 500mg"
-                    value={editingMedication.dosage}
-                    onChange={(e) => {
-                      setEditingMedication({ ...editingMedication, dosage: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-instructions">Instructions</Label>
-                <Input
-                  id="edit-instructions"
-                  placeholder="e.g., Take with food"
-                  value={editingMedication.instructions}
-                  onChange={(e) => setEditingMedication({ ...editingMedication, instructions: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label>Schedule</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addEditScheduleTime}>
-                    <Plus className="h-4 w-4 mr-1" /> Add Time
-                  </Button>
-                </div>
-
-                {editingMedication.schedule.map((schedule, index) => (
-                  <div key={index} className="space-y-3 p-3 border rounded-md">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor={`edit-time-${index}`}>Time</Label>
-                      </div>
-                      {editingMedication.schedule.length > 1 && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeEditScheduleTime(index)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <Input
-                      id={`edit-time-${index}`}
-                      type="time"
-                      value={schedule.time}
-                      onChange={(e) => updateEditScheduleTime(index, e.target.value)}
-                    />
-
-                    <div className="space-y-2">
-                      <Label>Days</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`edit-${day}-${index}`}
-                              checked={schedule.days.includes(day)}
-                              onChange={(e) => updateEditScheduleDays(index, day, e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <Label htmlFor={`edit-${day}-${index}`} className="text-sm">
-                              {day.charAt(0).toUpperCase() + day.slice(1, 3)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-startDate">Start Date</Label>
-                <Input
-                  id="edit-startDate"
-                  type="date"
-                  value={editingMedication && editingMedication.startDate ? (typeof editingMedication.startDate === 'string' ? editingMedication.startDate : editingMedication.startDate.toISOString().split('T')[0]) : ''}
-                  onChange={e => setEditingMedication({ ...editingMedication, startDate: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-endDate">End Date (Optional)</Label>
-                <Input
-                  id="edit-endDate"
-                  type="date"
-                  value={editingMedication && editingMedication.endDate ? (typeof editingMedication.endDate === 'string' ? editingMedication.endDate : editingMedication.endDate.toISOString().split('T')[0]) : ''}
-                  onChange={e => setEditingMedication({ ...editingMedication, endDate: e.target.value })}
-                  placeholder="No end date"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-color">Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setEditingMedication({ ...editingMedication, color })}
-                      className={`w-8 h-8 rounded-full ${getMedicationColor(color)} ${
-                        editingMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
-                      }`}
-                      aria-label={`${color} color`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="edit-notifications">Notifications</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Get reminded when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="edit-notifications"
-                    checked={editingMedication.notificationsEnabled}
-                    onCheckedChange={(checked) =>
-                      setEditingMedication({ ...editingMedication, notificationsEnabled: checked })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="edit-alarm">Alarm Sound</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Play an alarm sound when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="edit-alarm"
-                    checked={editingMedication.alarmEnabled}
-                    onCheckedChange={(checked) => setEditingMedication({ ...editingMedication, alarmEnabled: checked })}
-                  />
-                </div>
-
-                {editingMedication.alarmEnabled && (
-                  <div className="space-y-4 mt-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="edit-alarmSound">Sound</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={editingMedication.alarmSound}
-                          onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmSound: value })}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select sound" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bell">Bell</SelectItem>
-                            <SelectItem value="beep">Beep</SelectItem>
-                            <SelectItem value="chime">Chime</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => testAlarmSound(editingMedication.alarmSound, editingMedication.alarmVolume)}
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor="edit-alarmVolume">Volume</Label>
-                        <span className="text-sm text-muted-foreground">{editingMedication.alarmVolume}%</span>
-                      </div>
-                      <Slider
-                        id="edit-alarmVolume"
-                        min={0}
-                        max={100}
-                        step={10}
-                        value={[editingMedication.alarmVolume]}
-                        onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmVolume: value[0] })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-notes">Notes (Optional)</Label>
-                <Textarea
-                  id="edit-notes"
-                  placeholder="Additional notes"
-                  value={editingMedication.notes}
-                  onChange={(e) => setEditingMedication({ ...editingMedication, notes: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={updateMedication}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

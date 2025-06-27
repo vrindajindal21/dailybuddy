@@ -1150,119 +1150,121 @@ export default function TutorialPage() {
   const completionPercentage = (completedSections.size / tutorialSections.length) * 100
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tutorial & Help Center</h2>
-          <p className="text-muted-foreground">Learn how to make the most of StudyFlow</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-sm font-medium">Progress: {Math.round(completionPercentage)}%</div>
-            <Progress value={completionPercentage} className="w-32 h-2" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Tutorial & Help Center</h2>
+            <p className="text-muted-foreground">Learn how to make the most of StudyFlow</p>
           </div>
-          {showFirstTimeHelp && (
-            <Button onClick={startFirstTimeTutorial} className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              Start Interactive Tutorial
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-sm font-medium">Progress: {Math.round(completionPercentage)}%</div>
+              <Progress value={completionPercentage} className="w-32 h-2" />
+            </div>
+            {showFirstTimeHelp && (
+              <Button onClick={startFirstTimeTutorial} className="flex items-center gap-2">
+                <Play className="h-4 w-4" />
+                Start Interactive Tutorial
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          {tutorialSections.map((section) => (
-            <TabsTrigger key={section.id} value={section.id} className="text-xs">
-              <div className="flex items-center gap-1">
-                {section.icon}
-                <span className="hidden sm:inline">{section.title.split(" ")[1] || section.title}</span>
-                {completedSections.has(section.id) && <CheckSquare className="h-3 w-3 text-green-500" />}
-              </div>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {tutorialSections.map((section) => (
-          <TabsContent key={section.id} value={section.id} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-primary/10">{section.icon}</div>
-                    <div>
-                      <CardTitle className="text-xl">{section.title}</CardTitle>
-                      <CardDescription className="text-base">{section.description}</CardDescription>
-                    </div>
-                  </div>
-                  {completedSections.has(section.id) ? (
-                    <Badge
-                      variant="secondary"
-                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      <CheckSquare className="h-3 w-3 mr-1" />
-                      Completed
-                    </Badge>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => markSectionComplete(section.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <CheckSquare className="h-4 w-4" />
-                      Mark Complete
-                    </Button>
-                  )}
+        <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+            {tutorialSections.map((section) => (
+              <TabsTrigger key={section.id} value={section.id} className="text-xs">
+                <div className="flex items-center gap-1">
+                  {section.icon}
+                  <span className="hidden sm:inline">{section.title.split(" ")[1] || section.title}</span>
+                  {completedSections.has(section.id) && <CheckSquare className="h-3 w-3 text-green-500" />}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {section.content}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-                {section.actions && section.actions.length > 0 && (
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    {section.actions.map((action, index) => (
+          {tutorialSections.map((section) => (
+            <TabsContent key={section.id} value={section.id} className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-primary/10">{section.icon}</div>
+                      <div>
+                        <CardTitle className="text-xl">{section.title}</CardTitle>
+                        <CardDescription className="text-base">{section.description}</CardDescription>
+                      </div>
+                    </div>
+                    {completedSections.has(section.id) ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      >
+                        <CheckSquare className="h-3 w-3 mr-1" />
+                        Completed
+                      </Badge>
+                    ) : (
                       <Button
-                        key={index}
-                        variant={action.variant || "default"}
-                        onClick={action.onClick}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => markSectionComplete(section.id)}
                         className="flex items-center gap-2"
                       >
-                        <Play className="h-4 w-4" />
-                        {action.label}
+                        <CheckSquare className="h-4 w-4" />
+                        Mark Complete
                       </Button>
-                    ))}
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+                </CardHeader>
+                <CardContent>
+                  {section.content}
 
-      {showFirstTimeHelp && (
-        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-3">
-              <HelpCircle className="h-8 w-8 text-blue-500" />
-              <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200">New to StudyFlow?</h3>
-                <p className="text-sm text-blue-600 dark:text-blue-300">
-                  Take our interactive tutorial to get started quickly and learn all the essential features.
-                </p>
+                  {section.actions && section.actions.length > 0 && (
+                    <div className="flex gap-3 mt-6 pt-6 border-t">
+                      {section.actions.map((action, index) => (
+                        <Button
+                          key={index}
+                          variant={action.variant || "default"}
+                          onClick={action.onClick}
+                          className="flex items-center gap-2"
+                        >
+                          <Play className="h-4 w-4" />
+                          {action.label}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        {showFirstTimeHelp && (
+          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+            <CardContent className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-3">
+                <HelpCircle className="h-8 w-8 text-blue-500" />
+                <div>
+                  <h3 className="font-semibold text-blue-800 dark:text-blue-200">New to StudyFlow?</h3>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">
+                    Take our interactive tutorial to get started quickly and learn all the essential features.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowFirstTimeHelp(false)}>
-                Maybe Later
-              </Button>
-              <Button onClick={startFirstTimeTutorial} className="bg-blue-600 hover:bg-blue-700">
-                Start Tutorial
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowFirstTimeHelp(false)}>
+                  Maybe Later
+                </Button>
+                <Button onClick={startFirstTimeTutorial} className="bg-blue-600 hover:bg-blue-700">
+                  Start Tutorial
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

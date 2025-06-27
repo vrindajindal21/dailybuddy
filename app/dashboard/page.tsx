@@ -16,10 +16,40 @@ import DailyQuoteWidget from "@/components/daily-quote-widget"
 import BrainGames from "@/components/brain-games"
 import FamilyFeatures from "@/components/family-features"
 
+type TaskType = {
+  id: number;
+  title: string;
+  dueDate: string;
+  completed: boolean;
+  priority: string;
+};
+
+type EventType = {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+};
+
+type HabitType = {
+  id: number;
+  name: string;
+  completed: boolean;
+  streak: number;
+};
+
+type StudySessionType = {
+  id: number;
+  date: string;
+  duration: number;
+  subject: string;
+};
+
 export default function DashboardPage() {
   const { toast } = useToast()
   const { t } = useLanguage()
-  const [upcomingTasks, setUpcomingTasks] = useState([
+  const [upcomingTasks, setUpcomingTasks] = useState<TaskType[]>([
     { id: 1, title: "Math Assignment", dueDate: "2025-03-25", completed: false, priority: "high" },
     { id: 2, title: "Physics Lab Report", dueDate: "2025-03-28", completed: false, priority: "medium" },
     { id: 3, title: "Literature Essay", dueDate: "2025-04-02", completed: false, priority: "medium" },
@@ -35,7 +65,7 @@ export default function DashboardPage() {
     monthMinutes: 2160,
     goalMinutes: 180,
   })
-  const [habits, setHabits] = useState([
+  const [habits, setHabits] = useState<HabitType[]>([
     { id: 1, name: "Read 30 minutes", completed: true, streak: 5 },
     { id: 2, name: "Exercise", completed: false, streak: 3 },
     { id: 3, name: "Drink water", completed: true, streak: 7 },
@@ -69,8 +99,8 @@ export default function DashboardPage() {
         const parsedTasks = JSON.parse(savedTasks)
         // Get upcoming incomplete tasks
         const upcoming = parsedTasks
-          .filter((task) => !task.completed)
-          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+          .filter((task: TaskType) => !task.completed)
+          .sort((a: TaskType, b: TaskType) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
           .slice(0, 3)
 
         if (upcoming.length > 0) {
@@ -83,7 +113,7 @@ export default function DashboardPage() {
       if (savedEvents) {
         const parsedEvents = JSON.parse(savedEvents)
         // Get upcoming events
-        const upcoming = parsedEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3)
+        const upcoming = parsedEvents.sort((a: EventType, b: EventType) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 3)
 
         if (upcoming.length > 0) {
           setUpcomingEvents(upcoming)
@@ -107,19 +137,19 @@ export default function DashboardPage() {
         // Calculate study stats
         const today = new Date()
         const todaySessions = parsedSessions.filter(
-          (session) => new Date(session.date).toDateString() === today.toDateString(),
+          (session: StudySessionType) => new Date(session.date).toDateString() === today.toDateString(),
         )
 
         const weekStart = new Date()
         weekStart.setDate(today.getDate() - today.getDay())
-        const weekSessions = parsedSessions.filter((session) => new Date(session.date) >= weekStart)
+        const weekSessions = parsedSessions.filter((session: StudySessionType) => new Date(session.date).getTime() >= weekStart.getTime())
 
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-        const monthSessions = parsedSessions.filter((session) => new Date(session.date) >= monthStart)
+        const monthSessions = parsedSessions.filter((session: StudySessionType) => new Date(session.date).getTime() >= monthStart.getTime())
 
-        const todayMinutes = todaySessions.reduce((total, session) => total + session.duration, 0)
-        const weekMinutes = weekSessions.reduce((total, session) => total + session.duration, 0)
-        const monthMinutes = monthSessions.reduce((total, session) => total + session.duration, 0)
+        const todayMinutes = todaySessions.reduce((total: number, session: StudySessionType) => total + session.duration, 0)
+        const weekMinutes = weekSessions.reduce((total: number, session: StudySessionType) => total + session.duration, 0)
+        const monthMinutes = monthSessions.reduce((total: number, session: StudySessionType) => total + session.duration, 0)
 
         if (parsedSessions.length > 0) {
           setStudyStats({
@@ -135,17 +165,17 @@ export default function DashboardPage() {
     }
   }, [isMounted, dataInitialized])
 
-  const completeTask = (id) => {
-    setUpcomingTasks((tasks) => tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)))
+  const completeTask = (id: number) => {
+    setUpcomingTasks((tasks: TaskType[]) => tasks.map((task: TaskType) => (task.id === id ? { ...task, completed: !task.completed } : task)))
     toast({
       title: "Task updated! ✅",
       description: "Great job staying productive!",
     })
   }
 
-  const completeHabit = (id) => {
-    setHabits((habits) =>
-      habits.map((habit) =>
+  const completeHabit = (id: number) => {
+    setHabits((habits: HabitType[]) =>
+      habits.map((habit: HabitType) =>
         habit.id === id
           ? { ...habit, completed: !habit.completed, streak: habit.completed ? habit.streak - 1 : habit.streak + 1 }
           : habit,
@@ -223,10 +253,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
-                {upcomingTasks.filter((t) => !t.completed).length}
+                {upcomingTasks.filter((t: TaskType) => !t.completed).length}
               </div>
               <p className="text-xs text-green-600 dark:text-green-400">
-                {upcomingTasks.filter((t) => !t.completed && t.priority === "high").length} high priority 🔥
+                {upcomingTasks.filter((t: TaskType) => !t.completed && t.priority === "high").length} high priority 🔥
               </p>
             </CardContent>
           </Card>
@@ -320,7 +350,7 @@ export default function DashboardPage() {
                         <CardDescription>Your pending assignments and todos</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {upcomingTasks.slice(0, 3).map((task) => (
+                        {upcomingTasks.slice(0, 3).map((task: TaskType) => (
                           <div
                             key={task.id}
                             className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm"
@@ -368,7 +398,7 @@ export default function DashboardPage() {
                         <CardDescription>Your events and classes</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {upcomingEvents.slice(0, 3).map((event) => (
+                        {upcomingEvents.slice(0, 3).map((event: EventType) => (
                           <div key={event.id} className="p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
                             <div className="flex justify-between items-start gap-2">
                               <span className="font-medium text-sm flex-1 min-w-0 truncate">{event.title}</span>
@@ -399,7 +429,7 @@ export default function DashboardPage() {
                       <CardDescription>Manage your assignments and personal tasks</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {upcomingTasks.map((task) => (
+                      {upcomingTasks.map((task: TaskType) => (
                         <div
                           key={task.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -448,7 +478,7 @@ export default function DashboardPage() {
                       <CardDescription>Your classes, meetings, and events</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {upcomingEvents.map((event) => (
+                      {upcomingEvents.map((event: EventType) => (
                         <div
                           key={event.id}
                           className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -478,7 +508,7 @@ export default function DashboardPage() {
                       <CardDescription>Track your daily habits and build streaks</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {habits.map((habit) => (
+                      {habits.map((habit: HabitType) => (
                         <div
                           key={habit.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
