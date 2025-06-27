@@ -10,11 +10,11 @@ import { Clock, CheckSquare, Target, Heart, BookOpen, TrendingUp, TrendingDown }
 
 export default function AnalyticsPage() {
   const { toast } = useToast()
-  const [timeRange, setTimeRange] = useState("week")
-  const [studySessions, setStudySessions] = useState([])
-  const [tasks, setTasks] = useState([])
-  const [habits, setHabits] = useState([])
-  const [goals, setGoals] = useState([])
+  const [timeRange, setTimeRange] = useState<string>("week")
+  const [studySessions, setStudySessions] = useState<any[]>([])
+  const [tasks, setTasks] = useState<any[]>([])
+  const [habits, setHabits] = useState<any[]>([])
+  const [goals, setGoals] = useState<any[]>([])
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const formatStudyTime = (minutes) => {
+  const formatStudyTime = (minutes: any) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return `${hours}h ${mins}m`
@@ -218,408 +218,410 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
-          <p className="text-muted-foreground">Track your productivity and progress over time</p>
+    <div className="max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+            <p className="text-muted-foreground">Track your productivity and progress over time</p>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productivity Score</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getProductivityScore()}/100</div>
-            <div className="flex items-center mt-1">
-              {getProductivityTrend().change >= 0 ? (
-                <>
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                  <p className="text-xs text-green-500">
-                    +{getProductivityTrend().change} pts from last {timeRange}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                  <p className="text-xs text-red-500">
-                    {getProductivityTrend().change} pts from last {timeRange}
-                  </p>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Study Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatStudyTime(studySessions.reduce((total, session) => total + session.duration, 0))}
-            </div>
-            <p className="text-xs text-muted-foreground">{studySessions.length} study sessions</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Task Completion</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getTaskCompletionRate()}%</div>
-            <p className="text-xs text-muted-foreground">
-              {tasks.filter((task) => task.completed).length} of {tasks.length} tasks completed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getAverageGoalProgress()}%</div>
-            <p className="text-xs text-muted-foreground">Average across {goals.length} goals</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="study" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="study">Study Time</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="habits">Habits</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="study" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Study Time by Day</CardTitle>
-                <CardDescription>Hours spent studying each day</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {studySessions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Clock className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No study data</h3>
-                    <p className="text-sm text-muted-foreground">Record study sessions to see analytics</p>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Productivity Score</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{getProductivityScore()}/100</div>
+              <div className="flex items-center mt-1">
+                {getProductivityTrend().change >= 0 ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                    <p className="text-xs text-green-500">
+                      +{getProductivityTrend().change} pts from last {timeRange}
+                    </p>
+                  </>
                 ) : (
-                  <div className="h-full flex flex-col justify-end">
-                    <div className="flex items-end justify-between h-[220px]">
-                      {getStudyTimeByDay().map((day, i) => (
-                        <div key={i} className="flex flex-col items-center">
-                          <div
-                            className="w-8 bg-primary rounded-t-md transition-all duration-500"
-                            style={{
-                              height: `${Math.min(day.minutes / 5, 220)}px`,
-                              opacity: day.minutes > 0 ? 1 : 0.3,
-                            }}
-                          ></div>
-                          <div className="mt-2 text-xs">{day.date}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                    <p className="text-xs text-red-500">
+                      {getProductivityTrend().change} pts from last {timeRange}
+                    </p>
+                  </>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Study Time by Subject</CardTitle>
-                <CardDescription>Distribution of study time across subjects</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {studySessions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <BookOpen className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No study data</h3>
-                    <p className="text-sm text-muted-foreground">Record study sessions to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="w-full max-w-xs">
-                      {getStudyTimeBySubject().map((subject, i) => (
-                        <div key={i} className="mb-4">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">{subject.subject}</span>
-                            <span className="text-sm text-muted-foreground">{formatStudyTime(subject.minutes)}</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2.5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Study Time</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatStudyTime(studySessions.reduce((total, session) => total + session.duration, 0))}
+              </div>
+              <p className="text-xs text-muted-foreground">{studySessions.length} study sessions</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Task Completion</CardTitle>
+              <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{getTaskCompletionRate()}%</div>
+              <p className="text-xs text-muted-foreground">
+                {tasks.filter((task) => task.completed).length} of {tasks.length} tasks completed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{getAverageGoalProgress()}%</div>
+              <p className="text-xs text-muted-foreground">Average across {goals.length} goals</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="study" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="study">Study Time</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="habits">Habits</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="study" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Study Time by Day</CardTitle>
+                  <CardDescription>Hours spent studying each day</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {studySessions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Clock className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No study data</h3>
+                      <p className="text-sm text-muted-foreground">Record study sessions to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col justify-end">
+                      <div className="flex items-end justify-between h-[220px]">
+                        {getStudyTimeByDay().map((day, i) => (
+                          <div key={i} className="flex flex-col items-center">
                             <div
-                              className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                              className="w-8 bg-primary rounded-t-md transition-all duration-500"
                               style={{
-                                width: `${Math.min((subject.minutes / (getStudyTimeBySubject()[0]?.minutes || 1)) * 100, 100)}%`,
+                                height: `${Math.min(day.minutes / 5, 220)}px`,
+                                opacity: day.minutes > 0 ? 1 : 0.3,
                               }}
                             ></div>
+                            <div className="mt-2 text-xs">{day.date}</div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tasks" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tasks Completed by Day</CardTitle>
-                <CardDescription>Number of tasks completed each day</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {tasks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No task data</h3>
-                    <p className="text-sm text-muted-foreground">Add tasks to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col justify-end">
-                    <div className="flex items-end justify-between h-[220px]">
-                      {getTasksCompletedByDay().map((day, i) => (
-                        <div key={i} className="flex flex-col items-center">
-                          <div
-                            className="w-8 bg-primary rounded-t-md transition-all duration-500"
-                            style={{
-                              height: `${Math.min(day.completed * 40, 220)}px`,
-                              opacity: day.completed > 0 ? 1 : 0.3,
-                            }}
-                          ></div>
-                          <div className="mt-2 text-xs">{day.date}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tasks by Category</CardTitle>
-                <CardDescription>Distribution of tasks across categories</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {tasks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No task data</h3>
-                    <p className="text-sm text-muted-foreground">Add tasks to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="w-full max-w-xs">
-                      {getTasksByCategory().map((category, i) => (
-                        <div key={i} className="mb-4">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">{category.category}</span>
-                            <span className="text-sm text-muted-foreground">{category.count} tasks</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2.5">
-                            <div
-                              className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                              style={{
-                                width: `${Math.min((category.count / (getTasksByCategory()[0]?.count || 1)) * 100, 100)}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="habits" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Habit Streaks</CardTitle>
-                <CardDescription>Your longest running habits</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {habits.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Heart className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No habit data</h3>
-                    <p className="text-sm text-muted-foreground">Add habits to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="w-full max-w-xs">
-                      {getHabitStreaks().map((habit, i) => (
-                        <div key={i} className="mb-4">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">{habit.name}</span>
-                            <span className="text-sm text-muted-foreground">{habit.streak} days</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2.5">
-                            <div
-                              className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                              style={{
-                                width: `${Math.min((habit.streak / (getHabitStreaks()[0]?.streak || 1)) * 100, 100)}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Habit Completion Rate</CardTitle>
-                <CardDescription>Daily habit completion over the last week</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {habits.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Heart className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No habit data</h3>
-                    <p className="text-sm text-muted-foreground">Add habits to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col justify-end">
-                    <div className="flex items-end justify-between h-[220px]">
-                      {getHabitCompletionByDay().map((day, i) => (
-                        <div key={i} className="flex flex-col items-center">
-                          <div
-                            className="w-8 bg-primary rounded-t-md transition-all duration-500"
-                            style={{
-                              height: `${Math.min((day.completed / day.total) * 220, 220)}px`,
-                              opacity: day.completed > 0 ? 1 : 0.3,
-                            }}
-                          ></div>
-                          <div className="mt-2 text-xs">{day.date}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="goals" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Goal Progress</CardTitle>
-                <CardDescription>Progress towards your goals</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {goals.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Target className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No goal data</h3>
-                    <p className="text-sm text-muted-foreground">Add goals to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="w-full max-w-xs">
-                      {getGoalProgress().map((goal, i) => (
-                        <div key={i} className="mb-4">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">{goal.title}</span>
-                            <span className="text-sm text-muted-foreground">{goal.progress}%</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2.5">
-                            <div
-                              className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                              style={{ width: `${goal.progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Goal Completion Rate</CardTitle>
-                <CardDescription>Overall progress towards your goals</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {goals.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <Target className="h-10 w-10 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No goal data</h3>
-                    <p className="text-sm text-muted-foreground">Add goals to see analytics</p>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="relative w-48 h-48">
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
-                        {/* Background circle */}
-                        <circle
-                          className="text-muted stroke-current"
-                          strokeWidth="10"
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="transparent"
-                        ></circle>
-
-                        {/* Progress circle */}
-                        <circle
-                          className="text-primary stroke-current"
-                          strokeWidth="10"
-                          strokeLinecap="round"
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="transparent"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - getAverageGoalProgress() / 100)}`}
-                          transform="rotate(-90 50 50)"
-                        ></circle>
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-4xl font-bold">{getAverageGoalProgress()}%</div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Study Time by Subject</CardTitle>
+                  <CardDescription>Distribution of study time across subjects</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {studySessions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <BookOpen className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No study data</h3>
+                      <p className="text-sm text-muted-foreground">Record study sessions to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-full max-w-xs">
+                        {getStudyTimeBySubject().map((subject: any, i: number) => (
+                          <div key={i} className="mb-4">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm font-medium">{subject.subject}</span>
+                              <span className="text-sm text-muted-foreground">{formatStudyTime(subject.minutes)}</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2.5">
+                              <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.min((Number(subject.minutes) / Number(getStudyTimeBySubject()[0]?.minutes || 1)) * 100, 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tasks Completed by Day</CardTitle>
+                  <CardDescription>Number of tasks completed each day</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {tasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No task data</h3>
+                      <p className="text-sm text-muted-foreground">Add tasks to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col justify-end">
+                      <div className="flex items-end justify-between h-[220px]">
+                        {getTasksCompletedByDay().map((day, i) => (
+                          <div key={i} className="flex flex-col items-center">
+                            <div
+                              className="w-8 bg-primary rounded-t-md transition-all duration-500"
+                              style={{
+                                height: `${Math.min(day.completed * 40, 220)}px`,
+                                opacity: day.completed > 0 ? 1 : 0.3,
+                              }}
+                            ></div>
+                            <div className="mt-2 text-xs">{day.date}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tasks by Category</CardTitle>
+                  <CardDescription>Distribution of tasks across categories</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {tasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No task data</h3>
+                      <p className="text-sm text-muted-foreground">Add tasks to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-full max-w-xs">
+                        {getTasksByCategory().map((category: any, i: number) => (
+                          <div key={i} className="mb-4">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm font-medium">{category.category}</span>
+                              <span className="text-sm text-muted-foreground">{category.count} tasks</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2.5">
+                              <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.min((Number(category.count) / Number(getTasksByCategory()[0]?.count || 1)) * 100, 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="habits" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Habit Streaks</CardTitle>
+                  <CardDescription>Your longest running habits</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {habits.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Heart className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No habit data</h3>
+                      <p className="text-sm text-muted-foreground">Add habits to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-full max-w-xs">
+                        {getHabitStreaks().map((habit, i) => (
+                          <div key={i} className="mb-4">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm font-medium">{habit.name}</span>
+                              <span className="text-sm text-muted-foreground">{habit.streak} days</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2.5">
+                              <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.min((habit.streak / (getHabitStreaks()[0]?.streak || 1)) * 100, 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Habit Completion Rate</CardTitle>
+                  <CardDescription>Daily habit completion over the last week</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {habits.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Heart className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No habit data</h3>
+                      <p className="text-sm text-muted-foreground">Add habits to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col justify-end">
+                      <div className="flex items-end justify-between h-[220px]">
+                        {getHabitCompletionByDay().map((day, i) => (
+                          <div key={i} className="flex flex-col items-center">
+                            <div
+                              className="w-8 bg-primary rounded-t-md transition-all duration-500"
+                              style={{
+                                height: `${Math.min((day.completed / day.total) * 220, 220)}px`,
+                                opacity: day.completed > 0 ? 1 : 0.3,
+                              }}
+                            ></div>
+                            <div className="mt-2 text-xs">{day.date}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="goals" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Goal Progress</CardTitle>
+                  <CardDescription>Progress towards your goals</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {goals.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Target className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No goal data</h3>
+                      <p className="text-sm text-muted-foreground">Add goals to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-full max-w-xs">
+                        {getGoalProgress().map((goal, i) => (
+                          <div key={i} className="mb-4">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm font-medium">{goal.title}</span>
+                              <span className="text-sm text-muted-foreground">{goal.progress}%</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2.5">
+                              <div
+                                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                                style={{ width: `${goal.progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Goal Completion Rate</CardTitle>
+                  <CardDescription>Overall progress towards your goals</CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  {goals.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <Target className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No goal data</h3>
+                      <p className="text-sm text-muted-foreground">Add goals to see analytics</p>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="relative w-48 h-48">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          {/* Background circle */}
+                          <circle
+                            className="text-muted stroke-current"
+                            strokeWidth="10"
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="transparent"
+                          ></circle>
+
+                          {/* Progress circle */}
+                          <circle
+                            className="text-primary stroke-current"
+                            strokeWidth="10"
+                            strokeLinecap="round"
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="transparent"
+                            strokeDasharray={`${2 * Math.PI * 40}`}
+                            strokeDashoffset={`${2 * Math.PI * 40 * (1 - getAverageGoalProgress() / 100)}`}
+                            transform="rotate(-90 50 50)"
+                          ></circle>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-4xl font-bold">{getAverageGoalProgress()}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

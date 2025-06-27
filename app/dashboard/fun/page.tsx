@@ -326,7 +326,7 @@ export default function FunZonePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
           <Gamepad2 className="h-8 w-8 text-purple-600" />
