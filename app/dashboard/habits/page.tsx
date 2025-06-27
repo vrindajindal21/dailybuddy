@@ -326,7 +326,7 @@ export default function HabitsPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto w-full">
-            <table className="w-full">
+            <table className="w-full min-w-[600px] md:min-w-0 text-sm">
               <thead>
                 <tr>
                   <th className="text-left p-2 min-w-[200px]">Habit</th>
@@ -389,7 +389,7 @@ export default function HabitsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4 mt-4">
         {habits.map((habit: HabitType) => (
           <Card key={habit.id}>
             <CardHeader className="pb-2">

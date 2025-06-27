@@ -438,7 +438,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-4 text-center">
               <Heart className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Heart Rate</h4>
