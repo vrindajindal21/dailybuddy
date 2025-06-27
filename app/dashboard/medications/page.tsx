@@ -618,6 +618,7 @@ export default function MedicationsPage() {
 
     setMedications((prev) => [...prev, medication])
     setNewMedication({
+      id: 0,
       name: "",
       dosage: "",
       instructions: "",
@@ -629,7 +630,7 @@ export default function MedicationsPage() {
       alarmSound: "bell",
       alarmVolume: 70,
       color: "blue",
-      startDate: new Date(),
+      startDate: new Date().toISOString().split('T')[0],
       endDate: null,
       notes: "",
     })
@@ -935,9 +936,9 @@ export default function MedicationsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+      <div className="mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
         {showPermissionAlert && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Notifications are disabled</AlertTitle>
             <AlertDescription>
@@ -1124,7 +1125,7 @@ export default function MedicationsPage() {
                   <Input
                     id="startDate"
                     type="date"
-                    value={typeof newMedication.startDate === 'string' ? newMedication.startDate : newMedication.startDate.toISOString().split('T')[0]}
+                    value={typeof newMedication.startDate === 'string' ? newMedication.startDate : ''}
                     onChange={e => setNewMedication({ ...newMedication, startDate: e.target.value })}
                   />
                 </div>
@@ -1134,7 +1135,7 @@ export default function MedicationsPage() {
                   <Input
                     id="endDate"
                     type="date"
-                    value={newMedication.endDate ? (typeof newMedication.endDate === 'string' ? newMedication.endDate : newMedication.endDate.toISOString().split('T')[0]) : ''}
+                    value={typeof newMedication.endDate === 'string' ? newMedication.endDate : ''}
                     onChange={e => setNewMedication({ ...newMedication, endDate: e.target.value })}
                     placeholder="No end date"
                   />
@@ -1607,7 +1608,7 @@ export default function MedicationsPage() {
                   <Input
                     id="edit-startDate"
                     type="date"
-                    value={editingMedication && editingMedication.startDate ? (typeof editingMedication.startDate === 'string' ? editingMedication.startDate : editingMedication.startDate.toISOString().split('T')[0]) : ''}
+                    value={editingMedication && typeof editingMedication.startDate === 'string' ? editingMedication.startDate : ''}
                     onChange={e => setEditingMedication({ ...editingMedication, startDate: e.target.value })}
                   />
                 </div>
@@ -1617,7 +1618,7 @@ export default function MedicationsPage() {
                   <Input
                     id="edit-endDate"
                     type="date"
-                    value={editingMedication && editingMedication.endDate ? (typeof editingMedication.endDate === 'string' ? editingMedication.endDate : editingMedication.endDate.toISOString().split('T')[0]) : ''}
+                    value={editingMedication && typeof editingMedication.endDate === 'string' ? editingMedication.endDate : ''}
                     onChange={e => setEditingMedication({ ...editingMedication, endDate: e.target.value })}
                     placeholder="No end date"
                   />
