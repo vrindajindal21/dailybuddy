@@ -67,8 +67,27 @@ export function PomodoroBackgroundService() {
       saveTimer({ ...getInitialTimerState(), isActive: false })
     }
     const handleReset = () => {
-      setTimer(getInitialTimerState())
-      saveTimer(getInitialTimerState())
+      // Always reset to default state and clear localStorage
+      const defaultState = {
+        isActive: false,
+        isPaused: false,
+        mode: "pomodoro",
+        duration: 1500, // 25 min default
+        timeLeft: 1500,
+        startTimestamp: null,
+        task: "",
+      }
+      setTimer(defaultState)
+      localStorage.setItem(POMODORO_TIMER_KEY, JSON.stringify(defaultState))
+      localStorage.setItem("pomodoro-state", JSON.stringify({
+        isActive: false,
+        startTime: null,
+        originalDuration: 1500,
+        timeLeft: 1500,
+        mode: "pomodoro",
+        sessionCount: 0,
+        currentTask: "",
+      }))
     }
     window.addEventListener("start-pomodoro-timer", handleStart as EventListener)
     window.addEventListener("stop-pomodoro-timer", handleStop as EventListener)

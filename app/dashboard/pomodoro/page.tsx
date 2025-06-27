@@ -539,6 +539,15 @@ export default function PomodoroPage() {
 
   const resetTimer = () => {
     window.dispatchEvent(new CustomEvent("reset-pomodoro-timer"))
+    setTimer({
+      isActive: false,
+      isPaused: false,
+      mode: "pomodoro",
+      duration: 1500,
+      timeLeft: 1500,
+      startTimestamp: null,
+      task: "",
+    })
   }
 
   const switchMode = (newMode: "pomodoro" | "shortBreak" | "longBreak") => {

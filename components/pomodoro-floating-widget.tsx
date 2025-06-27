@@ -25,7 +25,13 @@ export function PomodoroFloatingWidget() {
   const [timer, setTimer] = useState<TimerState | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [collapsed, setCollapsed] = useState(false)
-  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 20, y: 20 })
+  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
+    // Place near bottom left by default, but not off screen
+    if (typeof window !== 'undefined') {
+      return { x: 20, y: window.innerHeight - 140 }
+    }
+    return { x: 20, y: 500 }
+  })
   const dragRef = useRef<HTMLDivElement | null>(null)
   const dragging = useRef(false)
   const dragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
