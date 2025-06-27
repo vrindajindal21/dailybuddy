@@ -935,7 +935,7 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
       {showPermissionAlert && (
         <Alert variant="destructive" className="mb-4">
           <AlertTriangle className="h-4 w-4" />

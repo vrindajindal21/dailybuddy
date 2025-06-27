@@ -192,7 +192,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
       {/* Beautiful Header */}
       <div className="text-center space-y-4 py-6">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
