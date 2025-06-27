@@ -34,6 +34,7 @@ import { useLanguage } from "@/components/language-provider"
 import { SmartPopupSystem } from "@/components/smart-popup-system"
 import { GlobalNotificationService } from "@/components/global-notification-service"
 import Image from "next/image"
+import { SidebarMenuButton } from "@/components/ui/sidebar"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -87,16 +88,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <SheetContent side="left" className="w-72">
               <nav className="grid gap-2 text-lg font-medium">
                 {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-                      pathname === item.href ? "bg-muted" : "hover:bg-muted"
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
+                  <SidebarMenuButton asChild key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
+                        pathname === item.href ? "bg-muted" : "hover:bg-muted"
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  </SidebarMenuButton>
                 ))}
               </nav>
             </SheetContent>
@@ -143,16 +145,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <aside className="hidden w-64 border-r bg-muted/40 md:block">
             <nav className="grid gap-2 p-4 text-sm font-medium">
               {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-                    pathname === item.href ? "bg-muted" : "hover:bg-muted"
-                  }`}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
+                <SidebarMenuButton asChild key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
+                      pathname === item.href ? "bg-muted" : "hover:bg-muted"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                </SidebarMenuButton>
               ))}
             </nav>
           </aside>
