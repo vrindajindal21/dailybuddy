@@ -279,14 +279,14 @@ export default function RemindersPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
-          <h1 className="text-3xl font-bold">Reminders</h1>
-          <p className="text-muted-foreground">Manage your daily reminders and notifications</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>
+          <p className="text-muted-foreground text-base sm:text-lg">Never miss an important reminder</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               Add Reminder
             </Button>
@@ -515,120 +515,74 @@ export default function RemindersPage() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Today's Reminders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Today's Reminders
-          </CardTitle>
-          <CardDescription>{getTodaysReminders().length} reminders for today</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {getTodaysReminders().length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No reminders for today</p>
-          ) : (
-            <div className="space-y-3">
-              {getTodaysReminders().map((reminder) => (
-                <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
-                    <div>
-                      <p className="font-medium">{reminder.title}</p>
-                      <p className="text-sm text-muted-foreground">{format(reminder.scheduledTime, "h:mm a")}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{reminder.type}</Badge>
-                    <Button size="sm" variant="outline" onClick={() => completeReminder(reminder.id)}>
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Upcoming Reminders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Upcoming Reminders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {getUpcomingReminders().length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No upcoming reminders</p>
-          ) : (
-            <div className="space-y-3">
-              {getUpcomingReminders().map((reminder) => (
-                <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
-                    <div>
-                      <p className="font-medium">{reminder.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {isTomorrow(reminder.scheduledTime)
-                          ? `Tomorrow at ${format(reminder.scheduledTime, "h:mm a")}`
-                          : format(reminder.scheduledTime, "MMM d, h:mm a")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{reminder.type}</Badge>
-                    <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => deleteReminder(reminder.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* All Reminders */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Reminders</CardTitle>
-          <CardDescription>{reminders.length} total reminders</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {reminders.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No reminders created yet</p>
-          ) : (
-            <ScrollArea className="h-96">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
+        {/* ...existing filter/search bar if any... */}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
+        {/* Today's Reminders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Today's Reminders
+            </CardTitle>
+            <CardDescription>{getTodaysReminders().length} reminders for today</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {getTodaysReminders().length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No reminders for today</p>
+            ) : (
               <div className="space-y-3">
-                {reminders.map((reminder) => (
-                  <div
-                    key={reminder.id}
-                    className={`flex items-center justify-between p-3 border rounded-lg ${
-                      reminder.completed ? "opacity-50" : ""
-                    }`}
-                  >
+                {getTodaysReminders().map((reminder) => (
+                  <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
                       <div>
-                        <p className={`font-medium ${reminder.completed ? "line-through" : ""}`}>{reminder.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(reminder.scheduledTime, "MMM d, h:mm a")}
-                          {reminder.recurring && " (Recurring)"}
-                        </p>
-                        {reminder.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{reminder.description}</p>
-                        )}
+                        <p className="font-medium">{reminder.title}</p>
+                        <p className="text-sm text-muted-foreground">{format(reminder.scheduledTime, "h:mm a")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{reminder.type}</Badge>
-                      {reminder.completed && <Badge variant="secondary">Completed</Badge>}
+                      <Button size="sm" variant="outline" onClick={() => completeReminder(reminder.id)}>
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Upcoming Reminders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Upcoming Reminders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {getUpcomingReminders().length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No upcoming reminders</p>
+            ) : (
+              <div className="space-y-3">
+                {getUpcomingReminders().map((reminder) => (
+                  <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
+                      <div>
+                        <p className="font-medium">{reminder.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {isTomorrow(reminder.scheduledTime)
+                            ? `Tomorrow at ${format(reminder.scheduledTime, "h:mm a")}`
+                            : format(reminder.scheduledTime, "MMM d, h:mm a")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{reminder.type}</Badge>
                       <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -639,10 +593,60 @@ export default function RemindersPage() {
                   </div>
                 ))}
               </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* All Reminders */}
+        <Card>
+          <CardHeader>
+            <CardTitle>All Reminders</CardTitle>
+            <CardDescription>{reminders.length} total reminders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {reminders.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No reminders created yet</p>
+            ) : (
+              <ScrollArea className="h-96">
+                <div className="space-y-3">
+                  {reminders.map((reminder) => (
+                    <div
+                      key={reminder.id}
+                      className={`flex items-center justify-between p-3 border rounded-lg ${
+                        reminder.completed ? "opacity-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
+                        <div>
+                          <p className={`font-medium ${reminder.completed ? "line-through" : ""}`}>{reminder.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(reminder.scheduledTime, "MMM d, h:mm a")}
+                            {reminder.recurring && " (Recurring)"}
+                          </p>
+                          {reminder.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{reminder.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{reminder.type}</Badge>
+                        {reminder.completed && <Badge variant="secondary">Completed</Badge>}
+                        <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteReminder(reminder.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

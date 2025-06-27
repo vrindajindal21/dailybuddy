@@ -398,147 +398,99 @@ export default function BudgetPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-full w-full overflow-x-hidden">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Budget</h2>
-            <p className="text-muted-foreground">Track your expenses and manage your budget</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Budget</h2>
+            <p className="text-muted-foreground text-base sm:text-lg">Manage your expenses and budgets</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Dialog open={isAddExpenseDialogOpen} onOpenChange={setIsAddExpenseDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Expense
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Expense</DialogTitle>
-                  <DialogDescription>Record a new expense to track your spending</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Title</Label>
+          <Dialog open={isAddExpenseDialogOpen} onOpenChange={setIsAddExpenseDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Expense
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Expense</DialogTitle>
+                <DialogDescription>Record a new expense to track your spending</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    placeholder="Expense title"
+                    value={newExpense.title}
+                    onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="title"
-                      placeholder="Expense title"
-                      value={newExpense.title}
-                      onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="amount"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        className="pl-8"
-                        value={newExpense.amount}
-                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={newExpense.date}
-                      onChange={e => setNewExpense({ ...newExpense, date: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select
-                      value={newExpense.category}
-                      onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {budgets.map((budget) => (
-                          <SelectItem key={budget.category} value={budget.category}>
-                            {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="notes">Notes (Optional)</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Additional details"
-                      value={newExpense.notes}
-                      onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      className="pl-8"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
                     />
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddExpenseDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={addExpense}>Add Expense</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isAddBudgetDialogOpen} onOpenChange={setIsAddBudgetDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Budget
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Budget Category</DialogTitle>
-                  <DialogDescription>Create a new budget category with spending limit</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Category Name</Label>
-                    <Input
-                      id="category"
-                      placeholder="e.g., Entertainment"
-                      value={newBudget.category}
-                      onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="limit">Monthly Limit</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="limit"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        className="pl-8"
-                        value={newBudget.limit}
-                        onChange={(e) => setNewBudget({ ...newBudget, limit: e.target.value })}
-                      />
-                    </div>
-                  </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={newExpense.date}
+                    onChange={e => setNewExpense({ ...newExpense, date: e.target.value })}
+                  />
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddBudgetDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={addBudget}>Add Budget</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={newExpense.category}
+                    onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {budgets.map((budget) => (
+                        <SelectItem key={budget.category} value={budget.category}>
+                          {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Additional details"
+                    value={newExpense.notes}
+                    onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddExpenseDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={addExpense}>Add Expense</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
+          {/* ...existing filter/search bar if any... */}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>

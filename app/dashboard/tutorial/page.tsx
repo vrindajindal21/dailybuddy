@@ -1152,10 +1152,10 @@ export default function TutorialPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Tutorial & Help Center</h2>
-            <p className="text-muted-foreground">Learn how to make the most of StudyFlow</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutorial</h2>
+            <p className="text-muted-foreground text-base sm:text-lg">Learn how to use all features</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
