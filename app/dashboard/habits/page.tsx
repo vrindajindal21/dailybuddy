@@ -326,7 +326,7 @@ export default function HabitsPage() {
             <CardDescription>Track your habits for the last 7 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto w-full">
               <table className="w-full">
                 <thead>
                   <tr>

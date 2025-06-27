@@ -398,7 +398,7 @@ export default function BudgetPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Budget</h2>
             <p className="text-muted-foreground">Track your expenses and manage your budget</p>
@@ -609,7 +609,7 @@ export default function BudgetPage() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="expenses" className="space-y-4">
+          <TabsContent value="expenses" className="space-y-4 overflow-x-auto">
             <Card>
               <CardHeader>
                 <CardTitle>Recent Expenses</CardTitle>
@@ -623,7 +623,7 @@ export default function BudgetPage() {
                     <p className="text-sm text-muted-foreground">Add your first expense to start tracking</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 overflow-x-auto">
                     {expenses
                       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                       .map((expense) => (
@@ -738,7 +738,7 @@ export default function BudgetPage() {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="budgets" className="space-y-4">
+          <TabsContent value="budgets" className="space-y-4 overflow-x-auto">
             <Card>
               <CardHeader>
                 <CardTitle>Budget Categories</CardTitle>
@@ -752,7 +752,7 @@ export default function BudgetPage() {
                     <p className="text-sm text-muted-foreground">Add your first budget category to start tracking</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-6 overflow-x-auto">
                     {budgets.map((budget) => (
                       <div key={budget.category} className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -828,7 +828,7 @@ export default function BudgetPage() {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
+          <TabsContent value="analytics" className="space-y-4 overflow-x-auto">
             <Card>
               <CardHeader>
                 <CardTitle>Spending by Category</CardTitle>
@@ -842,7 +842,7 @@ export default function BudgetPage() {
                     <p className="text-sm text-muted-foreground">Add expenses to see analytics</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-6 overflow-x-auto">
                     {budgets.map((budget) => {
                       const spent = getExpensesByCategory(budget.category)
                       const percentage = (spent / getTotalExpenses()) * 100 || 0

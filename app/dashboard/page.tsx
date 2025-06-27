@@ -192,8 +192,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
         {/* Beautiful Header */}
         <div className="text-center space-y-4 py-6">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
@@ -339,7 +339,7 @@ export default function DashboardPage() {
               </TabsList>
 
               <div className="mt-6">
-                <TabsContent value="overview" className="space-y-6 mt-0">
+                <TabsContent value="overview" className="space-y-6 mt-0 overflow-x-auto">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
                       <CardHeader className="pb-4">
@@ -422,7 +422,7 @@ export default function DashboardPage() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="tasks" className="mt-0">
+                <TabsContent value="tasks" className="mt-0 overflow-x-auto">
                   <Card>
                     <CardHeader>
                       <CardTitle>All Tasks</CardTitle>
@@ -471,7 +471,7 @@ export default function DashboardPage() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="schedule" className="mt-0">
+                <TabsContent value="schedule" className="mt-0 overflow-x-auto">
                   <Card>
                     <CardHeader>
                       <CardTitle>Weekly Schedule</CardTitle>
@@ -501,7 +501,7 @@ export default function DashboardPage() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="habits" className="mt-0">
+                <TabsContent value="habits" className="mt-0 overflow-x-auto">
                   <Card>
                     <CardHeader>
                       <CardTitle>Daily Habits</CardTitle>

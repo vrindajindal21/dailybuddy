@@ -26,9 +26,39 @@ import { CalendarIcon, CheckSquare, Clock, Plus, Trash2, Edit, Filter, Bell } fr
 import { NotificationService } from "@/lib/notification-service"
 import * as React from 'react'
 
+type Task = {
+  id: number;
+  title: string;
+  description: string;
+  dueDate: string;
+  completed: boolean;
+  priority: string;
+  category: string;
+  notifyBefore: number;
+  notificationEnabled: boolean;
+};
+
+const initialNewTask: {
+  title: string;
+  description: string;
+  dueDate: string;
+  priority: string;
+  category: string;
+  notifyBefore: number;
+  notificationEnabled: boolean;
+} = {
+  title: "",
+  description: "",
+  dueDate: "2024-06-09",
+  priority: "medium",
+  category: "school",
+  notifyBefore: 1,
+  notificationEnabled: true,
+};
+
 export default function TasksPage() {
   const { toast } = useToast()
-  const [tasks, setTasks] = useState([
+  const [tasks, setTasks] = useState<Task[]>([
     {
       id: 1,
       title: "Math Assignment",
@@ -86,17 +116,9 @@ export default function TasksPage() {
     },
   ])
 
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    dueDate: new Date(),
-    priority: "medium",
-    category: "school",
-    notifyBefore: 1,
-    notificationEnabled: true,
-  })
+  const [newTask, setNewTask] = useState(initialNewTask);
 
-  const [editingTask, setEditingTask] = useState(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [filter, setFilter] = useState("all")
@@ -215,11 +237,14 @@ export default function TasksPage() {
       return
     }
 
-    const task = {
+    // Ensure dueDate is a string
+    const dueDateString = typeof newTask.dueDate === 'string' ? newTask.dueDate : newTask.dueDate.toISOString().split('T')[0];
+
+    const task: Task = {
       id: Date.now(),
       title: newTask.title,
       description: newTask.description,
-      dueDate: format(newTask.dueDate, "yyyy-MM-dd"),
+      dueDate: dueDateString,
       completed: false,
       priority: newTask.priority,
       category: newTask.category,
@@ -229,13 +254,8 @@ export default function TasksPage() {
 
     setTasks([...tasks, task])
     setNewTask({
-      title: "",
-      description: "",
-      dueDate: new Date(),
-      priority: "medium",
-      category: "school",
-      notifyBefore: 1,
-      notificationEnabled: true,
+      ...initialNewTask,
+      dueDate: "2024-06-09",
     })
     setIsAddDialogOpen(false)
 
@@ -251,43 +271,12 @@ export default function TasksPage() {
   }
 
   const updateTask = () => {
-    let hasErrors = false
-    const errorFields = []
-
-    if (!editingTask.title.trim()) {
-      hasErrors = true
-      errorFields.push("edit-title")
+    if (!editingTask || !editingTask.title.trim()) {
       toast({
         title: "Error",
         description: "Task title is required",
         variant: "destructive",
       })
-    }
-
-    if (hasErrors) {
-      // Highlight the error fields
-      errorFields.forEach((field) => {
-        const element = document.getElementById(field)
-        if (element) {
-          element.setAttribute("data-error", "true")
-          element.classList.add("border-red-500", "focus:ring-red-500")
-
-          // Remove error styling after 3 seconds or on input
-          element.addEventListener("input", function onInput() {
-            element.removeAttribute("data-error")
-            element.classList.remove("border-red-500", "focus:ring-red-500")
-            element.removeEventListener("input", onInput)
-          })
-
-          setTimeout(() => {
-            if (element.getAttribute("data-error")) {
-              element.removeAttribute("data-error")
-              element.classList.remove("border-red-500", "focus:ring-red-500")
-            }
-          }, 3000)
-        }
-      })
-
       return
     }
 
@@ -298,10 +287,7 @@ export default function TasksPage() {
               ...task,
               title: editingTask.title,
               description: editingTask.description,
-              dueDate:
-                typeof editingTask.dueDate === "object"
-                  ? format(editingTask.dueDate, "yyyy-MM-dd")
-                  : editingTask.dueDate,
+              dueDate: editingTask.dueDate,
               priority: editingTask.priority,
               category: editingTask.category,
               notifyBefore: editingTask.notifyBefore,
@@ -340,7 +326,7 @@ export default function TasksPage() {
   const startEditTask = (task: any) => {
     setEditingTask({
       ...task,
-      dueDate: new Date(task.dueDate),
+      dueDate: task.dueDate,
     })
     setIsEditDialogOpen(true)
   }
@@ -374,150 +360,36 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
-          <p className="text-muted-foreground">Manage your assignments and personal tasks</p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Task
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
-              <DialogDescription>Create a new task or assignment to track</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title" className="flex items-center">
-                  Title <span className="text-red-500 ml-1">*</span>
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="Task title"
-                  value={newTask.title}
-                  onChange={(e) => {
-                    setNewTask({ ...newTask, title: e.target.value })
-                    // Remove error styling on input
-                    e.target.removeAttribute("data-error")
-                    e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                  }}
-                  className="focus:ring-primary"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Task details"
-                  value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={typeof newTask.dueDate === 'string' ? newTask.dueDate : newTask.dueDate.toISOString().split('T')[0]}
-                  onChange={e => setNewTask({ ...newTask, dueDate: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={newTask.priority}
-                  onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={newTask.category} onValueChange={(value) => setNewTask({ ...newTask, category: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="school">School</SelectItem>
-                    <SelectItem value="work">Work</SelectItem>
-                    <SelectItem value="personal">Personal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="notification">Notifications</Label>
-                    <div className="text-xs text-muted-foreground">Get reminded before the due date</div>
-                  </div>
-                  <Switch
-                    id="notification"
-                    checked={newTask.notificationEnabled}
-                    onCheckedChange={(checked) => setNewTask({ ...newTask, notificationEnabled: checked })}
-                  />
-                </div>
-                {newTask.notificationEnabled && (
-                  <div className="grid gap-2 mt-2">
-                    <Label htmlFor="notifyBefore">Notify me</Label>
-                    <Select
-                      value={newTask.notifyBefore.toString()}
-                      onValueChange={(value) => setNewTask({ ...newTask, notifyBefore: Number.parseInt(value) })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select when to notify" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">On the due date</SelectItem>
-                        <SelectItem value="1">1 day before</SelectItem>
-                        <SelectItem value="2">2 days before</SelectItem>
-                        <SelectItem value="3">3 days before</SelectItem>
-                        <SelectItem value="7">1 week before</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
+            <p className="text-muted-foreground">Manage your assignments and personal tasks</p>
+          </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Task
               </Button>
-              <Button onClick={addTask}>Add Task</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Task</DialogTitle>
-              <DialogDescription>Update your task details</DialogDescription>
-            </DialogHeader>
-            {editingTask && (
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Task</DialogTitle>
+                <DialogDescription>Create a new task or assignment to track</DialogDescription>
+              </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-title" className="flex items-center">
+                  <Label htmlFor="title" className="flex items-center">
                     Title <span className="text-red-500 ml-1">*</span>
                   </Label>
                   <Input
-                    id="edit-title"
+                    id="title"
                     placeholder="Task title"
-                    value={editingTask.title}
+                    value={newTask.title}
                     onChange={(e) => {
-                      setEditingTask({ ...editingTask, title: e.target.value })
+                      setNewTask({ ...newTask, title: e.target.value })
                       // Remove error styling on input
                       e.target.removeAttribute("data-error")
                       e.target.classList.remove("border-red-500", "focus:ring-red-500")
@@ -526,28 +398,28 @@ export default function TasksPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-description">Description</Label>
+                  <Label htmlFor="description">Description</Label>
                   <Textarea
-                    id="edit-description"
+                    id="description"
                     placeholder="Task details"
-                    value={editingTask.description}
-                    onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                    value={newTask.description}
+                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-dueDate">Due Date</Label>
+                  <Label htmlFor="dueDate">Due Date</Label>
                   <Input
-                    id="edit-dueDate"
+                    id="dueDate"
                     type="date"
-                    value={typeof editingTask.dueDate === 'string' ? editingTask.dueDate : editingTask.dueDate.toISOString().split('T')[0]}
-                    onChange={e => setEditingTask({ ...editingTask, dueDate: e.target.value })}
+                    value={newTask.dueDate}
+                    onChange={e => setNewTask({ ...newTask, dueDate: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-priority">Priority</Label>
+                  <Label htmlFor="priority">Priority</Label>
                   <Select
-                    value={editingTask.priority}
-                    onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}
+                    value={newTask.priority}
+                    onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
@@ -560,11 +432,8 @@ export default function TasksPage() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-category">Category</Label>
-                  <Select
-                    value={editingTask.category}
-                    onValueChange={(value) => setEditingTask({ ...editingTask, category: value })}
-                  >
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={newTask.category} onValueChange={(value) => setNewTask({ ...newTask, category: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -578,23 +447,21 @@ export default function TasksPage() {
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="edit-notification">Notifications</Label>
+                      <Label htmlFor="notification">Notifications</Label>
                       <div className="text-xs text-muted-foreground">Get reminded before the due date</div>
                     </div>
                     <Switch
-                      id="edit-notification"
-                      checked={editingTask.notificationEnabled}
-                      onCheckedChange={(checked) => setEditingTask({ ...editingTask, notificationEnabled: checked })}
+                      id="notification"
+                      checked={newTask.notificationEnabled}
+                      onCheckedChange={(checked) => setNewTask({ ...newTask, notificationEnabled: checked })}
                     />
                   </div>
-                  {editingTask.notificationEnabled && (
+                  {newTask.notificationEnabled && (
                     <div className="grid gap-2 mt-2">
-                      <Label htmlFor="edit-notifyBefore">Notify me</Label>
+                      <Label htmlFor="notifyBefore">Notify me</Label>
                       <Select
-                        value={editingTask.notifyBefore.toString()}
-                        onValueChange={(value) =>
-                          setEditingTask({ ...editingTask, notifyBefore: Number.parseInt(value) })
-                        }
+                        value={newTask.notifyBefore.toString()}
+                        onValueChange={(value) => setNewTask({ ...newTask, notifyBefore: Number.parseInt(value) })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select when to notify" />
@@ -611,284 +478,405 @@ export default function TasksPage() {
                   )}
                 </div>
               </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={updateTask}>Save Changes</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={addTask}>Add Task</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filter:</span>
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Task</DialogTitle>
+                <DialogDescription>Update your task details</DialogDescription>
+              </DialogHeader>
+              {editingTask && (
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-title" className="flex items-center">
+                      Title <span className="text-red-500 ml-1">*</span>
+                    </Label>
+                    <Input
+                      id="edit-title"
+                      placeholder="Task title"
+                      value={editingTask.title}
+                      onChange={(e) => {
+                        setEditingTask({ ...editingTask, title: e.target.value })
+                        // Remove error styling on input
+                        e.target.removeAttribute("data-error")
+                        e.target.classList.remove("border-red-500", "focus:ring-red-500")
+                      }}
+                      className="focus:ring-primary"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Textarea
+                      id="edit-description"
+                      placeholder="Task details"
+                      value={editingTask.description}
+                      onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-dueDate">Due Date</Label>
+                    <Input
+                      id="edit-dueDate"
+                      type="date"
+                      value={editingTask.dueDate}
+                      onChange={e => setEditingTask({ ...editingTask, dueDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-priority">Priority</Label>
+                    <Select
+                      value={editingTask.priority}
+                      onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-category">Category</Label>
+                    <Select
+                      value={editingTask.category}
+                      onValueChange={(value) => setEditingTask({ ...editingTask, category: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="school">School</SelectItem>
+                        <SelectItem value="work">Work</SelectItem>
+                        <SelectItem value="personal">Personal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="edit-notification">Notifications</Label>
+                        <div className="text-xs text-muted-foreground">Get reminded before the due date</div>
+                      </div>
+                      <Switch
+                        id="edit-notification"
+                        checked={editingTask.notificationEnabled}
+                        onCheckedChange={(checked) => setEditingTask({ ...editingTask, notificationEnabled: checked })}
+                      />
+                    </div>
+                    {editingTask.notificationEnabled && (
+                      <div className="grid gap-2 mt-2">
+                        <Label htmlFor="edit-notifyBefore">Notify me</Label>
+                        <Select
+                          value={editingTask.notifyBefore.toString()}
+                          onValueChange={(value) =>
+                            setEditingTask({ ...editingTask, notifyBefore: Number.parseInt(value) })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select when to notify" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">On the due date</SelectItem>
+                            <SelectItem value="1">1 day before</SelectItem>
+                            <SelectItem value="2">2 days before</SelectItem>
+                            <SelectItem value="3">3 days before</SelectItem>
+                            <SelectItem value="7">1 week before</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={updateTask}>Save Changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tasks</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
 
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="school">School</SelectItem>
-            <SelectItem value="work">Work</SelectItem>
-            <SelectItem value="personal">Personal</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filter:</span>
+          </div>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tasks</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
 
-      <Tabs defaultValue="list" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="board">Board View</TabsTrigger>
-        </TabsList>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="school">School</SelectItem>
+              <SelectItem value="work">Work</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <TabsContent value="list" className="space-y-4">
-          {filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center">
-              <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No tasks found</h3>
-              <p className="text-sm text-muted-foreground">
-                {filter !== "all" || categoryFilter !== "all"
-                  ? "Try changing your filters or add a new task"
-                  : "Add your first task to get started"}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredTasks.map((task) => (
-                <Card key={task.id} className={task.completed ? "opacity-70" : ""}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={(e) => toggleTaskCompletion(task.id)}
-                          className="h-5 w-5 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <div className="space-y-1">
-                          <h3 className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
-                            {task.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">{task.description}</p>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Due: {task.dueDate}
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded-full ${
-                                task.priority === "high"
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                  : task.priority === "medium"
-                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              }`}
-                            >
-                              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                            </span>
-                            <span className="px-2 py-0.5 bg-muted rounded-full">
-                              {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
-                            </span>
-                            {task.notificationEnabled && (
-                              <span className="flex items-center text-muted-foreground">
-                                <Bell className="h-3 w-3 mr-1" />
-                                {task.notifyBefore === 0
-                                  ? "On due date"
-                                  : `${task.notifyBefore} day${task.notifyBefore !== 1 ? "s" : ""} before`}
+        <Tabs defaultValue="list" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="list">List View</TabsTrigger>
+            <TabsTrigger value="board">Board View</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-4 overflow-x-auto">
+            {filteredTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <CheckSquare className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">No tasks found</h3>
+                <p className="text-sm text-muted-foreground">
+                  {filter !== "all" || categoryFilter !== "all"
+                    ? "Try changing your filters or add a new task"
+                    : "Add your first task to get started"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 overflow-x-auto">
+                {filteredTasks.map((task) => (
+                  <Card key={task.id} className={task.completed ? "opacity-70" : ""}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={(e) => toggleTaskCompletion(task.id)}
+                            className="h-5 w-5 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <div className="space-y-1">
+                            <h3 className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
+                              {task.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">{task.description}</p>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Due: {task.dueDate}
                               </span>
-                            )}
+                              <span
+                                className={`px-2 py-0.5 rounded-full ${
+                                  task.priority === "high"
+                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                    : task.priority === "medium"
+                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                }`}
+                              >
+                                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                              </span>
+                              <span className="px-2 py-0.5 bg-muted rounded-full">
+                                {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
+                              </span>
+                              {task.notificationEnabled && (
+                                <span className="flex items-center text-muted-foreground">
+                                  <Bell className="h-3 w-3 mr-1" />
+                                  {task.notifyBefore === 0
+                                    ? "On due date"
+                                    : `${task.notifyBefore} day${task.notifyBefore !== 1 ? "s" : ""} before`}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEditTask(task)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => startEditTask(task)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="board" className="space-y-4 overflow-x-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="bg-muted/50 pb-3">
+                  <CardTitle className="text-sm font-medium">To Do</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 space-y-2">
+                  {filteredTasks
+                    .filter((task) => !task.completed)
+                    .filter((task) => task.priority === "high")
+                    .map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleTaskCompletion(task.id)}
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs">
+                          <span className="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
+                            High
+                          </span>
+                          <span className="text-muted-foreground">{task.dueDate}</span>
+                          {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    ))}
+                  {filteredTasks
+                    .filter((task) => !task.completed)
+                    .filter((task) => task.priority === "medium")
+                    .map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleTaskCompletion(task.id)}
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs">
+                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">
+                            Medium
+                          </span>
+                          <span className="text-muted-foreground">{task.dueDate}</span>
+                          {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </div>
+                    ))}
+                  {filteredTasks
+                    .filter((task) => !task.completed)
+                    .filter((task) => task.priority === "low")
+                    .map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-sm">{task.title}</h4>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleTaskCompletion(task.id)}
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                            Low
+                          </span>
+                          <span className="text-muted-foreground">{task.dueDate}</span>
+                          {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                      </div>
+                    ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="bg-muted/50 pb-3">
+                  <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex flex-col items-center justify-center p-6 text-center h-32 border border-dashed rounded-lg">
+                    <p className="text-sm text-muted-foreground">Tasks in progress will appear here</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="bg-muted/50 pb-3">
+                  <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 space-y-2">
+                  {filteredTasks
+                    .filter((task) => task.completed)
+                    .map((task) => (
+                      <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm opacity-70">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-sm line-through text-muted-foreground">{task.title}</h4>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleTaskCompletion(task.id)}
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteTask(task.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs">
+                          <span
+                            className={`px-2 py-0.5 rounded-full ${
+                              task.priority === "high"
+                                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                : task.priority === "medium"
+                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                  : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            }`}
+                          >
+                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                          </span>
+                          <span className="text-muted-foreground">{task.dueDate}</span>
+                        </div>
+                      </div>
+                    ))}
+                </CardContent>
+              </Card>
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="board" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="bg-muted/50 pb-3">
-                <CardTitle className="text-sm font-medium">To Do</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 space-y-2">
-                {filteredTasks
-                  .filter((task) => !task.completed)
-                  .filter((task) => task.priority === "high")
-                  .map((task) => (
-                    <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-sm">{task.title}</h4>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => toggleTaskCompletion(task.id)}
-                          >
-                            <CheckSquare className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 text-xs">
-                        <span className="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
-                          High
-                        </span>
-                        <span className="text-muted-foreground">{task.dueDate}</span>
-                        {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
-                      </div>
-                    </div>
-                  ))}
-                {filteredTasks
-                  .filter((task) => !task.completed)
-                  .filter((task) => task.priority === "medium")
-                  .map((task) => (
-                    <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-sm">{task.title}</h4>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => toggleTaskCompletion(task.id)}
-                          >
-                            <CheckSquare className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 text-xs">
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">
-                          Medium
-                        </span>
-                        <span className="text-muted-foreground">{task.dueDate}</span>
-                        {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
-                      </div>
-                    </div>
-                  ))}
-                {filteredTasks
-                  .filter((task) => !task.completed)
-                  .filter((task) => task.priority === "low")
-                  .map((task) => (
-                    <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-sm">{task.title}</h4>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startEditTask(task)}>
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => toggleTaskCompletion(task.id)}
-                          >
-                            <CheckSquare className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 text-xs">
-                        <span className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
-                          Low
-                        </span>
-                        <span className="text-muted-foreground">{task.dueDate}</span>
-                        {task.notificationEnabled && <Bell className="h-3 w-3 text-muted-foreground" />}
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="bg-muted/50 pb-3">
-                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 space-y-2">
-                <div className="flex flex-col items-center justify-center p-6 text-center h-32 border border-dashed rounded-lg">
-                  <p className="text-sm text-muted-foreground">Tasks in progress will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="bg-muted/50 pb-3">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 space-y-2">
-                {filteredTasks
-                  .filter((task) => task.completed)
-                  .map((task) => (
-                    <div key={task.id} className="p-3 bg-background border rounded-lg shadow-sm opacity-70">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-sm line-through text-muted-foreground">{task.title}</h4>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => toggleTaskCompletion(task.id)}
-                          >
-                            <CheckSquare className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteTask(task.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 text-xs">
-                        <span
-                          className={`px-2 py-0.5 rounded-full ${
-                            task.priority === "high"
-                              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                              : task.priority === "medium"
-                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          }`}
-                        >
-                          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                        </span>
-                        <span className="text-muted-foreground">{task.dueDate}</span>
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }
