@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
-                <nav className="grid gap-2">
+                <nav className="grid gap-2 text-lg font-medium">
                   {navItems.map((item) => (
                     <SidebarMenuButton asChild key={item.href}>
                       <Link
@@ -117,7 +117,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </SheetContent>
             </Sheet>
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-              <span className="font-bold">{t("studyFlow")}</span>
+              <span className="font-bold">DailyBuddy</span>
             </Link>
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
           <div className="flex flex-1">
             <aside className="hidden w-64 border-r bg-muted/40 md:block">
-              <nav className="grid gap-2 p-4">
+              <nav className="grid gap-2 p-4 text-sm font-medium">
                 {navItems.map((item) => (
                   <SidebarMenuButton asChild key={item.href}>
                     <Link
