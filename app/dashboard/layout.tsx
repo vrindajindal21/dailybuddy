@@ -34,7 +34,7 @@ import { useLanguage } from "@/components/language-provider"
 import { SmartPopupSystem } from "@/components/smart-popup-system"
 import { GlobalNotificationService } from "@/components/global-notification-service"
 import Image from "next/image"
-import { SidebarMenuButton, SidebarProvider, useSidebar } from "@/components/ui/sidebar"
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -49,6 +49,27 @@ function SidebarAutoCloseOnRouteChange() {
     }
   }, [pathname, isMobile, setOpenMobile]);
   return null;
+}
+
+function SidebarNavLinks({ navItems, pathname }: { navItems: any[]; pathname: string }) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return (
+    <>
+      {navItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          onClick={() => { if (isMobile) setOpenMobile(false); }}
+          className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
+            pathname === item.href ? "bg-muted" : "hover:bg-muted"
+          }`}
+        >
+          <item.icon className="h-5 w-5" />
+          {item.label}
+        </Link>
+      ))}
+    </>
+  );
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -100,19 +121,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
                 <nav className="grid gap-2 text-lg font-medium">
-                  {navItems.map((item) => (
-                    <SidebarMenuButton asChild key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-                          pathname === item.href ? "bg-muted" : "hover:bg-muted"
-                        }`}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                      </Link>
-                    </SidebarMenuButton>
-                  ))}
+                  <SidebarNavLinks navItems={navItems} pathname={pathname} />
                 </nav>
               </SheetContent>
             </Sheet>
@@ -157,19 +166,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex flex-1">
             <aside className="hidden w-64 border-r bg-muted/40 md:block">
               <nav className="grid gap-2 p-4 text-sm font-medium">
-                {navItems.map((item) => (
-                  <SidebarMenuButton asChild key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-                        pathname === item.href ? "bg-muted" : "hover:bg-muted"
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  </SidebarMenuButton>
-                ))}
+                <SidebarNavLinks navItems={navItems} pathname={pathname} />
               </nav>
             </aside>
             <main className="flex-1 p-4 md:p-6">{children}</main>
