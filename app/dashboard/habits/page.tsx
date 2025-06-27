@@ -325,8 +325,9 @@ export default function HabitsPage() {
           <CardDescription>Track your habits for the last 7 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto w-full">
-            <table className="w-full min-w-[600px] md:min-w-0 text-sm">
+          {/* Desktop/tablet table view */}
+          <div className="overflow-x-auto w-full hidden md:block">
+            <table className="w-full min-w-[600px] text-sm">
               <thead>
                 <tr>
                   <th className="text-left p-2 min-w-[200px]">Habit</th>
@@ -385,6 +386,44 @@ export default function HabitsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Mobile card/list view */}
+          <div className="block md:hidden space-y-4">
+            {habits.map((habit: HabitType) => (
+              <Card key={habit.id} className="p-2">
+                <div className="flex items-center gap-2 mb-2">
+                  {getCategoryIcon(habit.category)}
+                  <span className="font-semibold text-base flex-1">{habit.name}</span>
+                  <span className="text-xs text-muted-foreground capitalize">{habit.category}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {last7Days.map((day, i) => (
+                    <button
+                      key={i}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
+                        isHabitCompletedOnDate(habit, day)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
+                      }`}
+                      onClick={() => toggleHabitCompletion(habit.id, day)}
+                    >
+                      {format(day, "d")}
+                      {isHabitCompletedOnDate(habit, day) ? <span className="ml-1">✓</span> : null}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <Flame className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
+                  <span>Streak: <span className="font-semibold">{habit.streak}</span></span>
+                  <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>
