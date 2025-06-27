@@ -196,7 +196,7 @@ export default function PomodoroPage() {
             isActive: state.startTime !== null,
             startTimestamp: state.startTime,
           })
-          } else {
+        } else {
           setTimer({
             ...timer,
             timeLeft: state.timeLeft || getDefaultDuration(state.mode),
@@ -542,7 +542,7 @@ export default function PomodoroPage() {
   }
 
   const switchMode = (newMode: "pomodoro" | "shortBreak" | "longBreak") => {
-      stopTimer()
+    stopTimer()
     window.dispatchEvent(
       new CustomEvent("start-pomodoro-timer", {
         detail: {
@@ -576,8 +576,8 @@ export default function PomodoroPage() {
   }
 
   const handleSetCustomTime = () => {
-      const totalSeconds = customMinutes * 60 + customSeconds
-      if (totalSeconds > 0) {
+    const totalSeconds = customMinutes * 60 + customSeconds
+    if (totalSeconds > 0) {
       window.dispatchEvent(
         new CustomEvent("start-pomodoro-timer", {
           detail: {
@@ -587,10 +587,10 @@ export default function PomodoroPage() {
           },
         })
       )
-        toast({
-          title: "⏰ Custom Timer Set!",
-          description: `Timer set to ${customMinutes}:${customSeconds.toString().padStart(2, "0")}`,
-        })
+      toast({
+        title: "⏰ Custom Timer Set!",
+        description: `Timer set to ${customMinutes}:${customSeconds.toString().padStart(2, "0")}`,
+      })
     }
   }
 
@@ -716,445 +716,443 @@ export default function PomodoroPage() {
 
   // Timer effect
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-x-hidden">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 max-w-full w-full">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
-          <p className="text-muted-foreground">{t("pomodoroDescription")}</p>
+    <>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
+        <p className="text-muted-foreground">{t("pomodoroDescription")}</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Timer */}
+        <div className="lg:col-span-2">
+          {/* Quick Custom Time Input */}
+          <Card className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
+                <Clock className="h-5 w-5" />
+                Quick Custom Time
+              </CardTitle>
+              <CardDescription>Set any custom time instantly - no need to go to settings!</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="999"
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(Math.max(0, Math.min(999, Number.parseInt(e.target.value) || 0)))}
+                    className="w-20 text-center"
+                    placeholder="25"
+                  />
+                  <span className="text-sm text-muted-foreground font-medium">min</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={customSeconds}
+                    onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)))}
+                    className="w-20 text-center"
+                    placeholder="00"
+                  />
+                  <span className="text-sm text-muted-foreground font-medium">sec</span>
+                </div>
+
+                <Button
+                  onClick={handleSetCustomTime}
+                  disabled={timer.isActive || (customMinutes === 0 && customSeconds === 0)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Set Timer
+                </Button>
+
+                <div className="text-sm text-muted-foreground">
+                  Total: {customMinutes}:{customSeconds.toString().padStart(2, "0")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  {getModeIcon()}
+                  {timer.mode === "pomodoro" ? "Focus Time" : timer.mode === "shortBreak" ? "Short Break" : "Long Break"}
+                </CardTitle>
+                <Badge variant="outline" className="capitalize">
+                  Session {sessionCount + 1}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Mode Selector */}
+              <div className="flex gap-2">
+                <Button
+                  variant={timer.mode === "pomodoro" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => switchMode("pomodoro")}
+                  disabled={timer.isActive}
+                  className={timer.mode === "pomodoro" ? "bg-red-500 hover:bg-red-600" : ""}
+                >
+                  <Target className="h-4 w-4 mr-1" />
+                  Pomodoro
+                </Button>
+                <Button
+                  variant={timer.mode === "shortBreak" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => switchMode("shortBreak")}
+                  disabled={timer.isActive}
+                  className={timer.mode === "shortBreak" ? "bg-green-500 hover:bg-green-600" : ""}
+                >
+                  <Coffee className="h-4 w-4 mr-1" />
+                  Short Break
+                </Button>
+                <Button
+                  variant={timer.mode === "longBreak" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => switchMode("longBreak")}
+                  disabled={timer.isActive}
+                  className={timer.mode === "longBreak" ? "bg-blue-500 hover:bg-blue-600" : ""}
+                >
+                  <Coffee className="h-4 w-4 mr-1" />
+                  Long Break
+                </Button>
+              </div>
+
+              {/* Timer Display */}
+              <div className="text-center space-y-4">
+                <div className="text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
+
+                <Progress value={getProgress()} className="h-3" />
+
+                <div className="flex justify-center gap-3">
+                  {!timer.isActive ? (
+                    <Button onClick={startTimer} size="lg" className="px-8">
+                      <Play className="h-5 w-5 mr-2" />
+                      Start
+                    </Button>
+                  ) : timer.isPaused ? (
+                    <Button onClick={resumeTimer} size="lg" className="px-8">
+                      <Play className="h-5 w-5 mr-2" />
+                      Resume
+                    </Button>
+                  ) : (
+                    <Button onClick={pauseTimer} size="lg" variant="secondary" className="px-8">
+                      <Pause className="h-5 w-5 mr-2" />
+                      Pause
+                    </Button>
+                  )}
+
+                  <Button onClick={stopTimer} variant="outline" size="lg" disabled={!timer.isActive && !timer.isPaused}>
+                    <Square className="h-5 w-5 mr-2" />
+                    Stop
+                  </Button>
+
+                  <Button onClick={resetTimer} variant="outline" size="lg">
+                    <RotateCcw className="h-5 w-5 mr-2" />
+                    Reset
+                  </Button>
+                </div>
+              </div>
+
+              {/* Current Task */}
+              <div className="space-y-2">
+                <Label htmlFor="current-task">What are you working on?</Label>
+                <Input
+                  id="current-task"
+                  value={currentTask}
+                  onChange={(e) => setCurrentTask(e.target.value)}
+                  placeholder="Enter your current task..."
+                  disabled={timer.isActive && !timer.isPaused}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Timer */}
-          <div className="lg:col-span-2">
-            {/* Quick Custom Time Input */}
-            <Card className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
-                  <Clock className="h-5 w-5" />
-                  Quick Custom Time
-                </CardTitle>
-                <CardDescription>Set any custom time instantly - no need to go to settings!</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="999"
-                      value={customMinutes}
-                      onChange={(e) => setCustomMinutes(Math.max(0, Math.min(999, Number.parseInt(e.target.value) || 0)))}
-                      className="w-20 text-center"
-                      placeholder="25"
-                    />
-                    <span className="text-sm text-muted-foreground font-medium">min</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={customSeconds}
-                      onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)))}
-                      className="w-20 text-center"
-                      placeholder="00"
-                    />
-                    <span className="text-sm text-muted-foreground font-medium">sec</span>
-                  </div>
-
-                  <Button
-                    onClick={handleSetCustomTime}
-                    disabled={timer.isActive || (customMinutes === 0 && customSeconds === 0)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Set Timer
-                  </Button>
-
-                  <div className="text-sm text-muted-foreground">
-                    Total: {customMinutes}:{customSeconds.toString().padStart(2, "0")}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-6">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    {getModeIcon()}
-                    {timer.mode === "pomodoro" ? "Focus Time" : timer.mode === "shortBreak" ? "Short Break" : "Long Break"}
-                  </CardTitle>
-                  <Badge variant="outline" className="capitalize">
-                    Session {sessionCount + 1}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Mode Selector */}
-                <div className="flex gap-2">
-                  <Button
-                    variant={timer.mode === "pomodoro" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => switchMode("pomodoro")}
-                    disabled={timer.isActive}
-                    className={timer.mode === "pomodoro" ? "bg-red-500 hover:bg-red-600" : ""}
-                  >
-                    <Target className="h-4 w-4 mr-1" />
-                    Pomodoro
-                  </Button>
-                  <Button
-                    variant={timer.mode === "shortBreak" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => switchMode("shortBreak")}
-                    disabled={timer.isActive}
-                    className={timer.mode === "shortBreak" ? "bg-green-500 hover:bg-green-600" : ""}
-                  >
-                    <Coffee className="h-4 w-4 mr-1" />
-                    Short Break
-                  </Button>
-                  <Button
-                    variant={timer.mode === "longBreak" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => switchMode("longBreak")}
-                    disabled={timer.isActive}
-                    className={timer.mode === "longBreak" ? "bg-blue-500 hover:bg-blue-600" : ""}
-                  >
-                    <Coffee className="h-4 w-4 mr-1" />
-                    Long Break
-                  </Button>
-                </div>
-
-                {/* Timer Display */}
-                <div className="text-center space-y-4">
-                  <div className="text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
-
-                  <Progress value={getProgress()} className="h-3" />
-
-                  <div className="flex justify-center gap-3">
-                    {!timer.isActive ? (
-                      <Button onClick={startTimer} size="lg" className="px-8">
-                        <Play className="h-5 w-5 mr-2" />
-                        Start
-                      </Button>
-                    ) : timer.isPaused ? (
-                      <Button onClick={resumeTimer} size="lg" className="px-8">
-                        <Play className="h-5 w-5 mr-2" />
-                        Resume
-                      </Button>
-                    ) : (
-                      <Button onClick={pauseTimer} size="lg" variant="secondary" className="px-8">
-                        <Pause className="h-5 w-5 mr-2" />
-                        Pause
-                      </Button>
-                    )}
-
-                    <Button onClick={stopTimer} variant="outline" size="lg" disabled={!timer.isActive && !timer.isPaused}>
-                      <Square className="h-5 w-5 mr-2" />
-                      Stop
-                    </Button>
-
-                    <Button onClick={resetTimer} variant="outline" size="lg">
-                      <RotateCcw className="h-5 w-5 mr-2" />
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Current Task */}
-                <div className="space-y-2">
-                  <Label htmlFor="current-task">What are you working on?</Label>
-                  <Input
-                    id="current-task"
-                    value={currentTask}
-                    onChange={(e) => setCurrentTask(e.target.value)}
-                    placeholder="Enter your current task..."
-                    disabled={timer.isActive && !timer.isPaused}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Stats & Settings */}
-          <div className="space-y-6">
-            {/* Today's Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Today's Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-500">{stats.todaySessions}</div>
-                    <div className="text-sm text-muted-foreground">Completed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-500">{stats.streak}</div>
-                    <div className="text-sm text-muted-foreground">Day Streak</div>
-                  </div>
-                </div>
-
+        {/* Stats & Settings */}
+        <div className="space-y-6">
+          {/* Today's Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Today's Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-lg font-semibold">{formatDuration(stats.totalFocusTime)}</div>
-                  <div className="text-sm text-muted-foreground">Total Focus Time</div>
+                  <div className="text-2xl font-bold text-red-500">{stats.todaySessions}</div>
+                  <div className="text-sm text-muted-foreground">Completed</div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-500">{stats.streak}</div>
+                  <div className="text-sm text-muted-foreground">Day Streak</div>
+                </div>
+              </div>
 
-            {/* Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="timer" className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="timer">Timer</TabsTrigger>
-                    <TabsTrigger value="audio">Audio</TabsTrigger>
-                    <TabsTrigger value="behavior">Behavior</TabsTrigger>
-                  </TabsList>
+              <div className="text-center">
+                <div className="text-lg font-semibold">{formatDuration(stats.totalFocusTime)}</div>
+                <div className="text-sm text-muted-foreground">Total Focus Time</div>
+              </div>
+            </CardContent>
+          </Card>
 
-                  <TabsContent value="timer" className="space-y-4">
-                    {/* Preset Timers */}
-                    <div className="space-y-3">
-                      <Label>Preset Timers</Label>
-                      <div className="grid gap-2">
-                        {[...PRESET_TIMERS, ...customTimers].map((preset) => (
-                          <div key={preset.name} className="flex items-center justify-between p-2 border rounded">
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">{preset.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {preset.pomodoro}m / {preset.shortBreak}m / {preset.longBreak}m
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button size="sm" variant="outline" onClick={() => applyPreset(preset)} disabled={timer.isActive}>
-                                Use
-                              </Button>
-                              {customTimers.some((t) => t.name === preset.name) && (
-                                <Button size="sm" variant="outline" onClick={() => deleteCustomTimer(preset.name)}>
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
+          {/* Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="timer" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="timer">Timer</TabsTrigger>
+                  <TabsTrigger value="audio">Audio</TabsTrigger>
+                  <TabsTrigger value="behavior">Behavior</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="timer" className="space-y-4">
+                  {/* Preset Timers */}
+                  <div className="space-y-3">
+                    <Label>Preset Timers</Label>
+                    <div className="grid gap-2">
+                      {[...PRESET_TIMERS, ...customTimers].map((preset) => (
+                        <div key={preset.name} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{preset.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {preset.pomodoro}m / {preset.shortBreak}m / {preset.longBreak}m
                             </div>
                           </div>
-                        ))}
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" onClick={() => applyPreset(preset)} disabled={timer.isActive}>
+                              Use
+                            </Button>
+                            {customTimers.some((t) => t.name === preset.name) && (
+                              <Button size="sm" variant="outline" onClick={() => deleteCustomTimer(preset.name)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCustomTimerDialog(true)}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Custom Timer
+                    </Button>
+                  </div>
+
+                  {/* Manual Timer Settings */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Pomodoro Duration: {customPomodoro} minutes</Label>
+                      <Slider
+                        value={[customPomodoro]}
+                        onValueChange={(value) => setCustomPomodoro(value[0])}
+                        max={120}
+                        min={1}
+                        step={1}
+                        disabled={timer.isActive}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Short Break: {customShortBreak} minutes</Label>
+                      <Slider
+                        value={[customShortBreak]}
+                        onValueChange={(value) => setCustomShortBreak(value[0])}
+                        max={30}
+                        min={1}
+                        step={1}
+                        disabled={timer.isActive}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Long Break: {customLongBreak} minutes</Label>
+                      <Slider
+                        value={[customLongBreak]}
+                        onValueChange={(value) => setCustomLongBreak(value[0])}
+                        max={60}
+                        min={1}
+                        step={1}
+                        disabled={timer.isActive}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Long Break Interval: Every {longBreakInterval} sessions</Label>
+                      <Slider
+                        value={[longBreakInterval]}
+                        onValueChange={(value) => setLongBreakInterval(value[0])}
+                        max={10}
+                        min={2}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="audio" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sound-enabled">Enable Sound</Label>
+                    <Switch id="sound-enabled" checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+                  </div>
+
+                  {soundEnabled && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Volume: {soundVolume}%</Label>
+                        <Slider
+                          value={[soundVolume]}
+                          onValueChange={(value) => setSoundVolume(value[0])}
+                          max={100}
+                          min={0}
+                          step={5}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Sound Type</Label>
+                        <Select value={selectedSound} onValueChange={setSelectedSound}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bell">🔔 Bell</SelectItem>
+                            <SelectItem value="chime">🎵 Chime</SelectItem>
+                            <SelectItem value="beep">📢 Beep</SelectItem>
+                            <SelectItem value="ding">🔊 Ding</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowCustomTimerDialog(true)}
+                        onClick={playNotificationSound}
                         className="w-full"
+                        disabled={!soundEnabled}
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Custom Timer
+                        <Volume2 className="h-4 w-4 mr-2" />
+                        Test Sound
                       </Button>
-                    </div>
+                    </>
+                  )}
+                </TabsContent>
 
-                    {/* Manual Timer Settings */}
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Pomodoro Duration: {customPomodoro} minutes</Label>
-                        <Slider
-                          value={[customPomodoro]}
-                          onValueChange={(value) => setCustomPomodoro(value[0])}
-                          max={120}
-                          min={1}
-                          step={1}
-                          disabled={timer.isActive}
-                        />
-                      </div>
+                <TabsContent value="behavior" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="notifications-enabled">Browser Notifications</Label>
+                    <Switch
+                      id="notifications-enabled"
+                      checked={notificationsEnabled}
+                      onCheckedChange={setNotificationsEnabled}
+                    />
+                  </div>
 
-                      <div className="space-y-2">
-                        <Label>Short Break: {customShortBreak} minutes</Label>
-                        <Slider
-                          value={[customShortBreak]}
-                          onValueChange={(value) => setCustomShortBreak(value[0])}
-                          max={30}
-                          min={1}
-                          step={1}
-                          disabled={timer.isActive}
-                        />
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="auto-start-breaks">Auto-start Breaks</Label>
+                    <Switch id="auto-start-breaks" checked={autoStartBreaks} onCheckedChange={setAutoStartBreaks} />
+                  </div>
 
-                      <div className="space-y-2">
-                        <Label>Long Break: {customLongBreak} minutes</Label>
-                        <Slider
-                          value={[customLongBreak]}
-                          onValueChange={(value) => setCustomLongBreak(value[0])}
-                          max={60}
-                          min={1}
-                          step={1}
-                          disabled={timer.isActive}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Long Break Interval: Every {longBreakInterval} sessions</Label>
-                        <Slider
-                          value={[longBreakInterval]}
-                          onValueChange={(value) => setLongBreakInterval(value[0])}
-                          max={10}
-                          min={2}
-                          step={1}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="audio" className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="sound-enabled">Enable Sound</Label>
-                      <Switch id="sound-enabled" checked={soundEnabled} onCheckedChange={setSoundEnabled} />
-                    </div>
-
-                    {soundEnabled && (
-                      <>
-                        <div className="space-y-2">
-                          <Label>Volume: {soundVolume}%</Label>
-                          <Slider
-                            value={[soundVolume]}
-                            onValueChange={(value) => setSoundVolume(value[0])}
-                            max={100}
-                            min={0}
-                            step={5}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Sound Type</Label>
-                          <Select value={selectedSound} onValueChange={setSelectedSound}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="bell">🔔 Bell</SelectItem>
-                              <SelectItem value="chime">🎵 Chime</SelectItem>
-                              <SelectItem value="beep">📢 Beep</SelectItem>
-                              <SelectItem value="ding">🔊 Ding</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={playNotificationSound}
-                          className="w-full"
-                          disabled={!soundEnabled}
-                        >
-                          <Volume2 className="h-4 w-4 mr-2" />
-                          Test Sound
-                        </Button>
-                      </>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="behavior" className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="notifications-enabled">Browser Notifications</Label>
-                      <Switch
-                        id="notifications-enabled"
-                        checked={notificationsEnabled}
-                        onCheckedChange={setNotificationsEnabled}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="auto-start-breaks">Auto-start Breaks</Label>
-                      <Switch id="auto-start-breaks" checked={autoStartBreaks} onCheckedChange={setAutoStartBreaks} />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="auto-start-pomodoros">Auto-start Pomodoros</Label>
-                      <Switch
-                        id="auto-start-pomodoros"
-                        checked={autoStartPomodoros}
-                        onCheckedChange={setAutoStartPomodoros}
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="auto-start-pomodoros">Auto-start Pomodoros</Label>
+                    <Switch
+                      id="auto-start-pomodoros"
+                      checked={autoStartPomodoros}
+                      onCheckedChange={setAutoStartPomodoros}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
+      </div>
 
-        {/* Custom Timer Creation Dialog */}
-        {showCustomTimerDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Create Custom Timer</CardTitle>
-                <CardDescription>Design your own Pomodoro preset</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+      {/* Custom Timer Creation Dialog */}
+      {showCustomTimerDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Create Custom Timer</CardTitle>
+              <CardDescription>Design your own Pomodoro preset</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="timer-name">Timer Name</Label>
+                <Input
+                  id="timer-name"
+                  value={newTimerName}
+                  onChange={(e) => setNewTimerName(e.target.value)}
+                  placeholder="My Custom Timer"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="timer-name">Timer Name</Label>
+                  <Label>Pomodoro</Label>
                   <Input
-                    id="timer-name"
-                    value={newTimerName}
-                    onChange={(e) => setNewTimerName(e.target.value)}
-                    placeholder="My Custom Timer"
+                    type="number"
+                    value={newTimerPomodoro}
+                    onChange={(e) => setNewTimerPomodoro(Number.parseInt(e.target.value) || 25)}
+                    min="1"
+                    max="120"
                   />
                 </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label>Pomodoro</Label>
-                    <Input
-                      type="number"
-                      value={newTimerPomodoro}
-                      onChange={(e) => setNewTimerPomodoro(Number.parseInt(e.target.value) || 25)}
-                      min="1"
-                      max="120"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Short Break</Label>
-                    <Input
-                      type="number"
-                      value={newTimerShortBreak}
-                      onChange={(e) => setNewTimerShortBreak(Number.parseInt(e.target.value) || 5)}
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Long Break</Label>
-                    <Input
-                      type="number"
-                      value={newTimerLongBreak}
-                      onChange={(e) => setNewTimerLongBreak(Number.parseInt(e.target.value) || 15)}
-                      min="1"
-                      max="60"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Short Break</Label>
+                  <Input
+                    type="number"
+                    value={newTimerShortBreak}
+                    onChange={(e) => setNewTimerShortBreak(Number.parseInt(e.target.value) || 5)}
+                    min="1"
+                    max="30"
+                  />
                 </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={saveCustomTimer} className="flex-1">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Timer
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowCustomTimerDialog(false)}>
-                    Cancel
-                  </Button>
+                <div className="space-y-2">
+                  <Label>Long Break</Label>
+                  <Input
+                    type="number"
+                    value={newTimerLongBreak}
+                    onChange={(e) => setNewTimerLongBreak(Number.parseInt(e.target.value) || 15)}
+                    min="1"
+                    max="60"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-    </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={saveCustomTimer} className="flex-1">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Timer
+                </Button>
+                <Button variant="outline" onClick={() => setShowCustomTimerDialog(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
   )
 }
