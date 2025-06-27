@@ -40,21 +40,25 @@ interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
+function SidebarAutoCloseOnRouteChange() {
+  const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [pathname, isMobile, setOpenMobile]);
+  return null;
+}
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [isMounted, setIsMounted] = useState(false)
   const { language, setLanguage, t } = useLanguage()
-  const { isMobile, setOpenMobile } = useSidebar ? useSidebar() : { isMobile: false, setOpenMobile: () => {} }
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (isMobile) {
-      setOpenMobile(false)
-    }
-  }, [pathname, isMobile, setOpenMobile])
 
   if (!isMounted) {
     return null
@@ -83,6 +87,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
+      <SidebarAutoCloseOnRouteChange />
       <div className="bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100 min-h-screen dark:bg-gradient-to-br dark:from-gray-900 dark:via-indigo-900 dark:to-gray-800">
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
