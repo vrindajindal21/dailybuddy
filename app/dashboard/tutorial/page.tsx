@@ -1150,7 +1150,7 @@ export default function TutorialPage() {
   const completionPercentage = (completedSections.size / tutorialSections.length) * 100
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutorial</h2>
