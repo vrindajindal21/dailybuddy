@@ -34,7 +34,7 @@ import { useLanguage } from "@/components/language-provider"
 import { SmartPopupSystem } from "@/components/smart-popup-system"
 import { GlobalNotificationService } from "@/components/global-notification-service"
 import Image from "next/image"
-import { SidebarMenuButton } from "@/components/ui/sidebar"
+import { SidebarMenuButton, SidebarProvider } from "@/components/ui/sidebar"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -75,18 +75,76 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ]
 
   return (
-    <div className="bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100 min-h-screen dark:bg-gradient-to-br dark:from-gray-900 dark:via-indigo-900 dark:to-gray-800">
-      <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
+    <SidebarProvider>
+      <div className="bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100 min-h-screen dark:bg-gradient-to-br dark:from-gray-900 dark:via-indigo-900 dark:to-gray-800">
+        <div className="flex min-h-screen flex-col">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72">
+                <nav className="grid gap-2 text-lg font-medium">
+                  {navItems.map((item) => (
+                    <SidebarMenuButton asChild key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
+                          pathname === item.href ? "bg-muted" : "hover:bg-muted"
+                        }`}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Link>
+                    </SidebarMenuButton>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+              <span className="font-bold">{t("studyFlow")}</span>
+            </Link>
+            <div className="ml-auto flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="flex items-center gap-1">
+                    <Globe className="h-[1.2rem] w-[1.2rem]" />
+                    <span className="sr-only">Change language</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {languages.map((lang) => (
+                    <DropdownMenuItem
+                      key={lang.value}
+                      onClick={() => setLanguage(lang.value as any)}
+                      className={`flex items-center gap-2 ${language === lang.value ? "bg-muted" : ""}`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                      {language === lang.value && <Check className="ml-auto h-4 w-4" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <ThemeToggle />
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Image
+                  src="/placeholder.svg"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                  alt="Avatar"
+                />
+                <span className="sr-only">Toggle user menu</span>
               </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72">
-              <nav className="grid gap-2 text-lg font-medium">
+            </div>
+          </header>
+          <div className="flex flex-1">
+            <aside className="hidden w-64 border-r bg-muted/40 md:block">
+              <nav className="grid gap-2 p-4 text-sm font-medium">
                 {navItems.map((item) => (
                   <SidebarMenuButton asChild key={item.href}>
                     <Link
@@ -101,71 +159,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </SidebarMenuButton>
                 ))}
               </nav>
-            </SheetContent>
-          </Sheet>
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <span className="font-bold">{t("studyFlow")}</span>
-          </Link>
-          <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="flex items-center gap-1">
-                  <Globe className="h-[1.2rem] w-[1.2rem]" />
-                  <span className="sr-only">Change language</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {languages.map((lang) => (
-                  <DropdownMenuItem
-                    key={lang.value}
-                    onClick={() => setLanguage(lang.value as any)}
-                    className={`flex items-center gap-2 ${language === lang.value ? "bg-muted" : ""}`}
-                  >
-                    <span>{lang.flag}</span>
-                    <span>{lang.label}</span>
-                    {language === lang.value && <Check className="ml-auto h-4 w-4" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <ThemeToggle />
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Image
-                src="/placeholder.svg"
-                width={32}
-                height={32}
-                className="rounded-full"
-                alt="Avatar"
-              />
-              <span className="sr-only">Toggle user menu</span>
-            </Button>
+            </aside>
+            <main className="flex-1 p-4 md:p-6">{children}</main>
           </div>
-        </header>
-        <div className="flex flex-1">
-          <aside className="hidden w-64 border-r bg-muted/40 md:block">
-            <nav className="grid gap-2 p-4 text-sm font-medium">
-              {navItems.map((item) => (
-                <SidebarMenuButton asChild key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-                      pathname === item.href ? "bg-muted" : "hover:bg-muted"
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                </SidebarMenuButton>
-              ))}
-            </nav>
-          </aside>
-          <main className="flex-1 p-4 md:p-6">{children}</main>
         </div>
+        <InAppNotification />
+        <PomodoroBackgroundService />
+        <SmartPopupSystem />
+        <GlobalNotificationService />
       </div>
-      <InAppNotification />
-      <PomodoroBackgroundService />
-      <SmartPopupSystem />
-      <GlobalNotificationService />
-    </div>
+    </SidebarProvider>
   )
 }
