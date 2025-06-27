@@ -220,8 +220,8 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
           <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
@@ -389,7 +389,7 @@ export default function HabitsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
         {habits.map((habit: HabitType) => (
           <Card key={habit.id}>
             <CardHeader className="pb-2">
