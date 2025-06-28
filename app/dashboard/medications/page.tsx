@@ -916,100 +916,50 @@ export default function MedicationsPage() {
     return days.map((day) => day.charAt(0).toUpperCase() + day.slice(1, 3)).join(", ")
   }, [])
 
-  const filteredMedications = medications.filter((medication: MedicationType) => {
-    if (filter === "all") return true
-    if (filter === "active") {
-      const now = new Date()
-      const startDate = medication.startDate ? new Date(medication.startDate) : null
-      const endDate = medication.endDate ? new Date(medication.endDate) : null
+  // Stat calculations
+  const totalMedications = medications.length;
+  const activeToday = medications.filter(med => {
+    const today = new Date();
+    return med.schedule.some(sch => sch.days.includes(today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase()));
+  }).length;
+  const withNotifications = medications.filter(med => med.notificationsEnabled).length;
+  const withAlarms = medications.filter(med => med.alarmEnabled).length;
 
-      if (startDate && startDate > now) return false
-      if (endDate && endDate < now) return false
-      return true
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  // Filtering logic
+  const filteredMedications = medications.filter((med) => {
+    // Status filter (all, active, completed)
+    if (statusFilter === "active") {
+      // Active: has a schedule for today
+      const today = new Date();
+      if (!med.schedule.some(sch => sch.days.includes(today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase()))) return false;
+    } else if (statusFilter === "completed") {
+      // Completed: not active today (for demo, you can adjust logic)
+      const today = new Date();
+      if (med.schedule.some(sch => sch.days.includes(today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase()))) return false;
     }
-    return false
-  })
+    // Category filter (by color as a proxy for type)
+    if (categoryFilter !== "all" && med.color !== categoryFilter) return false;
+    return true;
+  });
 
   if (!isMounted) {
     return null
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
-      {showPermissionAlert && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Notifications are disabled</AlertTitle>
-          <AlertDescription>
-            Enable notifications to receive medication reminders even when the app is in the background.
-            <Button variant="outline" size="sm" className="ml-2" onClick={() => setIsPermissionDialogOpen(true)}>
-              Enable Notifications
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enable Notifications</DialogTitle>
-            <DialogDescription>
-              Notifications allow you to receive medication reminders even when the app is in the background or closed.
-              This is especially important for medication adherence.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="mb-4">By enabling notifications, you'll:</p>
-            <ul className="list-disc pl-5 space-y-2 mb-4">
-              <li>Get timely medication reminders with sound</li>
-              <li>Never miss important doses</li>
-              <li>Receive periodic notifications for critical medications</li>
-              <li>Get vibration alerts on mobile devices</li>
-            </ul>
-            <p>You can always change this setting later in your browser or device settings.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPermissionDialogOpen(false)}>
-              Not Now
-            </Button>
-            <Button onClick={requestNotificationPermission}>Enable Notifications</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Active Alarm Dialog */}
-      {isAlarmPlaying && currentAlarm && (
-        <Dialog open={isAlarmPlaying} onOpenChange={(open) => !open && stopAlarm()}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Medication Reminder</DialogTitle>
-              <DialogDescription>It's time to take your medication</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col items-center justify-center gap-4 py-4">
-              <div
-                className={`w-16 h-16 rounded-full ${getMedicationColor(currentAlarm.color)} flex items-center justify-center`}
-              >
-                <Pill className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-xl font-bold">{currentAlarm.name}</h2>
-              <p className="text-lg">{currentAlarm.dosage}</p>
-              {currentAlarm.instructions && <p className="text-muted-foreground">{currentAlarm.instructions}</p>}
-            </div>
-            <DialogFooter>
-              <Button onClick={stopAlarm}>Dismiss</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Medications</h2>
           <p className="text-muted-foreground text-base sm:text-lg">Track your medications and schedules</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+            <Button className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-2">
               <Plus className="mr-2 h-4 w-4" />
               Add Medication
             </Button>
@@ -1257,507 +1207,157 @@ export default function MedicationsPage() {
         </Dialog>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter medications" />
+      {/* Filter Controls */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Filter:</span>
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Medications</SelectItem>
-            <SelectItem value="active">Active Medications</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="blue">Blue (Vitamin D)</SelectItem>
+            <SelectItem value="red">Red (Paracetamol)</SelectItem>
+            <SelectItem value="green">Green (Multivitamin)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Today's Medications</CardTitle>
-            <CardDescription>Medications you need to take today</CardDescription>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Medications</CardTitle>
+            <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {todaysMedications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center">
-                <Check className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">All caught up!</h3>
-                <p className="text-sm text-muted-foreground">No more medications to take today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {todaysMedications.map((medication: MedicationType, index: number) => (
-                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div
-                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                    ></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{medication.name}</h4>
-                        <Badge variant="outline">{medication.formattedTime || medication.dueTime}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-                      {medication.instructions && (
-                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="text-2xl font-bold">{totalMedications}</div>
+            <p className="text-xs text-muted-foreground">in your list</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Medications</CardTitle>
-            <CardDescription>Medications scheduled for later today</CardDescription>
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Today</CardTitle>
+            <Check className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            {upcomingMedications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center">
-                <Check className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">All done for today!</h3>
-                <p className="text-sm text-muted-foreground">No more medications scheduled for today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingMedications.map((medication: MedicationType, index: number) => (
-                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div
-                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                    ></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{medication.name}</h4>
-                        <Badge>{medication.formattedTime || medication.dueTime}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-                      {medication.instructions && (
-                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="text-2xl font-bold">{activeToday}</div>
+            <p className="text-xs text-muted-foreground">scheduled for today</p>
+          </CardContent>
+        </Card>
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">With Notifications</CardTitle>
+            <Bell className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{withNotifications}</div>
+            <p className="text-xs text-muted-foreground">notifications enabled</p>
+          </CardContent>
+        </Card>
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">With Alarms</CardTitle>
+            <Volume2 className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{withAlarms}</div>
+            <p className="text-xs text-muted-foreground">alarms enabled</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Medications</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Medication List</CardTitle>
-              <CardDescription>Manage your medications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredMedications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <Pill className="h-10 w-10 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No medications found</h3>
-                  <p className="text-sm text-muted-foreground">Add your first medication to get started</p>
+      {/* Medication Cards Grid */}
+      {filteredMedications.length === 0 ? (
+        <Card className="p-4 sm:p-6">
+          <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+            <Pill className="h-10 w-10 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No medications found</h3>
+            <p className="text-sm text-muted-foreground">
+              Try changing your filters or add a new medication
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredMedications.map((medication) => (
+            <Card key={medication.id} className="p-4 sm:p-6">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${getMedicationColor(medication.color)}`}></span>
+                    <CardTitle className="text-lg sm:text-xl">{medication.name}</CardTitle>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredMedications.map((medication: MedicationType, index: number) => (
-                    <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div
-                        className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                      ></div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{medication.name}</h4>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-
-                        <div className="mt-2 space-y-1">
-                          {medication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
-                            <div key={index} className="flex items-center text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3 mr-1" />
-                              <span>
-                                {use12HourFormat
-                                  ? format(parse(schedule.time, "HH:mm", new Date()), "h:mm a")
-                                  : schedule.time}{" "}
-                                - {formatDaysList(schedule.days)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {medication.instructions && (
-                          <p className="text-xs text-muted-foreground mt-2">{medication.instructions}</p>
-                        )}
-
-                        <div className="flex items-center gap-2 mt-2">
-                          {medication.startDate && (
-                            <Badge variant="outline" className="text-xs">
-                              From: {format(new Date(medication.startDate), "MMM d, yyyy")}
-                            </Badge>
-                          )}
-                          {medication.endDate && (
-                            <Badge variant="outline" className="text-xs">
-                              Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
-                            </Badge>
-                          )}
-                          {medication.notificationsEnabled ? (
-                            <Badge variant="secondary" className="text-xs">
-                              <Bell className="h-3 w-3 mr-1" /> Notifications On
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              <BellOff className="h-3 w-3 mr-1" /> Notifications Off
-                            </Badge>
-                          )}
-                          {medication.alarmEnabled && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Volume2 className="h-3 w-3 mr-1" /> Alarm On
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="schedule" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Schedule</CardTitle>
-              <CardDescription>Your medication schedule for the week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto w-full hidden md:block">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="border p-2 text-left">Time</th>
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day: string) => (
-                        <th key={day} className="border p-2 text-center">
-                          {day}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {["08:00", "12:00", "16:00", "20:00"].map((time: string) => (
-                      <tr key={time}>
-                        <td className="border p-2 font-medium">
-                          {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
-                        </td>
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => {
-                          const medsForTimeAndDay = filteredMedications.filter((med: MedicationType) =>
-                            med.schedule.some((s: { time: string; days: string[] }) => s.time === time && s.days.includes(day)),
-                          )
-
-                          return (
-                            <td key={day} className="border p-2 text-center">
-                              {medsForTimeAndDay.length > 0 ? (
-                                <div className="flex flex-col gap-1">
-                                  {medsForTimeAndDay.map((med: MedicationType) => (
-                                    <div
-                                      key={med.id}
-                                      className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white`}
-                                    >
-                                      {med.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
-                              )}
-                            </td>
-                          )
-                        })}
-                      </tr>
+                <CardDescription>{medication.dosage}</CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    {medication.instructions && <span>{medication.instructions}</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {medication.schedule.map((sch, idx) => (
+                      <span key={idx} className="bg-muted px-2 py-1 rounded">
+                        {sch.time} ({formatDaysList(sch.days)})
+                      </span>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="block md:hidden space-y-4">
-                {filteredMedications.map((medication: MedicationType, index: number) => (
-                  <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div
-                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
-                    ></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{medication.name}</h4>
-                        <Badge>{medication.formattedTime || medication.dueTime}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-                      {medication.instructions && (
-                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
-                      )}
-                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Medication</DialogTitle>
-            <DialogDescription>Update your medication details</DialogDescription>
-          </DialogHeader>
-          {editingMedication && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-name" className="flex items-center">
-                    Medication Name <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="edit-name"
-                    placeholder="Medication name"
-                    value={editingMedication.name}
-                    onChange={(e) => {
-                      setEditingMedication({ ...editingMedication, name: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-dosage" className="flex items-center">
-                    Dosage <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="edit-dosage"
-                    placeholder="e.g., 500mg"
-                    value={editingMedication.dosage}
-                    onChange={(e) => {
-                      setEditingMedication({ ...editingMedication, dosage: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-instructions">Instructions</Label>
-                <Input
-                  id="edit-instructions"
-                  placeholder="e.g., Take with food"
-                  value={editingMedication.instructions}
-                  onChange={(e) => setEditingMedication({ ...editingMedication, instructions: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label>Schedule</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addEditScheduleTime}>
-                    <Plus className="h-4 w-4 mr-1" /> Add Time
-                  </Button>
-                </div>
-
-                {editingMedication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
-                  <div key={index} className="space-y-3 p-3 border rounded-md">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor={`edit-time-${index}`}>Time</Label>
-                      </div>
-                      {editingMedication.schedule.length > 1 && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeEditScheduleTime(index)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <Input
-                      id={`edit-time-${index}`}
-                      type="time"
-                      value={schedule.time}
-                      onChange={(e) => updateEditScheduleTime(index, e.target.value)}
-                    />
-
-                    <div className="space-y-2">
-                      <Label>Days</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`edit-${day}-${index}`}
-                              checked={schedule.days.includes(day)}
-                              onChange={(e) => updateEditScheduleDays(index, day, e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <Label htmlFor={`edit-${day}-${index}`} className="text-sm">
-                              {day.charAt(0).toUpperCase() + day.slice(1, 3)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    {medication.startDate && (
+                      <Badge variant="outline" className="text-xs">
+                        From: {format(new Date(medication.startDate), "MMM d, yyyy")}
+                      </Badge>
+                    )}
+                    {medication.endDate && (
+                      <Badge variant="outline" className="text-xs">
+                        Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
+                      </Badge>
+                    )}
+                    {medication.notificationsEnabled ? (
+                      <Badge variant="secondary" className="text-xs">
+                        <Bell className="h-3 w-3 mr-1" /> Notifications On
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        <BellOff className="h-3 w-3 mr-1" /> Notifications Off
+                      </Badge>
+                    )}
+                    {medication.alarmEnabled && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Volume2 className="h-3 w-3 mr-1" /> Alarm On
+                      </Badge>
+                    )}
                   </div>
-                ))}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-startDate">Start Date</Label>
-                <Input
-                  id="edit-startDate"
-                  type="date"
-                  value={editingMedication && typeof editingMedication.startDate === 'string' ? editingMedication.startDate : ''}
-                  onChange={e => setEditingMedication({ ...editingMedication, startDate: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-endDate">End Date (Optional)</Label>
-                <Input
-                  id="edit-endDate"
-                  type="date"
-                  value={editingMedication && typeof editingMedication.endDate === 'string' ? editingMedication.endDate : ''}
-                  onChange={e => setEditingMedication({ ...editingMedication, endDate: e.target.value })}
-                  placeholder="No end date"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-color">Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color: string) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setEditingMedication({ ...editingMedication, color })}
-                      className={`w-8 h-8 rounded-full ${getMedicationColor(color)} ${
-                        editingMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
-                      }`}
-                      aria-label={`${color} color`}
-                    />
-                  ))}
+                  {medication.notes && (
+                    <div className="text-xs text-muted-foreground mt-2">{medication.notes}</div>
+                  )}
                 </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="edit-notifications">Notifications</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Get reminded when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="edit-notifications"
-                    checked={editingMedication.notificationsEnabled}
-                    onCheckedChange={(checked) =>
-                      setEditingMedication({ ...editingMedication, notificationsEnabled: checked })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="edit-alarm">Alarm Sound</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Play an alarm sound when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="edit-alarm"
-                    checked={editingMedication.alarmEnabled}
-                    onCheckedChange={(checked) => setEditingMedication({ ...editingMedication, alarmEnabled: checked })}
-                  />
-                </div>
-
-                {editingMedication.alarmEnabled && (
-                  <div className="space-y-4 mt-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="edit-alarmSound">Sound</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={editingMedication.alarmSound}
-                          onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmSound: value })}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select sound" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bell">Bell</SelectItem>
-                            <SelectItem value="beep">Beep</SelectItem>
-                            <SelectItem value="chime">Chime</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => testAlarmSound(editingMedication.alarmSound, editingMedication.alarmVolume)}
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor="edit-alarmVolume">Volume</Label>
-                        <span className="text-sm text-muted-foreground">{editingMedication.alarmVolume}%</span>
-                      </div>
-                      <Slider
-                        id="edit-alarmVolume"
-                        min={0}
-                        max={100}
-                        step={10}
-                        value={[editingMedication.alarmVolume]}
-                        onValueChange={(value) => setEditingMedication({ ...editingMedication, alarmVolume: value[0] })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-notes">Notes (Optional)</Label>
-                <Textarea
-                  id="edit-notes"
-                  placeholder="Additional notes"
-                  value={editingMedication.notes}
-                  onChange={(e) => setEditingMedication({ ...editingMedication, notes: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={updateMedication}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
