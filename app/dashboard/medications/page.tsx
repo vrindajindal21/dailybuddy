@@ -1261,8 +1261,8 @@ export default function MedicationsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">With Notifications</CardTitle>
             <Bell className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
+            </CardHeader>
+            <CardContent>
             <div className="text-2xl font-bold">{withNotifications}</div>
             <p className="text-xs text-muted-foreground">notifications enabled</p>
           </CardContent>
@@ -1280,17 +1280,17 @@ export default function MedicationsPage() {
       </div>
 
       {/* Medication Cards Grid */}
-      {filteredMedications.length === 0 ? (
+              {filteredMedications.length === 0 ? (
         <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-            <Pill className="h-10 w-10 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No medications found</h3>
+                  <Pill className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No medications found</h3>
             <p className="text-sm text-muted-foreground">
               Try changing your filters or add a new medication
             </p>
           </CardContent>
         </Card>
-      ) : (
+              ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredMedications.map((medication) => (
             <Card key={medication.id} className="p-4 sm:p-6">
@@ -1300,64 +1300,64 @@ export default function MedicationsPage() {
                     <span className={`w-3 h-3 rounded-full ${getMedicationColor(medication.color)}`}></span>
                     <CardTitle className="text-lg sm:text-xl">{medication.name}</CardTitle>
                   </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                 <CardDescription>{medication.dosage}</CardDescription>
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs">
                     {medication.instructions && <span>{medication.instructions}</span>}
-                  </div>
+                            </div>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {medication.schedule.map((sch, idx) => (
                       <span key={idx} className="bg-muted px-2 py-1 rounded">
                         {sch.time} ({formatDaysList(sch.days)})
                       </span>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    {medication.startDate && (
-                      <Badge variant="outline" className="text-xs">
-                        From: {format(new Date(medication.startDate), "MMM d, yyyy")}
-                      </Badge>
-                    )}
-                    {medication.endDate && (
-                      <Badge variant="outline" className="text-xs">
-                        Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
-                      </Badge>
-                    )}
-                    {medication.notificationsEnabled ? (
-                      <Badge variant="secondary" className="text-xs">
-                        <Bell className="h-3 w-3 mr-1" /> Notifications On
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-xs">
-                        <BellOff className="h-3 w-3 mr-1" /> Notifications Off
-                      </Badge>
-                    )}
-                    {medication.alarmEnabled && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Volume2 className="h-3 w-3 mr-1" /> Alarm On
-                      </Badge>
-                    )}
-                  </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          {medication.startDate && (
+                            <Badge variant="outline" className="text-xs">
+                              From: {format(new Date(medication.startDate), "MMM d, yyyy")}
+                            </Badge>
+                          )}
+                          {medication.endDate && (
+                            <Badge variant="outline" className="text-xs">
+                              Until: {format(new Date(medication.endDate), "MMM d, yyyy")}
+                            </Badge>
+                          )}
+                          {medication.notificationsEnabled ? (
+                            <Badge variant="secondary" className="text-xs">
+                              <Bell className="h-3 w-3 mr-1" /> Notifications On
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              <BellOff className="h-3 w-3 mr-1" /> Notifications Off
+                            </Badge>
+                          )}
+                          {medication.alarmEnabled && (
+                            <Badge variant="secondary" className="text-xs">
+                              <Volume2 className="h-3 w-3 mr-1" /> Alarm On
+                            </Badge>
+                          )}
+                        </div>
                   {medication.notes && (
                     <div className="text-xs text-muted-foreground mt-2">{medication.notes}</div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
           ))}
-        </div>
-      )}
+                  </div>
+                )}
     </div>
   )
 }

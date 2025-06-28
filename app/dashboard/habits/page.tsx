@@ -337,7 +337,7 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
-      {/* Filter Controls (like Goals page) */}
+      {/* Filter Controls (always at top, compact) */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Filter:</span>
@@ -365,7 +365,7 @@ export default function HabitsPage() {
         </Select>
       </div>
 
-      {/* Stat Cards */}
+      {/* Stat Cards (always directly below filters) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -421,7 +421,7 @@ export default function HabitsPage() {
         </Card>
       </div>
 
-      {/* Habit Cards */}
+      {/* Habit Cards (or empty state) always directly below stat cards */}
       {filteredHabits.length === 0 ? (
         <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
