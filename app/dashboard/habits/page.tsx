@@ -220,15 +220,15 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Habits</h2>
-          <p className="text-muted-foreground">Track and build your daily habits</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
+          <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-2">
               <Plus className="mr-2 h-4 w-4" />
               Add Habit
             </Button>
@@ -319,8 +319,8 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Habits</CardTitle>
             <Flame className="h-4 w-4 text-muted-foreground" />
@@ -333,7 +333,7 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Streaks</CardTitle>
             <Award className="h-4 w-4 text-blue-500" />
@@ -348,7 +348,7 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
             <Heart className="h-4 w-4 text-green-500" />
@@ -363,7 +363,7 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Best Streak</CardTitle>
             <Trophy className="h-4 w-4 text-yellow-500" />
@@ -378,7 +378,7 @@ export default function HabitsPage() {
       </div>
 
       {habits.length === 0 ? (
-        <Card>
+        <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
             <Flame className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">No habits yet</h3>
@@ -388,14 +388,14 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {habits.map((habit: HabitType) => (
-            <Card key={habit.id}>
+            <Card key={habit.id} className="p-4 sm:p-6">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
                     {getCategoryIcon(habit.category)}
-                    <CardTitle className="text-lg">{habit.name}</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{habit.name}</CardTitle>
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
