@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns"
-import { Plus, Trash2, Edit, Heart, Award, Flame } from "lucide-react"
+import { Plus, Trash2, Edit, Heart, Award, Flame, Trophy } from "lucide-react"
 
 type HabitType = {
   id: number;
@@ -220,15 +220,15 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
+          <h2 className="text-3xl font-bold tracking-tight">Habits</h2>
+          <p className="text-muted-foreground">Track and build your daily habits</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Habit
             </Button>
@@ -319,153 +319,149 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Daily Habit Tracker</CardTitle>
-          <CardDescription>Track your habits for the last 7 days</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Desktop/tablet table view */}
-          <div className="overflow-x-auto w-full hidden md:block">
-            <table className="w-full min-w-[600px] text-sm">
-              <thead>
-                <tr>
-                  <th className="text-left p-2 min-w-[200px]">Habit</th>
-                  {last7Days.map((day, i) => (
-                    <th key={i} className="text-center p-2 min-w-[60px]">
-                      <div className="text-xs font-normal text-muted-foreground">{format(day, "EEE")}</div>
-                      <div className={`text-sm ${isSameDay(day, today) ? "font-bold" : ""}`}>{format(day, "d")}</div>
-                    </th>
-                  ))}
-                  <th className="text-center p-2 min-w-[80px]">Streak</th>
-                  <th className="text-center p-2 min-w-[100px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {habits.map((habit: HabitType) => (
-                  <tr key={habit.id} className="border-t">
-                    <td className="p-2">
-                      <div className="flex items-center gap-2">
-                        {getCategoryIcon(habit.category)}
-                        <span>{habit.name}</span>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Habits</CardTitle>
+            <Flame className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{habits.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {habits.filter((h) => h.streak > 0).length} active streaks
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Streaks</CardTitle>
+            <Award className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {habits.reduce((acc, habit) => acc + habit.streak, 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {habits.length > 0 ? Math.round(habits.reduce((acc, habit) => acc + habit.streak, 0) / habits.length) : 0} average streak
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+            <Heart className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {habits.filter((h) => isHabitCompletedOnDate(h, today)).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              of {habits.length} habits completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best Streak</CardTitle>
+            <Trophy className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">days longest streak</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {habits.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+            <Flame className="h-10 w-10 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No habits yet</h3>
+            <p className="text-sm text-muted-foreground">
+              Add your first habit to start building healthy routines
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {habits.map((habit: HabitType) => (
+            <Card key={habit.id}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    {getCategoryIcon(habit.category)}
+                    <CardTitle className="text-lg">{habit.name}</CardTitle>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardDescription className="capitalize">{habit.category}</CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Current Streak</span>
+                      <div className="flex items-center gap-1">
+                        <Flame className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
+                        <span className="font-medium">{habit.streak} days</span>
                       </div>
-                    </td>
-                    {last7Days.map((day, i) => (
-                      <td key={i} className="text-center p-2">
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">7-Day Tracker</div>
+                    <div className="flex gap-1">
+                      {last7Days.map((day, i) => (
                         <button
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                          key={i}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
                             isHabitCompletedOnDate(habit, day)
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted hover:bg-muted/80"
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
                           }`}
                           onClick={() => toggleHabitCompletion(habit.id, day)}
+                          title={`${format(day, "EEE, MMM d")} - ${isHabitCompletedOnDate(habit, day) ? "Completed" : "Not completed"}`}
                         >
-                          {isHabitCompletedOnDate(habit, day) ? "✓" : ""}
+                          {format(day, "d")}
+                          {isHabitCompletedOnDate(habit, day) && <span className="ml-0.5">✓</span>}
                         </button>
-                      </td>
-                    ))}
-                    <td className="text-center p-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <Flame
-                          className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`}
-                        />
-                        <span className="font-medium">{habit.streak}</span>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <div className="flex justify-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Mobile card/list view */}
-          <div className="block md:hidden space-y-4">
-            {habits.map((habit: HabitType) => (
-              <Card key={habit.id} className="p-2">
-                <div className="flex items-center gap-2 mb-2">
-                  {getCategoryIcon(habit.category)}
-                  <span className="font-semibold text-base flex-1">{habit.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">{habit.category}</span>
-                </div>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {last7Days.map((day, i) => (
-                    <button
-                      key={i}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
-                        isHabitCompletedOnDate(habit, day)
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
-                      }`}
-                      onClick={() => toggleHabitCompletion(habit.id, day)}
-                    >
-                      {format(day, "d")}
-                      {isHabitCompletedOnDate(habit, day) ? <span className="ml-1">✓</span> : null}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <Flame className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                  <span>Streak: <span className="font-semibold">{habit.streak}</span></span>
-                  <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-        {habits.map((habit: HabitType) => (
-          <Card key={habit.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-base">{habit.name}</CardTitle>
-                {getCategoryIcon(habit.category)}
-              </div>
-              <CardDescription>{habit.category.charAt(0).toUpperCase() + habit.category.slice(1)}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Flame className={`h-5 w-5 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                <span className="text-2xl font-bold">{habit.streak}</span>
-                <span className="text-muted-foreground">day streak</span>
-              </div>
-              <div className="mt-4 flex gap-1">
-                {last7Days.slice(-5).map((day, i) => (
-                  <div key={i} className="flex-1">
-                    <div
-                      className={`h-2 rounded-full ${isHabitCompletedOnDate(habit, day) ? "bg-primary" : "bg-muted"}`}
-                    ></div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {last7Days.map((day, i) => (
+                        <span key={i} className="inline-block w-8 text-center">
+                          {format(day, "EEE")}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="pt-0">
-              <Button
-                variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
-                className="w-full"
-                onClick={() => toggleHabitCompletion(habit.id, today)}
-              >
-                {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+                </div>
+              </CardContent>
+              <CardFooter className="pt-0">
+                <Button
+                  variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
+                  className="w-full"
+                  onClick={() => toggleHabitCompletion(habit.id, today)}
+                >
+                  {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
