@@ -37,7 +37,6 @@ export default function Home() {
       <header className="px-4 lg:px-6 h-16 flex items-center justify-between w-full bg-white/80 shadow-sm sticky top-0 z-10">
         <span className="font-bold text-xl flex items-center gap-2">
           <Image src="/placeholder-logo.svg" alt="DailyBuddy Logo" width={32} height={32} className="h-8 w-auto" />
-          DailyBuddy
         </span>
         <nav className="flex gap-6">
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">Features</Link>
@@ -111,6 +110,7 @@ export default function Home() {
             aria-label="Share on WhatsApp"
             className="hover:text-green-500 flex items-center gap-1"
           >
+            
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 32 32"><path d="M16.002 3.2c-7.06 0-12.8 5.74-12.8 12.8 0 2.26.6 4.47 1.74 6.41L3.2 28.8l6.56-1.71c1.87 1.02 3.98 1.56 6.24 1.56h.01c7.06 0 12.8-5.74 12.8-12.8s-5.74-12.8-12.8-12.8zm0 23.36c-2.01 0-3.98-.54-5.68-1.56l-.41-.24-3.89 1.01 1.04-3.78-.27-.39c-1.09-1.6-1.67-3.47-1.67-5.41 0-5.44 4.43-9.87 9.87-9.87s9.87 4.43 9.87 9.87-4.43 9.87-9.87 9.87zm5.41-7.47c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.51-1.78-1.69-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.64-.93-2.25-.24-.58-.48-.5-.68-.51-.18-.01-.37-.01-.57-.01-.2 0-.52.07-.8.37-.28.3-1.05 1.03-1.05 2.5 0 1.47 1.08 2.89 1.23 3.09.15.2 2.13 3.25 5.17 4.43.72.31 1.28.5 1.72.64.72.23 1.37.2 1.88.12.57-.09 1.77-.72 2.02-1.41.25-.69.25-1.28.18-1.41-.07-.13-.27-.2-.57-.35z"/></svg>
             <span className="text-sm">Share on WhatsApp</span>
           </a>
