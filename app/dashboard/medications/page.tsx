@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { MedicationManager } from "@/lib/medication-manager"
 
 type MedicationType = {
   id: number;
@@ -163,6 +164,12 @@ export default function MedicationsPage() {
 
   useEffect(() => {
     setIsMounted(true)
+    
+    // Initialize medication manager for background scheduling
+    if (typeof window !== "undefined") {
+      MedicationManager.initialize()
+    }
+    
     return () => {
       // Clean up intervals on unmount
       if (notificationIntervalRef.current) {
@@ -621,7 +628,12 @@ export default function MedicationsPage() {
       notes: newMedication.notes,
     }
 
+    // Add to local state
     setMedications((prev) => [...prev, medication])
+    
+    // Add to medication manager for background scheduling
+    MedicationManager.addMedication(medication)
+    
     setNewMedication({
       id: 0,
       name: "",
@@ -643,7 +655,7 @@ export default function MedicationsPage() {
 
     toast({
       title: "Medication added",
-      description: "Your medication has been added successfully.",
+      description: "Your medication has been added successfully with background reminders.",
     })
   }, [newMedication, toast])
 
@@ -698,51 +710,60 @@ export default function MedicationsPage() {
       return
     }
 
+    if (!editingMedication) return
+
+    const updatedMedication: MedicationType = {
+      id: editingMedication.id,
+      name: editingMedication.name,
+      dosage: editingMedication.dosage,
+      instructions: editingMedication.instructions,
+      schedule: editingMedication.schedule,
+      notificationsEnabled: editingMedication.notificationsEnabled,
+      alarmEnabled: editingMedication.alarmEnabled,
+      alarmSound: editingMedication.alarmSound,
+      alarmVolume: editingMedication.alarmVolume,
+      color: editingMedication.color,
+      startDate: typeof editingMedication.startDate === 'string'
+        ? editingMedication.startDate
+        : format(editingMedication.startDate, "yyyy-MM-dd"),
+      endDate: editingMedication.endDate
+        ? (typeof editingMedication.endDate === 'string'
+            ? editingMedication.endDate
+            : format(editingMedication.endDate, "yyyy-MM-dd"))
+        : null,
+      notes: editingMedication.notes,
+    }
+
+    // Update local state
     setMedications((prev) =>
       prev.map((medication: MedicationType) =>
-        editingMedication && medication.id === editingMedication.id
-          ? {
-              ...medication,
-              name: editingMedication.name,
-              dosage: editingMedication.dosage,
-              instructions: editingMedication.instructions,
-              schedule: editingMedication.schedule,
-              notificationsEnabled: editingMedication.notificationsEnabled,
-              alarmEnabled: editingMedication.alarmEnabled,
-              alarmSound: editingMedication.alarmSound,
-              alarmVolume: editingMedication.alarmVolume,
-              color: editingMedication.color,
-              startDate:
-                typeof editingMedication.startDate === 'string'
-                  ? editingMedication.startDate
-                  : format(editingMedication.startDate, "yyyy-MM-dd"),
-              endDate:
-                editingMedication.endDate
-                  ? (typeof editingMedication.endDate === 'string'
-                      ? editingMedication.endDate
-                      : format(editingMedication.endDate, "yyyy-MM-dd"))
-                  : null,
-              notes: editingMedication.notes,
-            }
+        medication.id === editingMedication.id
+          ? updatedMedication
           : medication,
       ),
     )
+    
+    // Update in medication manager for background scheduling
+    MedicationManager.updateMedication(editingMedication.id, updatedMedication)
 
     setIsEditDialogOpen(false)
 
     toast({
       title: "Medication updated",
-      description: "Your medication has been updated successfully.",
+      description: "Your medication has been updated successfully with background reminders.",
     })
   }, [editingMedication, toast])
 
   const deleteMedication = useCallback(
     (id: number) => {
       setMedications((prev) => prev.filter((medication: MedicationType) => medication.id !== id))
+      
+      // Remove from medication manager
+      MedicationManager.deleteMedication(id)
 
       toast({
         title: "Medication deleted",
-        description: "Your medication has been deleted.",
+        description: "Your medication has been deleted and reminders cancelled.",
       })
     },
     [toast],

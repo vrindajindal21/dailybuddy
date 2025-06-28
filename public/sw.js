@@ -61,6 +61,8 @@ self.addEventListener('message', (event) => {
     resumeBackgroundTimer(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_SYNC_REQUEST') {
     sendTimerSync(event.data.timerId)
+  } else if (event.data && event.data.type === 'MEDICATION_SYNC_REQUEST') {
+    sendMedicationSync()
   } else if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
     scheduleBackgroundReminder(event.data.reminder)
   } else if (event.data && event.data.type === 'REMOVE_REMINDER') {
@@ -486,3 +488,17 @@ self.addEventListener("notificationclick", (event) => {
 self.addEventListener("notificationclose", (event) => {
   console.log("Notification dismissed")
 })
+
+function sendMedicationSync() {
+  const medicationReminders = Array.from(backgroundReminders.values())
+    .filter(reminder => reminder.type === 'medication')
+  
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'MEDICATION_SYNC',
+        reminders: medicationReminders
+      })
+    })
+  })
+}
