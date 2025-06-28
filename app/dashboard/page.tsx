@@ -192,17 +192,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 overflow-x-hidden">
+    <div className="space-y-6">
       {/* Beautiful Header */}
-      <div className="text-center space-y-4 py-6">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+      <div className="text-center space-y-4 py-4 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
           {greeting}
         </h1>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
           Ready to make today amazing? Let's get started! ✨
         </p>
-        <Badge variant="secondary" className="text-sm px-4 py-2 mx-auto">
-          <Calendar className="mr-2 h-4 w-4" />
+        <Badge variant="secondary" className="text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 mx-auto">
+          <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             month: "short",
@@ -212,46 +212,46 @@ export default function DashboardPage() {
       </div>
 
       {/* Daily Quote - Top Center */}
-      <div className="flex justify-center mb-8">
-        <div className="w-full max-w-3xl">
+      <div className="flex justify-center mb-6 sm:mb-8">
+        <div className="w-full max-w-3xl px-4">
           <DailyQuoteWidget />
         </div>
       </div>
 
       {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 px-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Study Time Today</CardTitle>
-            <div className="p-2 bg-blue-500 rounded-full">
-              <Clock className="h-4 w-4 text-white" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">Study Time Today</CardTitle>
+            <div className="p-1.5 sm:p-2 bg-blue-500 rounded-full">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-2">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1 sm:mb-2">
               {Math.floor(studyStats.todayMinutes / 60)}h {studyStats.todayMinutes % 60}m
             </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+            <p className="text-xs text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">
               {studyStats.todayMinutes < studyStats.goalMinutes
                 ? `${studyStats.goalMinutes - studyStats.todayMinutes} min to goal! 🎯`
                 : "Daily goal achieved! 🏆"}
             </p>
             <Progress
               value={(studyStats.todayMinutes / studyStats.goalMinutes) * 100}
-              className="h-2 bg-blue-200 dark:bg-blue-800"
+              className="h-1.5 sm:h-2 bg-blue-200 dark:bg-blue-800"
             />
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Pending Tasks</CardTitle>
-            <div className="p-2 bg-green-500 rounded-full">
-              <CheckSquare className="h-4 w-4 text-white" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Pending Tasks</CardTitle>
+            <div className="p-1.5 sm:p-2 bg-green-500 rounded-full">
+              <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-900 dark:text-green-100 mb-1 sm:mb-2">
               {upcomingTasks.filter((t: TaskType) => !t.completed).length}
             </div>
             <p className="text-xs text-green-600 dark:text-green-400">
@@ -261,16 +261,16 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-300">
               Upcoming Events
             </CardTitle>
-            <div className="p-2 bg-purple-500 rounded-full">
-              <Calendar className="h-4 w-4 text-white" />
+            <div className="p-1.5 sm:p-2 bg-purple-500 rounded-full">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-2">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-900 dark:text-purple-100 mb-1 sm:mb-2">
               {upcomingEvents.length}
             </div>
             <p className="text-xs text-purple-600 dark:text-purple-400 truncate">
@@ -280,16 +280,16 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-orange-700 dark:text-orange-300">
               Weekly Progress
             </CardTitle>
-            <div className="p-2 bg-orange-500 rounded-full">
-              <BarChart className="h-4 w-4 text-white" />
+            <div className="p-1.5 sm:p-2 bg-orange-500 rounded-full">
+              <BarChart className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-orange-900 dark:text-orange-100 mb-2">
+            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-900 dark:text-orange-100 mb-1 sm:mb-2">
               {Math.round((studyStats.weekMinutes / (7 * studyStats.goalMinutes)) * 100)}%
             </div>
             <p className="text-xs text-orange-600 dark:text-orange-400">
@@ -300,11 +300,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 px-4">
         {/* Main Content - Left Side */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 h-12">
+            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 h-10 sm:h-12">
               <TabsTrigger
                 value="overview"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 text-xs sm:text-sm"
@@ -337,32 +337,32 @@ export default function DashboardPage() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="mt-6">
-              <TabsContent value="overview" className="space-y-6 mt-0 overflow-x-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="mt-4 sm:mt-6">
+              <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-lg">
-                        <CheckSquare className="h-5 w-5" />
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-base sm:text-lg">
+                        <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5" />
                         Upcoming Tasks
                       </CardTitle>
-                      <CardDescription>Your pending assignments and todos</CardDescription>
+                      <CardDescription className="text-xs sm:text-sm">Your pending assignments and todos</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-2 sm:space-y-3">
                       {upcomingTasks.slice(0, 3).map((task: TaskType) => (
                         <div
                           key={task.id}
-                          className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm"
+                          className="flex items-center justify-between p-2 sm:p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm"
                         >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                             <input
                               type="checkbox"
                               checked={task.completed}
                               onChange={() => completeTask(task.id)}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                              className="h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                             />
                             <span
-                              className={`${task.completed ? "line-through text-muted-foreground" : "font-medium"} truncate`}
+                              className={`${task.completed ? "line-through text-muted-foreground" : "font-medium"} truncate text-sm sm:text-base`}
                             >
                               {task.title}
                             </span>
@@ -380,27 +380,27 @@ export default function DashboardPage() {
                       <Link href="/dashboard/tasks" className="block">
                         <Button
                           variant="outline"
-                          className="w-full mt-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900"
+                          className="w-full mt-2 sm:mt-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900 text-xs sm:text-sm"
                         >
-                          View All Tasks <ArrowRight className="ml-2 h-4 w-4" />
+                          View All Tasks <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </Link>
                     </CardContent>
                   </Card>
 
                   <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300 text-lg">
-                        <Calendar className="h-5 w-5" />
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300 text-base sm:text-lg">
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                         Today's Schedule
                       </CardTitle>
-                      <CardDescription>Your events and classes</CardDescription>
+                      <CardDescription className="text-xs sm:text-sm">Your events and classes</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-2 sm:space-y-3">
                       {upcomingEvents.slice(0, 3).map((event: EventType) => (
-                        <div key={event.id} className="p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+                        <div key={event.id} className="p-2 sm:p-3 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
                           <div className="flex justify-between items-start gap-2">
-                            <span className="font-medium text-sm flex-1 min-w-0 truncate">{event.title}</span>
+                            <span className="font-medium text-xs sm:text-sm flex-1 min-w-0 truncate">{event.title}</span>
                             <Badge variant="outline" className="text-xs flex-shrink-0">
                               {event.time}
                             </Badge>
@@ -411,9 +411,9 @@ export default function DashboardPage() {
                       <Link href="/dashboard/timetable" className="block">
                         <Button
                           variant="outline"
-                          className="w-full mt-3 bg-green-50 hover:bg-green-100 dark:bg-green-950 dark:hover:bg-green-900"
+                          className="w-full mt-2 sm:mt-3 bg-green-50 hover:bg-green-100 dark:bg-green-950 dark:hover:bg-green-900 text-xs sm:text-sm"
                         >
-                          View Full Schedule <ArrowRight className="ml-2 h-4 w-4" />
+                          View Full Schedule <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </Link>
                     </CardContent>
@@ -421,116 +421,116 @@ export default function DashboardPage() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="tasks" className="mt-0 overflow-x-auto">
+              <TabsContent value="tasks" className="mt-0">
                 <Card>
                   <CardHeader>
-                    <CardTitle>All Tasks</CardTitle>
-                    <CardDescription>Manage your assignments and personal tasks</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">All Tasks</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Manage your assignments and personal tasks</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3">
                     {upcomingTasks.map((task: TaskType) => (
                       <div
                         key={task.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           <input
                             type="checkbox"
                             checked={task.completed}
                             onChange={() => completeTask(task.id)}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary flex-shrink-0"
+                            className="h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300 text-primary focus:ring-primary flex-shrink-0"
                           />
                           <span
-                            className={`${task.completed ? "line-through text-muted-foreground" : "font-medium"} truncate`}
+                            className={`${task.completed ? "line-through text-muted-foreground" : "font-medium"} truncate text-sm sm:text-base`}
                           >
                             {task.title}
                           </span>
                           {task.priority === "high" && (
-                            <Badge variant="destructive" className="flex-shrink-0">
+                            <Badge variant="destructive" className="flex-shrink-0 text-xs">
                               High
                             </Badge>
                           )}
                           {task.priority === "medium" && (
-                            <Badge variant="secondary" className="flex-shrink-0">
+                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
                               Medium
                             </Badge>
                           )}
                         </div>
-                        <span className="text-sm text-muted-foreground ml-2 flex-shrink-0">
+                        <span className="text-xs sm:text-sm text-muted-foreground ml-2 flex-shrink-0">
                           Due: {new Date(task.dueDate).toLocaleDateString()}
                         </span>
                       </div>
                     ))}
                     <Link href="/dashboard/tasks" className="block">
-                      <Button variant="outline" className="w-full mt-4">
-                        Add New Task <ArrowRight className="ml-2 h-4 w-4" />
+                      <Button variant="outline" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm">
+                        Add New Task <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </Link>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="schedule" className="mt-0 overflow-x-auto">
+              <TabsContent value="schedule" className="mt-0">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Weekly Schedule</CardTitle>
-                    <CardDescription>Your classes, meetings, and events</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Weekly Schedule</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Your classes, meetings, and events</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4">
                     {upcomingEvents.map((event: EventType) => (
                       <div
                         key={event.id}
-                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="p-3 sm:p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                          <span className="font-medium text-lg">{event.title}</span>
-                          <Badge variant="outline" className="self-start sm:self-center">
+                          <span className="font-medium text-sm sm:text-base lg:text-lg">{event.title}</span>
+                          <Badge variant="outline" className="self-start sm:self-center text-xs">
                             {event.date} at {event.time}
                           </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground mt-2">📍 Location: {event.location}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-2">📍 Location: {event.location}</div>
                       </div>
                     ))}
                     <Link href="/dashboard/timetable" className="block">
-                      <Button variant="outline" className="w-full mt-4">
-                        Manage Schedule <ArrowRight className="ml-2 h-4 w-4" />
+                      <Button variant="outline" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm">
+                        Manage Schedule <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </Link>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="habits" className="mt-0 overflow-x-auto">
+              <TabsContent value="habits" className="mt-0">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Daily Habits</CardTitle>
-                    <CardDescription>Track your daily habits and build streaks</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Daily Habits</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Track your daily habits and build streaks</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3">
                     {habits.map((habit: HabitType) => (
                       <div
                         key={habit.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           <input
                             type="checkbox"
                             checked={habit.completed}
                             onChange={() => completeHabit(habit.id)}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary flex-shrink-0"
+                            className="h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300 text-primary focus:ring-primary flex-shrink-0"
                           />
-                          <span className={`${habit.completed ? "text-muted-foreground" : "font-medium"} truncate`}>
+                          <span className={`${habit.completed ? "text-muted-foreground" : "font-medium"} truncate text-sm sm:text-base`}>
                             {habit.name}
                           </span>
                         </div>
-                        <Badge variant="outline" className="font-medium flex-shrink-0">
+                        <Badge variant="outline" className="font-medium flex-shrink-0 text-xs">
                           🔥 {habit.streak} days
                         </Badge>
                       </div>
                     ))}
                     <Link href="/dashboard/habits" className="block">
-                      <Button variant="outline" className="w-full mt-4">
-                        View All Habits <ArrowRight className="ml-2 h-4 w-4" />
+                      <Button variant="outline" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm">
+                        View All Habits <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </Link>
                   </CardContent>
@@ -541,18 +541,23 @@ export default function DashboardPage() {
         </div>
 
         {/* Sidebar - Right Side */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <WeatherWidget />
-          <AiSuggestions tasks={upcomingTasks} habits={habits} studySessions={[]} goals={[]} />
+          <AiSuggestions 
+            tasks={upcomingTasks as any} 
+            habits={habits as any} 
+            studySessions={[] as any} 
+            goals={[] as any} 
+          />
 
           {/* Fun Features Widget */}
           <Card className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-950 dark:to-rose-950 border-pink-200 dark:border-pink-800">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-pink-700 dark:text-pink-300">
-                <Sparkles className="h-5 w-5" />
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-pink-700 dark:text-pink-300 text-sm sm:text-base">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                 Fun Zone
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 <Button
                   variant={activeExtraWidget === "games" ? "default" : "outline"}
                   size="sm"
@@ -581,16 +586,16 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500" />
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                 Medicine Reminders
               </CardTitle>
-              <CardDescription>Your upcoming medication schedule</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Your upcoming medication schedule</CardDescription>
             </CardHeader>
             <CardContent>
               <Link href="/dashboard/medications" className="block">
-                <Button variant="outline" className="w-full">
-                  View Medications <ArrowRight className="ml-2 h-4 w-4" />
+                <Button variant="outline" className="w-full text-xs sm:text-sm">
+                  View Medications <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </Link>
             </CardContent>
