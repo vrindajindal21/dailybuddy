@@ -238,15 +238,15 @@ export default function HabitsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
+          <h2 className="text-3xl font-bold tracking-tight">Habits</h2>
+          <p className="text-muted-foreground">Track and build your daily habits</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-2">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Habit
             </Button>
@@ -338,35 +338,37 @@ export default function HabitsPage() {
       </div>
 
       {/* Filter Controls */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Filter:</span>
         </div>
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Habits</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="health">Health</SelectItem>
-            <SelectItem value="learning">Learning</SelectItem>
-            <SelectItem value="mindfulness">Mindfulness</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Habits</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="health">Health</SelectItem>
+              <SelectItem value="learning">Learning</SelectItem>
+              <SelectItem value="mindfulness">Mindfulness</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Habits</CardTitle>
@@ -423,7 +425,7 @@ export default function HabitsPage() {
 
       {/* Habit Cards Grid */}
       {filteredHabits.length === 0 ? (
-        <Card className="p-4 sm:p-6">
+        <Card>
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
             <Flame className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">No habits found</h3>
@@ -433,7 +435,7 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredHabits.map((habit: HabitType) => (
             <Card key={habit.id} className="p-4 sm:p-6">
               <CardHeader className="pb-2">
@@ -466,30 +468,30 @@ export default function HabitsPage() {
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm font-medium">7-Day Tracker</div>
-                    <div className="flex gap-1">
-                  {last7Days.map((day, i) => (
-                    <button
-                      key={i}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
-                        isHabitCompletedOnDate(habit, day)
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
-                      }`}
-                      onClick={() => toggleHabitCompletion(habit.id, day)}
-                          title={`${format(day, "EEE, MMM d")} - ${isHabitCompletedOnDate(habit, day) ? "Completed" : "Not completed"}`}
-                    >
-                      {format(day, "d")}
-                          {isHabitCompletedOnDate(habit, day) && <span className="ml-0.5">✓</span>}
-                    </button>
-                  ))}
-                </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/30 pb-1">
                       {last7Days.map((day, i) => (
-                        <span key={i} className="inline-block w-8 text-center">
+                        <button
+                          key={i}
+                          className={`min-w-[2.5rem] w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
+                            isHabitCompletedOnDate(habit, day)
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
+                          }`}
+                          onClick={() => toggleHabitCompletion(habit.id, day)}
+                          title={`${format(day, "EEE, MMM d")} - ${isHabitCompletedOnDate(habit, day) ? "Completed" : "Not completed"}`}
+                        >
+                          {format(day, "d")}
+                          {isHabitCompletedOnDate(habit, day) && <span className="ml-0.5">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground flex gap-1 overflow-x-auto pb-1">
+                      {last7Days.map((day, i) => (
+                        <span key={i} className="min-w-[2.5rem] w-8 text-center">
                           {format(day, "EEE")}
                         </span>
-            ))}
-          </div>
+                      ))}
+                    </div>
                   </div>
               </div>
             </CardContent>

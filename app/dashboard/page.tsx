@@ -192,7 +192,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 md:px-8 py-4 sm:py-8 space-y-6">
+    <div className="space-y-6">
       {/* Header and Greeting - Centered */}
       <div className="text-center space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">

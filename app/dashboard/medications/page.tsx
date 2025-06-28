@@ -946,247 +946,256 @@ export default function MedicationsPage() {
     return true;
   });
 
-  // Helper to render the weekly schedule grid
-  function renderWeeklyScheduleGrid() {
-    // Collect all unique time slots from all medications
-    const allTimes = Array.from(
-      new Set(
-        medications.flatMap((med) => med.schedule.map((sch) => sch.time))
-      )
-    ).sort();
-    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-    return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border text-center">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1 bg-muted">Time</th>
-              {dayLabels.map((label, i) => (
-                <th key={label} className="border px-2 py-1 bg-muted">{label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {allTimes.map((time) => (
-              <tr key={time}>
-                <td className="border px-2 py-1 font-semibold">{formatTime(time)}</td>
-                {days.map((day) => {
-                  const meds = medications.filter((med) =>
-                    med.schedule.some((sch) => sch.time === time && sch.days.includes(day))
-                  );
-                  return (
-                    <td key={day} className="border px-1 py-1">
-                      {meds.length > 0 ? (
-                        meds.map((med) => (
-                          <span key={med.id} className="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 text-xs mb-1">
-                            {med.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-
   if (!isMounted) {
     return null
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 space-y-6">
-      {/* Today's Medications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Today's Medications</CardTitle>
-          <CardDescription>Medications you need to take today</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {todaysMedications.length === 0 ? (
-            <div className="text-center text-muted-foreground">No medications scheduled for today</div>
-          ) : (
-            todaysMedications.map((med, idx) => (
-              <div key={idx} className="flex items-center justify-between border rounded-lg p-3 mb-2">
-                <div>
-                  <div className="font-medium text-green-700 flex items-center gap-2">
-                    <span>{med.name}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{med.dosage}</div>
-                  <div className="text-xs text-muted-foreground">{med.instructions}</div>
-                </div>
-                <div className="text-xs font-semibold bg-muted px-3 py-1 rounded">
-                  {formatTime(med.schedule[0]?.time)}
-                </div>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+    <div className="max-w-3xl mx-auto px-2 sm:px-4 md:px-8 py-4 space-y-6">
+      {showPermissionAlert && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Notifications are disabled</AlertTitle>
+          <AlertDescription>
+            Enable notifications to receive medication reminders even when the app is in the background.
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => setIsPermissionDialogOpen(true)}>
+              Enable Notifications
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
-      {/* Upcoming Medications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Medications</CardTitle>
-          <CardDescription>Medications scheduled for later today</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {upcomingMedications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6">
-              <Check className="h-8 w-8 text-muted-foreground mb-2" />
-              <div className="font-semibold">All done for today!</div>
-              <div className="text-xs text-muted-foreground">No more medications scheduled for today</div>
+      <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enable Notifications</DialogTitle>
+            <DialogDescription>
+              Notifications allow you to receive medication reminders even when the app is in the background or closed.
+              This is especially important for medication adherence.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="mb-4">By enabling notifications, you'll:</p>
+            <ul className="list-disc pl-5 space-y-2 mb-4">
+              <li>Get timely medication reminders with sound</li>
+              <li>Never miss important doses</li>
+              <li>Receive periodic notifications for critical medications</li>
+              <li>Get vibration alerts on mobile devices</li>
+            </ul>
+            <p>You can always change this setting later in your browser or device settings.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPermissionDialogOpen(false)}>
+              Not Now
+            </Button>
+            <Button onClick={requestNotificationPermission}>Enable Notifications</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Active Alarm Dialog */}
+      {isAlarmPlaying && currentAlarm && (
+        <Dialog open={isAlarmPlaying} onOpenChange={(open) => !open && stopAlarm()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Medication Reminder</DialogTitle>
+              <DialogDescription>It's time to take your medication</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center gap-4 py-4">
+              <div
+                className={`w-16 h-16 rounded-full ${getMedicationColor(currentAlarm.color)} flex items-center justify-center`}
+              >
+                <Pill className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-xl font-bold">{currentAlarm.name}</h2>
+              <p className="text-lg">{currentAlarm.dosage}</p>
+              {currentAlarm.instructions && <p className="text-muted-foreground">{currentAlarm.instructions}</p>}
             </div>
-          ) : (
-            upcomingMedications.map((med, idx) => (
-              <div key={idx} className="flex items-center justify-between border rounded-lg p-3 mb-2">
-                <div>
-                  <div className="font-medium text-blue-700 flex items-center gap-2">
-                    <span>{med.name}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{med.dosage}</div>
-                  <div className="text-xs text-muted-foreground">{med.instructions}</div>
-                </div>
-                <div className="text-xs font-semibold bg-muted px-3 py-1 rounded">
-                  {formatTime(med.schedule[0]?.time)}
+            <DialogFooter>
+              <Button onClick={stopAlarm}>Dismiss</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Medications</h2>
+          <p className="text-muted-foreground">Track your medications and get reminders</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="time-format">Use 12-hour format (AM/PM)</Label>
+            <Switch id="time-format" checked={use12HourFormat} onCheckedChange={setUse12HourFormat} />
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+              <Button
+                onClick={() => {
+                  if (!audioContextRef.current && typeof window !== "undefined") {
+                    try {
+                      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+                      if (AudioContextClass) {
+                        audioContextRef.current = new AudioContextClass()
+                      }
+                    } catch (e) {
+                      console.error("Failed to initialize audio context:", e)
+                    }
+                  }
+                }}
+              >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Medication
+            </Button>
+          </DialogTrigger>
+          </Dialog>
                 </div>
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Tabs for All Medications and Schedule */}
-      <Tabs defaultValue="all">
-        <TabsList className="mb-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter medications" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Medications</SelectItem>
+            <SelectItem value="active">Active Medications</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today's Medications</CardTitle>
+            <CardDescription>Medications you need to take today</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {todaysMedications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <Check className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">All caught up!</h3>
+                <p className="text-sm text-muted-foreground">No more medications to take today</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {todaysMedications.map((medication, index) => (
+                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div
+                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                    ></div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{medication.name}</h4>
+                        <Badge variant="outline">{medication.formattedTime || medication.dueTime}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+                      {medication.instructions && (
+                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Medications</CardTitle>
+            <CardDescription>Medications scheduled for later today</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcomingMedications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <Check className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">All done for today!</h3>
+                <p className="text-sm text-muted-foreground">No more medications scheduled for today</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingMedications.map((medication, index) => (
+                  <div key={`${medication.id}-${index}`} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div
+                      className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                    ></div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{medication.name}</h4>
+                        <Badge>{medication.formattedTime || medication.dueTime}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+                      {medication.instructions && (
+                        <p className="text-xs text-muted-foreground mt-1">{medication.instructions}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList>
           <TabsTrigger value="all">All Medications</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
-        <TabsContent value="all">
-          {/* Stat cards and filters below main sections/tabs */}
-          <div className="space-y-4">
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <Card className="p-4 sm:p-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Medications</CardTitle>
-                  <Pill className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalMedications}</div>
-                  <p className="text-xs text-muted-foreground">in your list</p>
-                </CardContent>
-              </Card>
-              <Card className="p-4 sm:p-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-                  <Check className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{activeToday}</div>
-                  <p className="text-xs text-muted-foreground">scheduled for today</p>
-                </CardContent>
-              </Card>
-              <Card className="p-4 sm:p-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">With Notifications</CardTitle>
-                  <Bell className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{withNotifications}</div>
-                  <p className="text-xs text-muted-foreground">notifications enabled</p>
-                </CardContent>
-              </Card>
-              <Card className="p-4 sm:p-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">With Alarms</CardTitle>
-                  <Volume2 className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{withAlarms}</div>
-                  <p className="text-xs text-muted-foreground">alarms enabled</p>
-                </CardContent>
-              </Card>
-            </div>
-            {/* Filters */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Filter:</span>
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Medications</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="blue">Blue (Vitamin D)</SelectItem>
-                  <SelectItem value="red">Red (Paracetamol)</SelectItem>
-                  <SelectItem value="green">Green (Multivitamin)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {/* Medication Cards Grid (filtered) */}
-            {filteredMedications.length === 0 ? (
-              <Card className="p-4 sm:p-6">
-                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+
+        <TabsContent value="all" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Medication List</CardTitle>
+              <CardDescription>Manage your medications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {filteredMedications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
                   <Pill className="h-10 w-10 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No medications found</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Try changing your filters or add a new medication
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredMedications.map((medication) => (
-                  <Card key={medication.id} className="p-4 sm:p-6">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-3 h-3 rounded-full ${getMedicationColor(medication.color)}`}></span>
-                          <CardTitle className="text-lg sm:text-xl">{medication.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">Add your first medication to get started</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredMedications.map((medication) => (
+                    <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <div
+                        className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
+                      ></div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{medication.name}</h4>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <CardDescription>{medication.dosage}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs">
-                          {medication.instructions && <span>{medication.instructions}</span>}
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          {medication.schedule.map((sch, idx) => (
-                            <span key={idx} className="bg-muted px-2 py-1 rounded">
-                              {sch.time} ({formatDaysList(sch.days)})
-                            </span>
+                        <p className="text-sm text-muted-foreground">{medication.dosage}</p>
+
+                        <div className="mt-2 space-y-1">
+                          {medication.schedule.map((schedule, index) => (
+                            <div key={index} className="flex items-center text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span>
+                                {use12HourFormat
+                                  ? format(parse(schedule.time, "HH:mm", new Date()), "h:mm a")
+                                  : schedule.time}{" "}
+                                - {formatDaysList(schedule.days)}
+                              </span>
+                            </div>
                           ))}
                         </div>
+
+                        {medication.instructions && (
+                          <p className="text-xs text-muted-foreground mt-2">{medication.instructions}</p>
+                        )}
+
                         <div className="flex items-center gap-2 mt-2">
                           {medication.startDate && (
                             <Badge variant="outline" className="text-xs">
@@ -1213,30 +1222,74 @@ export default function MedicationsPage() {
                             </Badge>
                           )}
                         </div>
-                        {medication.notes && (
-                          <div className="text-xs text-muted-foreground mt-2">{medication.notes}</div>
-                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
-        <TabsContent value="schedule">
-          {/* Weekly Schedule Grid */}
+
+        <TabsContent value="schedule" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Weekly Schedule</CardTitle>
               <CardDescription>Your medication schedule for the week</CardDescription>
             </CardHeader>
             <CardContent>
-              {renderWeeklyScheduleGrid()}
+              <div className="w-full overflow-x-auto md:overflow-x-visible">
+                <table className="w-full border-collapse text-xs md:text-sm">
+                  <thead>
+                    <tr>
+                      <th className="border p-1 md:p-2 text-left whitespace-nowrap">Time</th>
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                        <th key={day} className="border p-1 md:p-2 text-center whitespace-nowrap">{day}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {["08:00", "12:00", "16:00", "20:00"].map((time) => (
+                      <tr key={time}>
+                        <td className="border p-1 md:p-2 font-medium whitespace-nowrap">
+                          {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
+                        </td>
+                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
+                          const medsForTimeAndDay = filteredMedications.filter((med) =>
+                            med.schedule.some((s) => s.time === time && s.days.includes(day)),
+                          )
+                          return (
+                            <td key={day} className="border p-1 md:p-2 text-center align-top">
+                              {medsForTimeAndDay.length > 0 ? (
+                                <div className="flex flex-col gap-1">
+                                  {medsForTimeAndDay.map((med) => (
+                                    <div
+                                      key={med.id}
+                                      className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white break-words`}
+                                    >
+                                      {med.name}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        {/* ... existing edit dialog ... */}
+      </Dialog>
     </div>
   )
 }
