@@ -606,7 +606,6 @@ export default function BudgetPage() {
         <TabsList>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="expenses" className="space-y-4 overflow-x-auto">
@@ -870,52 +869,6 @@ export default function BudgetPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Spending by Category</CardTitle>
-              <CardDescription>How your expenses are distributed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {expenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <BarChart3 className="h-10 w-10 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No expense data</h3>
-                  <p className="text-sm text-muted-foreground">Add expenses to see analytics</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 w-full">
-                  {budgets.map((budget) => {
-                    const spent = getExpensesByCategory(budget.category)
-                    const percentage = (spent / getTotalExpenses()) * 100 || 0
-
-                    return (
-                      <div key={budget.category} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 border rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className={`w-2 h-10 rounded-full ${budget.color}`}></div>
-                          <div className="min-w-0">
-                            <h4 className="font-medium truncate">
-                              {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <span>{formatCurrency(spent)}</span>
-                              <span>•</span>
-                              <span>{percentage.toFixed(1)}% of total</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-sm font-medium text-right sm:text-left">
-                          {percentage.toFixed(1)}%
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

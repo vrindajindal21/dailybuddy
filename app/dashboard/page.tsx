@@ -192,9 +192,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 md:px-8 py-4 sm:py-8 space-y-6">
       {/* Header and Greeting - Centered */}
-      <div className="text-center space-y-4 py-4 sm:py-6">
+      <div className="text-center space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
           {greeting}
         </h1>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Upcoming Tasks</CardTitle>
@@ -226,12 +226,12 @@ export default function DashboardPage() {
         </Card>
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Study</CardTitle>
-            <BarChart className="h-4 w-4 text-purple-500" />
+            <CardTitle className="text-sm font-medium">Medications</CardTitle>
+            <Heart className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{studyStats.todayMinutes} min</div>
-            <p className="text-xs text-muted-foreground">studied today</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">active medications</p>
           </CardContent>
         </Card>
         <Card className="p-4 sm:p-6">
@@ -247,7 +247,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Grids */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="flex flex-col gap-4">
         {/* Upcoming Tasks */}
         <Card className="p-4 sm:p-6">
           <CardHeader>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Extra Widgets (Weather, AI, Games, Family) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4 sm:p-6">
           <CardHeader>
             <CardTitle>Weather</CardTitle>
