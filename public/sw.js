@@ -59,6 +59,8 @@ self.addEventListener('message', (event) => {
     pauseBackgroundTimer(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_RESUME') {
     resumeBackgroundTimer(event.data.timerId)
+  } else if (event.data && event.data.type === 'POMODORO_SYNC_REQUEST') {
+    sendTimerSync(event.data.timerId)
   } else if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
     scheduleBackgroundReminder(event.data.reminder)
   } else if (event.data && event.data.type === 'REMOVE_REMINDER') {
@@ -96,6 +98,9 @@ function startBackgroundTimer(timerData) {
     currentTimer.timeLeft -= 1
     backgroundTimers.set(timerId, currentTimer)
 
+    // Send tick update to main app if it's open
+    sendTimerTick(currentTimer)
+
     // Check if timer is complete
     if (currentTimer.timeLeft <= 0) {
       clearInterval(countdown)
@@ -109,6 +114,31 @@ function startBackgroundTimer(timerData) {
   backgroundTimers.set(timerId, timer)
 
   console.log('[SW] Background Pomodoro timer started:', timer)
+}
+
+function sendTimerTick(timer) {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'POMODORO_TICK',
+        timer: timer
+      })
+    })
+  })
+}
+
+function sendTimerSync(timerId) {
+  const timer = backgroundTimers.get(timerId)
+  if (timer) {
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'POMODORO_SYNC',
+          timers: [timer]
+        })
+      })
+    })
+  }
 }
 
 function stopBackgroundTimer(timerId) {

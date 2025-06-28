@@ -86,10 +86,25 @@ export default function PomodoroPage() {
       const saved = localStorage.getItem(POMODORO_TIMER_KEY)
       if (saved) setTimer(JSON.parse(saved))
     }
+    
+    // Listen for storage changes
     window.addEventListener("storage", updateTimer)
+    
+    // Listen for timer updates from service worker
+    const handleTimerUpdate = (event: CustomEvent) => {
+      if (event.detail && event.detail.timer) {
+        setTimer(event.detail.timer)
+      }
+    }
+    
+    window.addEventListener("pomodoro-timer-update", handleTimerUpdate as EventListener)
+    
+    // Poll every second for updates
     const interval = setInterval(updateTimer, 1000)
+    
     return () => {
       window.removeEventListener("storage", updateTimer)
+      window.removeEventListener("pomodoro-timer-update", handleTimerUpdate as EventListener)
       clearInterval(interval)
     }
   }, [])

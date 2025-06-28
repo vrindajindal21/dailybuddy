@@ -23,14 +23,15 @@ export class PomodoroManager {
   static intervalRef: NodeJS.Timeout | null = null
   static isInitialized = false
   static currentTimerId: string | null = null
+  static syncInterval: NodeJS.Timeout | null = null
 
   static initialize() {
     if (this.isInitialized) return
     this.loadTimer()
     window.addEventListener("start-pomodoro-timer", this.handleStart as EventListener)
     window.addEventListener("stop-pomodoro-timer", this.handleStop as EventListener)
-    this.startBackgroundCountdown()
     this.setupServiceWorkerCommunication()
+    this.startSyncWithServiceWorker()
     this.isInitialized = true
     console.log('[PomodoroManager] Initialized')
   }
@@ -43,8 +44,42 @@ export class PomodoroManager {
           this.handleServiceWorkerTimerComplete(event.data.timer)
         } else if (event.data.type === 'POMODORO_SYNC') {
           this.syncWithServiceWorker(event.data.timers)
+        } else if (event.data.type === 'POMODORO_TICK') {
+          this.updateTimerFromServiceWorker(event.data.timer)
         }
       })
+    }
+  }
+
+  static startSyncWithServiceWorker() {
+    // Sync with service worker every second when app is active
+    this.syncInterval = setInterval(() => {
+      if (this.timer.isActive && !this.timer.isPaused) {
+        this.requestServiceWorkerSync()
+      }
+    }, 1000)
+  }
+
+  static requestServiceWorkerSync() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'POMODORO_SYNC_REQUEST',
+        timerId: this.currentTimerId
+      })
+    }
+  }
+
+  static updateTimerFromServiceWorker(serviceWorkerTimer: any) {
+    if (serviceWorkerTimer && serviceWorkerTimer.id === this.currentTimerId) {
+      this.timer.timeLeft = serviceWorkerTimer.timeLeft
+      this.timer.isActive = serviceWorkerTimer.isActive
+      this.timer.isPaused = serviceWorkerTimer.isPaused
+      this.saveTimer()
+      
+      // Dispatch update event for UI
+      window.dispatchEvent(new CustomEvent("pomodoro-timer-update", {
+        detail: { timer: this.timer }
+      }))
     }
   }
 
@@ -62,7 +97,6 @@ export class PomodoroManager {
       task: task || "",
     }
     this.saveTimer()
-    this.startBackgroundCountdown()
     
     // Send to service worker for background timing
     this.sendToServiceWorker('POMODORO_TIMER_START', {
@@ -136,34 +170,11 @@ export class PomodoroManager {
     localStorage.setItem(POMODORO_TIMER_KEY, JSON.stringify(this.timer))
   }
 
-  static startBackgroundCountdown() {
-    this.clearCountdown()
-    if (this.timer.isActive && !this.timer.isPaused && this.timer.timeLeft > 0) {
-      this.intervalRef = setInterval(() => {
-        this.timer.timeLeft -= 1
-        this.saveTimer()
-        console.log('[PomodoroManager] Timer tick', this.timer.timeLeft)
-        if (this.timer.timeLeft <= 0) {
-          this.handleTimerComplete()
-          this.clearCountdown()
-        }
-      }, 1000)
-      console.log('[PomodoroManager] Countdown started')
-    }
-  }
-
   static clearCountdown() {
     if (this.intervalRef) {
       clearInterval(this.intervalRef)
       this.intervalRef = null
     }
-  }
-
-  static handleTimerComplete() {
-    console.log('[PomodoroManager] Timer complete, dispatching notifications')
-    this.showCompletionNotification(this.timer.mode, this.timer.duration / 60, this.timer.task)
-    this.timer = { ...getInitialTimerState(), isActive: false }
-    this.saveTimer()
   }
 
   static showCompletionNotification(type: "pomodoro" | "break", duration: number, task?: string) {
@@ -198,6 +209,8 @@ export class PomodoroManager {
             body: isPomodoro
               ? `Excellent focus! You completed ${durationStr}${task ? ` working on: ${task}` : ""}.`
               : `Your ${durationStr} break is over. Time to get back to work!`,
+            type: isPomodoro ? "success" : "info",
+            duration: 5000,
           },
         },
       })
@@ -205,6 +218,6 @@ export class PomodoroManager {
   }
 
   static getTimer() {
-    return getInitialTimerState()
+    return this.timer
   }
 } 
