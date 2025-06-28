@@ -192,7 +192,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-2 sm:px-4 md:px-6 lg:px-8">
       {/* Header and Greeting - Centered */}
       <div className="text-center space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
@@ -261,8 +261,8 @@ export default function DashboardPage() {
               <ul className="space-y-2">
                 {upcomingTasks.map((task) => (
                   <li key={task.id} className="flex items-center justify-between">
-                    <span>{task.title}</span>
-                    <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'}>{task.priority}</Badge>
+                    <span className="truncate flex-1 mr-2">{task.title}</span>
+                    <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'} className="shrink-0">{task.priority}</Badge>
                   </li>
                 ))}
               </ul>
@@ -282,8 +282,8 @@ export default function DashboardPage() {
               <ul className="space-y-2">
                 {upcomingEvents.map((event) => (
                   <li key={event.id} className="flex items-center justify-between">
-                    <span>{event.title}</span>
-                    <span className="text-xs text-muted-foreground">{event.date} {event.time}</span>
+                    <span className="truncate flex-1 mr-2">{event.title}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{event.date} {event.time}</span>
                   </li>
                 ))}
               </ul>
@@ -303,8 +303,8 @@ export default function DashboardPage() {
               <ul className="space-y-2">
                 {habits.map((habit) => (
                   <li key={habit.id} className="flex items-center justify-between">
-                    <span>{habit.name}</span>
-                    <span className="text-xs text-muted-foreground">Streak: {habit.streak}</span>
+                    <span className="truncate flex-1 mr-2">{habit.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">Streak: {habit.streak}</span>
                   </li>
                 ))}
               </ul>

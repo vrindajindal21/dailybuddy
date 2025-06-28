@@ -127,11 +127,11 @@ export default function FamilyFeatures() {
       )
     )
     if (goal && willComplete) {
-      toast({
-        title: "Goal completed! 🎉",
-        description: `Great job! You earned ${goal.points} points!`,
-      })
-    }
+            toast({
+              title: "Goal completed! 🎉",
+              description: `Great job! You earned ${goal.points} points!`,
+            })
+          }
   }
 
   const addAppreciation = () => {

@@ -469,29 +469,29 @@ export default function HabitsPage() {
                   <div className="space-y-2">
                     <div className="text-sm font-medium">7-Day Tracker</div>
                     <div className="flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground/30 pb-1">
-                      {last7Days.map((day, i) => (
-                        <button
-                          key={i}
+                  {last7Days.map((day, i) => (
+                    <button
+                      key={i}
                           className={`min-w-[2.5rem] w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
-                            isHabitCompletedOnDate(habit, day)
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
-                          }`}
-                          onClick={() => toggleHabitCompletion(habit.id, day)}
+                        isHabitCompletedOnDate(habit, day)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
+                      }`}
+                      onClick={() => toggleHabitCompletion(habit.id, day)}
                           title={`${format(day, "EEE, MMM d")} - ${isHabitCompletedOnDate(habit, day) ? "Completed" : "Not completed"}`}
-                        >
-                          {format(day, "d")}
+                    >
+                      {format(day, "d")}
                           {isHabitCompletedOnDate(habit, day) && <span className="ml-0.5">✓</span>}
-                        </button>
-                      ))}
-                    </div>
+                    </button>
+                  ))}
+                </div>
                     <div className="text-xs text-muted-foreground flex gap-1 overflow-x-auto pb-1">
                       {last7Days.map((day, i) => (
                         <span key={i} className="min-w-[2.5rem] w-8 text-center">
                           {format(day, "EEE")}
                         </span>
-                      ))}
-                    </div>
+            ))}
+          </div>
                   </div>
               </div>
             </CardContent>
