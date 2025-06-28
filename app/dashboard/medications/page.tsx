@@ -1048,7 +1048,124 @@ export default function MedicationsPage() {
               Add Medication
             </Button>
           </DialogTrigger>
-          </Dialog>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Medication</DialogTitle>
+              <DialogDescription>Add a new medication to your tracking list</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Medication Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter medication name"
+                    value={newMedication.name}
+                    onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dosage">Dosage</Label>
+                  <Input
+                    id="dosage"
+                    placeholder="e.g., 500mg, 1 tablet"
+                    value={newMedication.dosage}
+                    onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="instructions">Instructions</Label>
+                <Textarea
+                  id="instructions"
+                  placeholder="e.g., Take with food, Take on empty stomach"
+                  value={newMedication.instructions}
+                  onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={newMedication.startDate}
+                    onChange={(e) => setNewMedication({ ...newMedication, startDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="endDate">End Date (Optional)</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={newMedication.endDate || ""}
+                    onChange={(e) => setNewMedication({ ...newMedication, endDate: e.target.value || null })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="color">Color</Label>
+                <Select
+                  value={newMedication.color}
+                  onValueChange={(value) => setNewMedication({ ...newMedication, color: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="blue">Blue</SelectItem>
+                    <SelectItem value="red">Red</SelectItem>
+                    <SelectItem value="green">Green</SelectItem>
+                    <SelectItem value="yellow">Yellow</SelectItem>
+                    <SelectItem value="purple">Purple</SelectItem>
+                    <SelectItem value="orange">Orange</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Additional notes about this medication"
+                  value={newMedication.notes}
+                  onChange={(e) => setNewMedication({ ...newMedication, notes: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="notifications"
+                    checked={newMedication.notificationsEnabled}
+                    onCheckedChange={(checked) => setNewMedication({ ...newMedication, notificationsEnabled: checked })}
+                  />
+                  <Label htmlFor="notifications">Enable Notifications</Label>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="alarm"
+                    checked={newMedication.alarmEnabled}
+                    onCheckedChange={(checked) => setNewMedication({ ...newMedication, alarmEnabled: checked })}
+                  />
+                  <Label htmlFor="alarm">Enable Alarm Sound</Label>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={addMedication}>Add Medication</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
                 </div>
               </div>
 
@@ -1288,7 +1405,125 @@ export default function MedicationsPage() {
       </Tabs>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        {/* ... existing edit dialog ... */}
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Medication</DialogTitle>
+            <DialogDescription>Edit the details of the medication</DialogDescription>
+          </DialogHeader>
+          {editingMedication && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Medication Name</Label>
+                  <Input
+                    id="edit-name"
+                    placeholder="Enter medication name"
+                    value={editingMedication.name || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-dosage">Dosage</Label>
+                  <Input
+                    id="edit-dosage"
+                    placeholder="e.g., 500mg, 1 tablet"
+                    value={editingMedication.dosage || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, dosage: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-instructions">Instructions</Label>
+                <Textarea
+                  id="edit-instructions"
+                  placeholder="e.g., Take with food, Take on empty stomach"
+                  value={editingMedication.instructions || ""}
+                  onChange={(e) => setEditingMedication({ ...editingMedication, instructions: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-startDate">Start Date</Label>
+                  <Input
+                    id="edit-startDate"
+                    type="date"
+                    value={editingMedication.startDate || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, startDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-endDate">End Date (Optional)</Label>
+                  <Input
+                    id="edit-endDate"
+                    type="date"
+                    value={editingMedication.endDate || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, endDate: e.target.value || null })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-color">Color</Label>
+                <Select
+                  value={editingMedication.color || "blue"}
+                  onValueChange={(value) => setEditingMedication({ ...editingMedication, color: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="blue">Blue</SelectItem>
+                    <SelectItem value="red">Red</SelectItem>
+                    <SelectItem value="green">Green</SelectItem>
+                    <SelectItem value="yellow">Yellow</SelectItem>
+                    <SelectItem value="purple">Purple</SelectItem>
+                    <SelectItem value="orange">Orange</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-notes">Notes (Optional)</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Additional notes about this medication"
+                  value={editingMedication.notes || ""}
+                  onChange={(e) => setEditingMedication({ ...editingMedication, notes: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-notifications"
+                    checked={editingMedication.notificationsEnabled || false}
+                    onCheckedChange={(checked) => setEditingMedication({ ...editingMedication, notificationsEnabled: checked })}
+                  />
+                  <Label htmlFor="edit-notifications">Enable Notifications</Label>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-alarm"
+                    checked={editingMedication.alarmEnabled || false}
+                    onCheckedChange={(checked) => setEditingMedication({ ...editingMedication, alarmEnabled: checked })}
+                  />
+                  <Label htmlFor="edit-alarm">Enable Alarm Sound</Label>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateMedication}>Update Medication</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   )
