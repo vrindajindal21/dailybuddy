@@ -401,14 +401,14 @@ export default function TasksPage() {
               Add Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Add New Task</DialogTitle>
-              <DialogDescription className="text-sm">Create a new task or assignment to track</DialogDescription>
+              <DialogTitle>Add New Task</DialogTitle>
+              <DialogDescription>Create a new task or assignment to track</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title" className="flex items-center text-sm sm:text-base">
+                <Label htmlFor="title" className="flex items-center">
                   Title <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -421,64 +421,60 @@ export default function TasksPage() {
                     e.target.removeAttribute("data-error")
                     e.target.classList.remove("border-red-500", "focus:ring-red-500")
                   }}
-                  className="focus:ring-primary h-10 sm:h-11 text-sm sm:text-base"
+                  className="focus:ring-primary"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description" className="text-sm sm:text-base">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   placeholder="Task details"
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="dueDate" className="text-sm sm:text-base">Due Date</Label>
+                <Label htmlFor="dueDate">Due Date</Label>
                 <Input
                   id="dueDate"
                   type="date"
                   value={typeof newTask.dueDate === 'string' ? newTask.dueDate : newTask.dueDate.toISOString().split('T')[0]}
                   onChange={e => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="h-10 sm:h-11 text-sm sm:text-base"
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="priority" className="text-sm sm:text-base">Priority</Label>
-                  <Select
-                    value={newTask.priority}
-                    onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
-                  >
-                    <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
-                  <Select value={newTask.category} onValueChange={(value) => setNewTask({ ...newTask, category: value })}>
-                    <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="school">School</SelectItem>
-                      <SelectItem value="work">Work</SelectItem>
-                      <SelectItem value="personal">Personal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={newTask.priority}
+                  onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={newTask.category} onValueChange={(value) => setNewTask({ ...newTask, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="school">School</SelectItem>
+                    <SelectItem value="work">Work</SelectItem>
+                    <SelectItem value="personal">Personal</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="notification" className="text-sm sm:text-base">Notifications</Label>
+                    <Label htmlFor="notification">Notifications</Label>
                     <div className="text-xs text-muted-foreground">Get reminded before the due date</div>
                   </div>
                   <Switch
@@ -489,12 +485,12 @@ export default function TasksPage() {
                 </div>
                 {newTask.notificationEnabled && (
                   <div className="grid gap-2 mt-2">
-                    <Label htmlFor="notifyBefore" className="text-sm sm:text-base">Notify me</Label>
+                    <Label htmlFor="notifyBefore">Notify me</Label>
                     <Select
                       value={newTask.notifyBefore.toString()}
                       onValueChange={(value) => setNewTask({ ...newTask, notifyBefore: Number.parseInt(value) })}
                     >
-                      <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select when to notify" />
                       </SelectTrigger>
                       <SelectContent>
@@ -509,25 +505,25 @@ export default function TasksPage() {
                 )}
               </div>
             </div>
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={addTask} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Add Task</Button>
+              <Button onClick={addTask}>Add Task</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Edit Task</DialogTitle>
-              <DialogDescription className="text-sm">Update your task details</DialogDescription>
+              <DialogTitle>Edit Task</DialogTitle>
+              <DialogDescription>Update your task details</DialogDescription>
             </DialogHeader>
             {editingTask && (
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-title" className="flex items-center text-sm sm:text-base">
+                  <Label htmlFor="edit-title" className="flex items-center">
                     Title <span className="text-red-500 ml-1">*</span>
                   </Label>
                   <Input
@@ -540,83 +536,81 @@ export default function TasksPage() {
                       e.target.removeAttribute("data-error")
                       e.target.classList.remove("border-red-500", "focus:ring-red-500")
                     }}
-                    className="focus:ring-primary h-10 sm:h-11 text-sm sm:text-base"
+                    className="focus:ring-primary"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-description" className="text-sm sm:text-base">Description</Label>
+                  <Label htmlFor="edit-description">Description</Label>
                   <Textarea
                     id="edit-description"
                     placeholder="Task details"
                     value={editingTask?.description ?? ''}
                     onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-                    className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-dueDate" className="text-sm sm:text-base">Due Date</Label>
+                  <Label htmlFor="edit-dueDate">Due Date</Label>
                   <Input
                     id="edit-dueDate"
                     type="date"
                     value={typeof editingTask?.dueDate === 'string' ? editingTask?.dueDate : editingTask?.dueDate?.toISOString().split('T')[0]}
                     onChange={e => setEditingTask({ ...editingTask, dueDate: e.target.value })}
-                    className="h-10 sm:h-11 text-sm sm:text-base"
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-priority" className="text-sm sm:text-base">Priority</Label>
-                    <Select
-                      value={editingTask?.priority ?? ''}
-                      onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}
-                    >
-                      <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-category" className="text-sm sm:text-base">Category</Label>
-                    <Select
-                      value={editingTask?.category ?? ''}
-                      onValueChange={(value) => setEditingTask({ ...editingTask, category: value })}
-                    >
-                      <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="school">School</SelectItem>
-                        <SelectItem value="work">Work</SelectItem>
-                        <SelectItem value="personal">Personal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-priority">Priority</Label>
+                  <Select
+                    value={editingTask?.priority ?? ''}
+                    onValueChange={(value) => setEditingTask({ ...editingTask, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-category">Category</Label>
+                  <Select
+                    value={editingTask?.category ?? ''}
+                    onValueChange={(value) => setEditingTask({ ...editingTask, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="school">School</SelectItem>
+                      <SelectItem value="work">Work</SelectItem>
+                      <SelectItem value="personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="edit-notification" className="text-sm sm:text-base">Notifications</Label>
+                      <Label htmlFor="edit-notification">Notifications</Label>
                       <div className="text-xs text-muted-foreground">Get reminded before the due date</div>
                     </div>
                     <Switch
                       id="edit-notification"
-                      checked={editingTask?.notificationEnabled ?? false}
+                      checked={!!editingTask?.notificationEnabled}
                       onCheckedChange={(checked) => setEditingTask({ ...editingTask, notificationEnabled: checked })}
                     />
                   </div>
                   {editingTask?.notificationEnabled && (
                     <div className="grid gap-2 mt-2">
-                      <Label htmlFor="edit-notifyBefore" className="text-sm sm:text-base">Notify me</Label>
+                      <Label htmlFor="edit-notifyBefore">Notify me</Label>
                       <Select
-                        value={editingTask?.notifyBefore?.toString() ?? "1"}
-                        onValueChange={(value) => setEditingTask({ ...editingTask, notifyBefore: Number.parseInt(value) })}
+                        value={editingTask?.notifyBefore?.toString() ?? '0'}
+                        onValueChange={(value) =>
+                          setEditingTask({ ...editingTask, notifyBefore: Number.parseInt(value) })
+                        }
                       >
-                        <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select when to notify" />
                         </SelectTrigger>
                         <SelectContent>
@@ -632,11 +626,11 @@ export default function TasksPage() {
                 </div>
               </div>
             )}
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={updateTask} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Save Changes</Button>
+              <Button onClick={updateTask}>Save Changes</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
