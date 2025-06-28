@@ -781,7 +781,7 @@ export default function BudgetPage() {
           </Dialog>
         </TabsContent>
 
-        <TabsContent value="budgets" className="space-y-4 overflow-x-auto">
+        <TabsContent value="budgets" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Budget Categories</CardTitle>
@@ -795,62 +795,23 @@ export default function BudgetPage() {
                   <p className="text-sm text-muted-foreground">Add your first budget category to start tracking</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto w-full hidden md:block">
-                  <div className="space-y-6 overflow-x-auto">
-                    {budgets.map((budget) => (
-                      <div key={budget.category} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
-                            <span className="font-medium">
-                              {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-sm">
-                              {formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => startEditBudget(budget)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteBudget(budget.category)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                <div className="space-y-2">
+                  {budgets.map((budget) => (
+                    <div key={budget.category} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-10 rounded-full ${budget.color}`}></div>
+                        <div>
+                          <h4 className="font-medium">
+                            {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}</span>
+                            <span>•</span>
+                            <span>{getBudgetProgress(budget.category).toFixed(0)}% used</span>
                           </div>
                         </div>
-                        <Progress value={getBudgetProgress(budget.category)} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="block md:hidden space-y-4">
-            {budgets.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center">
-                <PieChart className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No budget categories</h3>
-                <p className="text-sm text-muted-foreground">Add your first budget category to start tracking</p>
-              </div>
-            ) : (
-              <div className="space-y-6 overflow-x-auto">
-                {budgets.map((budget) => (
-                  <div key={budget.category} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
-                        <span className="font-medium">
-                          {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                        </span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="text-sm">
-                          {formatCurrency(getExpensesByCategory(budget.category))} / {formatCurrency(budget.limit)}
-                        </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => startEditBudget(budget)}>
                             <Edit className="h-4 w-4" />
@@ -861,12 +822,11 @@ export default function BudgetPage() {
                         </div>
                       </div>
                     </div>
-                    <Progress value={getBudgetProgress(budget.category)} className="h-2" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <Dialog open={isEditBudgetDialogOpen} onOpenChange={setIsEditBudgetDialogOpen}>
             <DialogContent>
@@ -912,7 +872,7 @@ export default function BudgetPage() {
           </Dialog>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4 overflow-x-auto">
+        <TabsContent value="analytics" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Spending by Category</CardTitle>
@@ -926,29 +886,28 @@ export default function BudgetPage() {
                   <p className="text-sm text-muted-foreground">Add expenses to see analytics</p>
                 </div>
               ) : (
-                <div className="space-y-6 overflow-x-auto">
+                <div className="space-y-2">
                   {budgets.map((budget) => {
                     const spent = getExpensesByCategory(budget.category)
                     const percentage = (spent / getTotalExpenses()) * 100 || 0
 
                     return (
-                      <div key={budget.category} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${budget.color}`}></div>
-                            <span className="font-medium">
+                      <div key={budget.category} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-10 rounded-full ${budget.color}`}></div>
+                          <div>
+                            <h4 className="font-medium">
                               {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
-                            </span>
-                          </div>
-                          <div className="text-sm">
-                            {formatCurrency(spent)} ({percentage.toFixed(1)}%)
+                            </h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{formatCurrency(spent)}</span>
+                              <span>•</span>
+                              <span>{percentage.toFixed(1)}% of total</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2.5">
-                          <div
-                            className={`h-2.5 rounded-full ${budget.color}`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
+                        <div className="text-sm font-medium">
+                          {percentage.toFixed(1)}%
                         </div>
                       </div>
                     )

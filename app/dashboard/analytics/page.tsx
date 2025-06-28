@@ -327,17 +327,17 @@ export default function AnalyticsPage() {
                     </div>
                   ) : (
                     <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px]">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
                         {getStudyTimeByDay().map((day, i) => (
-                          <div key={i} className="flex flex-col items-center">
+                          <div key={i} className="flex flex-col items-center flex-1">
                             <div
-                              className="w-6 sm:w-8 bg-primary rounded-t-md transition-all duration-500"
+                              className="w-full max-w-[40px] bg-primary rounded-t-md transition-all duration-500"
                               style={{
                                 height: `${Math.min(day.minutes / 5, 180)}px`,
                                 opacity: day.minutes > 0 ? 1 : 0.3,
                               }}
                             ></div>
-                            <div className="mt-2 text-xs">{day.date}</div>
+                            <div className="mt-2 text-xs text-center">{day.date}</div>
                           </div>
                         ))}
                       </div>
@@ -401,17 +401,17 @@ export default function AnalyticsPage() {
                     </div>
                   ) : (
                     <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px]">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
                         {getTasksCompletedByDay().map((day, i) => (
-                          <div key={i} className="flex flex-col items-center">
+                          <div key={i} className="flex flex-col items-center flex-1">
                             <div
-                              className="w-6 sm:w-8 bg-primary rounded-t-md transition-all duration-500"
+                              className="w-full max-w-[40px] bg-primary rounded-t-md transition-all duration-500"
                               style={{
                                 height: `${Math.min(day.completed * 20, 180)}px`,
                                 opacity: day.completed > 0 ? 1 : 0.3,
                               }}
                             ></div>
-                            <div className="mt-2 text-xs">{day.date}</div>
+                            <div className="mt-2 text-xs text-center">{day.date}</div>
                           </div>
                         ))}
                       </div>
@@ -512,17 +512,17 @@ export default function AnalyticsPage() {
                     </div>
                   ) : (
                     <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px]">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
                         {getHabitCompletionByDay().map((day, i) => (
-                          <div key={i} className="flex flex-col items-center">
+                          <div key={i} className="flex flex-col items-center flex-1">
                             <div
-                              className="w-6 sm:w-8 bg-primary rounded-t-md transition-all duration-500"
+                              className="w-full max-w-[40px] bg-primary rounded-t-md transition-all duration-500"
                               style={{
                                 height: `${Math.min((day.completed / day.total) * 180, 180)}px`,
                                 opacity: day.completed > 0 ? 1 : 0.3,
                               }}
                             ></div>
-                            <div className="mt-2 text-xs">{day.date}</div>
+                            <div className="mt-2 text-xs text-center">{day.date}</div>
                           </div>
                         ))}
                       </div>
