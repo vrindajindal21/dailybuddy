@@ -946,381 +946,245 @@ export default function MedicationsPage() {
     return true;
   });
 
+  // Helper to render the weekly schedule grid
+  function renderWeeklyScheduleGrid() {
+    // Collect all unique time slots from all medications
+    const allTimes = Array.from(
+      new Set(
+        medications.flatMap((med) => med.schedule.map((sch) => sch.time))
+      )
+    ).sort();
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full border text-center">
+          <thead>
+            <tr>
+              <th className="border px-2 py-1 bg-muted">Time</th>
+              {dayLabels.map((label, i) => (
+                <th key={label} className="border px-2 py-1 bg-muted">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {allTimes.map((time) => (
+              <tr key={time}>
+                <td className="border px-2 py-1 font-semibold">{formatTime(time)}</td>
+                {days.map((day) => {
+                  const meds = medications.filter((med) =>
+                    med.schedule.some((sch) => sch.time === time && sch.days.includes(day))
+                  );
+                  return (
+                    <td key={day} className="border px-1 py-1">
+                      {meds.length > 0 ? (
+                        meds.map((med) => (
+                          <span key={med.id} className="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 text-xs mb-1">
+                            {med.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   if (!isMounted) {
     return null
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 py-2 sm:py-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Medications</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Track your medications and schedules</p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto text-base sm:text-lg py-3 sm:py-2">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Medication
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Medication</DialogTitle>
-              <DialogDescription>Add a new medication to your tracking list</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="flex items-center">
-                    Medication Name <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Medication name"
-                    value={newMedication.name}
-                    onChange={(e) => {
-                      setNewMedication({ ...newMedication, name: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="dosage" className="flex items-center">
-                    Dosage <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="dosage"
-                    placeholder="e.g., 500mg"
-                    value={newMedication.dosage}
-                    onChange={(e) => {
-                      setNewMedication({ ...newMedication, dosage: e.target.value })
-                      // Remove error styling on input
-                      e.target.removeAttribute("data-error")
-                      e.target.classList.remove("border-red-500", "focus:ring-red-500")
-                    }}
-                    className="focus:ring-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="instructions">Instructions</Label>
-                <Input
-                  id="instructions"
-                  placeholder="e.g., Take with food"
-                  value={newMedication.instructions}
-                  onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label>Schedule</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addScheduleTime}>
-                    <Plus className="h-4 w-4 mr-1" /> Add Time
-                  </Button>
-                </div>
-
-                {newMedication.schedule.map((schedule: { time: string; days: string[] }, index: number) => (
-                  <div key={index} className="space-y-3 p-3 border rounded-md">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor={`time-${index}`}>Time</Label>
-                      </div>
-                      {newMedication.schedule.length > 1 && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeScheduleTime(index)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <Input
-                      id={`time-${index}`}
-                      type="time"
-                      value={schedule.time}
-                      onChange={(e) => updateScheduleTime(index, e.target.value)}
-                    />
-
-                    <div className="space-y-2">
-                      <Label>Days</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day: string) => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`${day}-${index}`}
-                              checked={schedule.days.includes(day)}
-                              onChange={(e) => updateScheduleDays(index, day, e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <Label htmlFor={`${day}-${index}`} className="text-sm">
-                              {day.charAt(0).toUpperCase() + day.slice(1, 3)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+    <div className="max-w-3xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4 space-y-6">
+      {/* Today's Medications */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Today's Medications</CardTitle>
+          <CardDescription>Medications you need to take today</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {todaysMedications.length === 0 ? (
+            <div className="text-center text-muted-foreground">No medications scheduled for today</div>
+          ) : (
+            todaysMedications.map((med, idx) => (
+              <div key={idx} className="flex items-center justify-between border rounded-lg p-3 mb-2">
+                <div>
+                  <div className="font-medium text-green-700 flex items-center gap-2">
+                    <span>{med.name}</span>
                   </div>
-                ))}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={typeof newMedication.startDate === 'string' ? newMedication.startDate : ''}
-                  onChange={e => setNewMedication({ ...newMedication, startDate: e.target.value })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="endDate">End Date (Optional)</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={typeof newMedication.endDate === 'string' ? newMedication.endDate : ''}
-                  onChange={e => setNewMedication({ ...newMedication, endDate: e.target.value })}
-                  placeholder="No end date"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="color">Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["red", "blue", "green", "yellow", "purple", "pink", "orange"].map((color: string) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setNewMedication({ ...newMedication, color })}
-                      className={`w-8 h-8 rounded-full ${getMedicationColor(color)} ${
-                        newMedication.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
-                      }`}
-                      aria-label={`${color} color`}
-                    />
-                  ))}
+                  <div className="text-xs text-muted-foreground">{med.dosage}</div>
+                  <div className="text-xs text-muted-foreground">{med.instructions}</div>
+                </div>
+                <div className="text-xs font-semibold bg-muted px-3 py-1 rounded">
+                  {formatTime(med.schedule[0]?.time)}
                 </div>
               </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="notifications">Notifications</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Get reminded when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="notifications"
-                    checked={newMedication.notificationsEnabled}
-                    onCheckedChange={(checked) =>
-                      setNewMedication({ ...newMedication, notificationsEnabled: checked })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="alarm">Alarm Sound</Label>
-                    <div className="text-xs text-muted-foreground">
-                      Play an alarm sound when it's time to take your medication
-                    </div>
-                  </div>
-                  <Switch
-                    id="alarm"
-                    checked={newMedication.alarmEnabled}
-                    onCheckedChange={(checked) => setNewMedication({ ...newMedication, alarmEnabled: checked })}
-                  />
-                </div>
-
-                {newMedication.alarmEnabled && (
-                  <div className="space-y-4 mt-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="alarmSound">Sound</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={newMedication.alarmSound}
-                          onValueChange={(value) => setNewMedication({ ...newMedication, alarmSound: value })}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select sound" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bell">Bell</SelectItem>
-                            <SelectItem value="beep">Beep</SelectItem>
-                            <SelectItem value="chime">Chime</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => testAlarmSound(newMedication.alarmSound, newMedication.alarmVolume)}
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <div className="flex justify-between">
-                        <Label htmlFor="alarmVolume">Volume</Label>
-                        <span className="text-sm text-muted-foreground">{newMedication.alarmVolume}%</span>
-                      </div>
-                      <Slider
-                        id="alarmVolume"
-                        min={0}
-                        max={100}
-                        step={10}
-                        value={[newMedication.alarmVolume]}
-                        onValueChange={(value) => setNewMedication({ ...newMedication, alarmVolume: value[0] })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Additional notes"
-                  value={newMedication.notes}
-                  onChange={(e) => setNewMedication({ ...newMedication, notes: e.target.value })}
-                />
-              </div>
+      {/* Upcoming Medications */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Medications</CardTitle>
+          <CardDescription>Medications scheduled for later today</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {upcomingMedications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-6">
+              <Check className="h-8 w-8 text-muted-foreground mb-2" />
+              <div className="font-semibold">All done for today!</div>
+              <div className="text-xs text-muted-foreground">No more medications scheduled for today</div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={addMedication}>Add Medication</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          ) : (
+            upcomingMedications.map((med, idx) => (
+              <div key={idx} className="flex items-center justify-between border rounded-lg p-3 mb-2">
+                <div>
+                  <div className="font-medium text-blue-700 flex items-center gap-2">
+                    <span>{med.name}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{med.dosage}</div>
+                  <div className="text-xs text-muted-foreground">{med.instructions}</div>
+                </div>
+                <div className="text-xs font-semibold bg-muted px-3 py-1 rounded">
+                  {formatTime(med.schedule[0]?.time)}
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Filter Controls */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Filter:</span>
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Medications</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="blue">Blue (Vitamin D)</SelectItem>
-            <SelectItem value="red">Red (Paracetamol)</SelectItem>
-            <SelectItem value="green">Green (Multivitamin)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="p-4 sm:p-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Medications</CardTitle>
-            <Pill className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalMedications}</div>
-            <p className="text-xs text-muted-foreground">in your list</p>
-          </CardContent>
-        </Card>
-        <Card className="p-4 sm:p-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-            <Check className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeToday}</div>
-            <p className="text-xs text-muted-foreground">scheduled for today</p>
-          </CardContent>
-        </Card>
-        <Card className="p-4 sm:p-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">With Notifications</CardTitle>
-            <Bell className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-            <div className="text-2xl font-bold">{withNotifications}</div>
-            <p className="text-xs text-muted-foreground">notifications enabled</p>
-          </CardContent>
-        </Card>
-        <Card className="p-4 sm:p-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">With Alarms</CardTitle>
-            <Volume2 className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{withAlarms}</div>
-            <p className="text-xs text-muted-foreground">alarms enabled</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Medication Cards Grid */}
-              {filteredMedications.length === 0 ? (
-        <Card className="p-4 sm:p-6">
-          <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+      {/* Tabs for All Medications and Schedule */}
+      <Tabs defaultValue="all">
+        <TabsList className="mb-2">
+          <TabsTrigger value="all">All Medications</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all">
+          {/* Stat cards and filters below main sections/tabs */}
+          <div className="space-y-4">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <Card className="p-4 sm:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Medications</CardTitle>
+                  <Pill className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalMedications}</div>
+                  <p className="text-xs text-muted-foreground">in your list</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4 sm:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Today</CardTitle>
+                  <Check className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{activeToday}</div>
+                  <p className="text-xs text-muted-foreground">scheduled for today</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4 sm:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">With Notifications</CardTitle>
+                  <Bell className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{withNotifications}</div>
+                  <p className="text-xs text-muted-foreground">notifications enabled</p>
+                </CardContent>
+              </Card>
+              <Card className="p-4 sm:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">With Alarms</CardTitle>
+                  <Volume2 className="h-4 w-4 text-yellow-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{withAlarms}</div>
+                  <p className="text-xs text-muted-foreground">alarms enabled</p>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Filters */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Filter:</span>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Medications</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="blue">Blue (Vitamin D)</SelectItem>
+                  <SelectItem value="red">Red (Paracetamol)</SelectItem>
+                  <SelectItem value="green">Green (Multivitamin)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Medication Cards Grid (filtered) */}
+            {filteredMedications.length === 0 ? (
+              <Card className="p-4 sm:p-6">
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                   <Pill className="h-10 w-10 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No medications found</h3>
-            <p className="text-sm text-muted-foreground">
-              Try changing your filters or add a new medication
-            </p>
-          </CardContent>
-        </Card>
-              ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredMedications.map((medication) => (
-            <Card key={medication.id} className="p-4 sm:p-6">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded-full ${getMedicationColor(medication.color)}`}></span>
-                    <CardTitle className="text-lg sm:text-xl">{medication.name}</CardTitle>
-                  </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                  <p className="text-sm text-muted-foreground">
+                    Try changing your filters or add a new medication
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {filteredMedications.map((medication) => (
+                  <Card key={medication.id} className="p-4 sm:p-6">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-3 h-3 rounded-full ${getMedicationColor(medication.color)}`}></span>
+                          <CardTitle className="text-lg sm:text-xl">{medication.name}</CardTitle>
                         </div>
-                <CardDescription>{medication.dosage}</CardDescription>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs">
-                    {medication.instructions && <span>{medication.instructions}</span>}
-                            </div>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {medication.schedule.map((sch, idx) => (
-                      <span key={idx} className="bg-muted px-2 py-1 rounded">
-                        {sch.time} ({formatDaysList(sch.days)})
-                      </span>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEditMedication(medication)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteMedication(medication.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <CardDescription>{medication.dosage}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs">
+                          {medication.instructions && <span>{medication.instructions}</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {medication.schedule.map((sch, idx) => (
+                            <span key={idx} className="bg-muted px-2 py-1 rounded">
+                              {sch.time} ({formatDaysList(sch.days)})
+                            </span>
                           ))}
                         </div>
                         <div className="flex items-center gap-2 mt-2">
@@ -1349,15 +1213,30 @@ export default function MedicationsPage() {
                             </Badge>
                           )}
                         </div>
-                  {medication.notes && (
-                    <div className="text-xs text-muted-foreground mt-2">{medication.notes}</div>
-                  )}
+                        {medication.notes && (
+                          <div className="text-xs text-muted-foreground mt-2">{medication.notes}</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            )}
+          </div>
+        </TabsContent>
+        <TabsContent value="schedule">
+          {/* Weekly Schedule Grid */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Schedule</CardTitle>
+              <CardDescription>Your medication schedule for the week</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderWeeklyScheduleGrid()}
             </CardContent>
           </Card>
-          ))}
-                  </div>
-                )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

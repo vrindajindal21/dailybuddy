@@ -23,15 +23,15 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Progress } from "@/components/ui/progress"
 import {
-  CalendarIcon,
-  Plus,
-  Trash2,
-  Edit,
-  DollarSign,
   PieChart,
   BarChart3,
   ArrowUpCircle,
   ArrowDownCircle,
+  Edit,
+  Trash2,
+  Plus,
+  CalendarIcon,
+  DollarSign,
 } from "lucide-react"
 
 type Expense = {
@@ -428,7 +428,7 @@ export default function BudgetPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <span className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground">₹</span>
                     <Input
                       id="amount"
                       type="number"
@@ -511,7 +511,7 @@ export default function BudgetPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="limit">Monthly Limit</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <span className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground">₹</span>
                     <Input
                       id="limit"
                       type="number"
@@ -542,7 +542,7 @@ export default function BudgetPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <span className="h-4 w-4 text-muted-foreground">₹</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(getTotalExpenses())}</div>
@@ -617,7 +617,7 @@ export default function BudgetPage() {
             <CardContent>
               {expenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <DollarSign className="h-10 w-10 text-muted-foreground mb-4" />
+                  <span className="h-10 w-10 text-muted-foreground mb-4">₹</span>
                   <h3 className="text-lg font-medium">No expenses yet</h3>
                   <p className="text-sm text-muted-foreground">Add your first expense to start tracking</p>
                 </div>
@@ -661,7 +661,7 @@ export default function BudgetPage() {
           <div className="block md:hidden space-y-4">
             {expenses.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-6 text-center">
-                <DollarSign className="h-10 w-10 text-muted-foreground mb-4" />
+                <span className="h-10 w-10 text-muted-foreground mb-4">₹</span>
                 <h3 className="text-lg font-medium">No expenses yet</h3>
                 <p className="text-sm text-muted-foreground">Add your first expense to start tracking</p>
               </div>
@@ -719,7 +719,7 @@ export default function BudgetPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="edit-amount">Amount</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <span className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground">₹</span>
                       <Input
                         id="edit-amount"
                         type="number"
@@ -846,7 +846,7 @@ export default function BudgetPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="edit-limit">Monthly Limit</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <span className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground">₹</span>
                       <Input
                         id="edit-limit"
                         type="number"

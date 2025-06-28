@@ -24,22 +24,61 @@ export default function AnalyticsPage() {
     const savedSessions = localStorage.getItem("studySessions")
     if (savedSessions) {
       setStudySessions(JSON.parse(savedSessions))
+    } else {
+      // Add demo data if no sessions exist
+      const demoSessions = [
+        { date: new Date().toISOString(), duration: 120, subject: "Math" },
+        { date: new Date(Date.now() - 86400000).toISOString(), duration: 90, subject: "Science" },
+        { date: new Date(Date.now() - 172800000).toISOString(), duration: 60, subject: "English" },
+      ]
+      setStudySessions(demoSessions)
     }
 
     const savedTasks = localStorage.getItem("tasks")
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks))
+    } else {
+      // Add demo data if no tasks exist
+      const demoTasks = [
+        { title: "Complete project", category: "Work", completed: true },
+        { title: "Exercise", category: "Health", completed: false },
+        { title: "Read book", category: "Personal", completed: true },
+      ]
+      setTasks(demoTasks)
     }
 
     const savedHabits = localStorage.getItem("habits")
     if (savedHabits) {
       setHabits(JSON.parse(savedHabits))
+    } else {
+      // Add demo data if no habits exist
+      const demoHabits = [
+        { name: "Morning Exercise", streak: 5 },
+        { name: "Reading", streak: 3 },
+        { name: "Meditation", streak: 7 },
+      ]
+      setHabits(demoHabits)
     }
 
     const savedGoals = localStorage.getItem("goals")
     if (savedGoals) {
       setGoals(JSON.parse(savedGoals))
+    } else {
+      // Add demo data if no goals exist
+      const demoGoals = [
+        { title: "Learn React", progress: 75 },
+        { title: "Run 5K", progress: 60 },
+        { title: "Read 12 books", progress: 25 },
+      ]
+      setGoals(demoGoals)
     }
+
+    console.log("Analytics data loaded:", {
+      sessions: savedSessions ? JSON.parse(savedSessions) : "demo data",
+      tasks: savedTasks ? JSON.parse(savedTasks) : "demo data", 
+      habits: savedHabits ? JSON.parse(savedHabits) : "demo data",
+      goals: savedGoals ? JSON.parse(savedGoals) : "demo data"
+    })
   }, [])
 
   // Helper functions for analytics
@@ -151,7 +190,7 @@ export default function AnalyticsPage() {
   }
 
   const getHabitCompletionByDay = () => {
-    const dateRange = getDateRange().slice(-7) // Last 7 days
+    const dateRange = getDateRange()
 
     // This is a mock implementation since we don't track daily habit completions over time
     // In a real app, you would store completion dates
@@ -160,7 +199,7 @@ export default function AnalyticsPage() {
       const completed = Math.floor(Math.random() * (habits.length + 1))
 
       return {
-        date: format(date, "EEE"),
+        date: timeRange === "year" ? format(date, "MMM") : format(date, "EEE"),
         completed,
         total: habits.length,
       }
@@ -326,8 +365,8 @@ export default function AnalyticsPage() {
                       <p className="text-xs sm:text-sm text-muted-foreground text-center">Record study sessions to see analytics</p>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
+                    <div className="h-full flex flex-col justify-end overflow-x-auto">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1 min-w-max">
                         {getStudyTimeByDay().map((day, i) => (
                           <div key={i} className="flex flex-col items-center flex-1">
                             <div
@@ -400,8 +439,8 @@ export default function AnalyticsPage() {
                       <p className="text-xs sm:text-sm text-muted-foreground text-center">Create tasks to see analytics</p>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
+                    <div className="h-full flex flex-col justify-end overflow-x-auto">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1 min-w-max">
                         {getTasksCompletedByDay().map((day, i) => (
                           <div key={i} className="flex flex-col items-center flex-1">
                             <div
@@ -511,8 +550,8 @@ export default function AnalyticsPage() {
                       <p className="text-xs sm:text-sm text-muted-foreground text-center">Create habits to see analytics</p>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col justify-end">
-                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1">
+                    <div className="h-full flex flex-col justify-end overflow-x-auto">
+                      <div className="flex items-end justify-between h-[180px] sm:h-[220px] gap-1 min-w-max">
                         {getHabitCompletionByDay().map((day, i) => (
                           <div key={i} className="flex flex-col items-center flex-1">
                             <div
