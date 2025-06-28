@@ -107,7 +107,7 @@ export default function TutorialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="flex flex-col gap-4">
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
                 <Clock className="h-8 w-8 text-red-500" />
