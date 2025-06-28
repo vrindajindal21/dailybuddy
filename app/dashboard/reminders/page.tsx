@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -278,360 +279,328 @@ export default function RemindersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Never miss an important reminder</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Reminder
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingReminder ? "Edit Reminder" : "Add New Reminder"}</DialogTitle>
-              <DialogDescription>Create a new reminder with notifications</DialogDescription>
-            </DialogHeader>
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>
+            <p className="text-muted-foreground text-sm sm:text-base">Never miss an important reminder</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto mt-2 sm:mt-0 h-10 sm:h-11 text-sm sm:text-base">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Reminder
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-lg sm:text-xl">{editingReminder ? "Edit Reminder" : "Add New Reminder"}</DialogTitle>
+                <DialogDescription className="text-sm">Create a new reminder with notifications</DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-6">
-              {/* Title */}
-              <div className="space-y-2">
-                <RequiredFieldLabel htmlFor="title">Title</RequiredFieldLabel>
-                <div className="relative">
-                  <Input
-                    id="title"
-                    placeholder="Reminder title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className={titleError ? "border-red-500" : ""}
-                  />
-                  <VoiceInput onTranscript={setTitle} className="absolute right-2 top-1/2 -translate-y-1/2" />
-                </div>
-                {titleError && <p className="text-sm text-red-500">{titleError}</p>}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <div className="relative">
-                  <Textarea
-                    id="description"
-                    placeholder="Additional details"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                  />
-                  <VoiceInput onTranscript={setDescription} className="absolute right-2 top-2" />
-                </div>
-              </div>
-
-              {/* Category */}
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REMINDER_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-                          {cat.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Schedule */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Schedule</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addScheduleTime}>
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add Time
-                  </Button>
-                </div>
-
-                {scheduleTimes.map((scheduleTime, index) => (
-                  <Card key={scheduleTime.id} className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <Label>Time</Label>
-                        </div>
-                        {scheduleTimes.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeScheduleTime(scheduleTime.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-
-                      <Input
-                        type="time"
-                        value={scheduleTime.time}
-                        onChange={(e) => updateScheduleTime(scheduleTime.id, "time", e.target.value)}
-                      />
-
-                      <div className="space-y-2">
-                        <Label>Days</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {DAYS_OF_WEEK.map((day) => (
-                            <div key={day.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`${scheduleTime.id}-${day.id}`}
-                                checked={scheduleTime.days.includes(day.id)}
-                                onCheckedChange={(checked) => {
-                                  const newDays = checked
-                                    ? [...scheduleTime.days, day.id]
-                                    : scheduleTime.days.filter((d) => d !== day.id)
-                                  updateScheduleTime(scheduleTime.id, "days", newDays)
-                                }}
-                              />
-                              <Label
-                                htmlFor={`${scheduleTime.id}-${day.id}`}
-                                className="text-sm font-normal cursor-pointer"
-                              >
-                                {day.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-                {scheduleError && <p className="text-sm text-red-500">{scheduleError}</p>}
-              </div>
-
-              {/* Date Range */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 sm:space-y-6">
+                {/* Title */}
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date (Optional)</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    placeholder="No end date"
-                  />
-                </div>
-              </div>
-
-              {/* Color */}
-              <div className="space-y-2">
-                <Label>Color</Label>
-                <div className="flex gap-2">
-                  {REMINDER_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      className={`w-8 h-8 rounded-full ${color.value} border-2 ${
-                        selectedColor === color.value ? color.border : "border-transparent"
-                      }`}
-                      onClick={() => setSelectedColor(color.value)}
+                  <RequiredFieldLabel htmlFor="title">Title</RequiredFieldLabel>
+                  <div className="relative">
+                    <Input
+                      id="title"
+                      placeholder="Reminder title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className={`h-10 sm:h-11 text-sm sm:text-base ${titleError ? "border-red-500" : ""}`}
                     />
+                    <VoiceInput onTranscript={setTitle} className="absolute right-2 top-1/2 -translate-y-1/2" />
+                  </div>
+                  {titleError && <p className="text-sm text-red-500">{titleError}</p>}
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm sm:text-base">Description</Label>
+                  <div className="relative">
+                    <Textarea
+                      id="description"
+                      placeholder="Additional details"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      className="text-sm sm:text-base"
+                    />
+                    <VoiceInput onTranscript={setDescription} className="absolute right-2 top-2" />
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label className="text-sm sm:text-base">Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${cat.color}`} />
+                            {cat.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Schedule */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm sm:text-base">Schedule</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={addScheduleTime} className="h-8 sm:h-9 text-xs sm:text-sm">
+                      <Plus className="mr-1 h-3 w-3" />
+                      Add Time
+                    </Button>
+                  </div>
+
+                  {scheduleTimes.map((scheduleTime, index) => (
+                    <Card key={scheduleTime.id} className="p-3 sm:p-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <Label className="text-sm sm:text-base">Time</Label>
+                          </div>
+                          {scheduleTimes.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeScheduleTime(scheduleTime.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <Input
+                          type="time"
+                          value={scheduleTime.time}
+                          onChange={(e) => updateScheduleTime(scheduleTime.id, "time", e.target.value)}
+                          className="h-10 sm:h-11 text-sm sm:text-base"
+                        />
+
+                        <div className="space-y-2">
+                          <Label className="text-sm sm:text-base">Days</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {DAYS_OF_WEEK.map((day) => (
+                              <div key={day.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${scheduleTime.id}-${day.id}`}
+                                  checked={scheduleTime.days.includes(day.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newDays = checked
+                                      ? [...scheduleTime.days, day.id]
+                                      : scheduleTime.days.filter((d) => d !== day.id)
+                                    updateScheduleTime(scheduleTime.id, "days", newDays)
+                                  }}
+                                />
+                                <Label htmlFor={`${scheduleTime.id}-${day.id}`} className="text-xs sm:text-sm">{day.label}</Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
                   ))}
                 </div>
-              </div>
 
-              <Separator />
-
-              {/* Notifications */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Get reminded when it's time</p>
+                {/* Date Range */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-date" className="text-sm sm:text-base">Start Date</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="h-10 sm:h-11 text-sm sm:text-base"
+                    />
                   </div>
-                  <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                  <div className="space-y-2">
+                    <Label htmlFor="end-date" className="text-sm sm:text-base">End Date (Optional)</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="h-10 sm:h-11 text-sm sm:text-base"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Sound</Label>
-                    <p className="text-sm text-muted-foreground">Play a sound when the reminder is due</p>
+                {/* Color Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm sm:text-base">Color</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {REMINDER_COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        className={`w-8 h-8 rounded-full ${color.value} border-2 transition-all ${
+                          selectedColor === color.value ? "border-black scale-110" : "border-gray-300 hover:scale-105"
+                        }`}
+                        onClick={() => setSelectedColor(color.value)}
+                      />
+                    ))}
                   </div>
-                  <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
                 </div>
 
-                {soundEnabled && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Sound Type</Label>
-                      <div className="flex gap-2">
-                        <Select value={soundType} onValueChange={setSoundType}>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SOUND_TYPES.map((sound) => (
-                              <SelectItem key={sound.value} value={sound.value}>
-                                {sound.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button type="button" variant="outline" size="icon" onClick={testSound}>
-                          <Volume2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                {/* Notification Settings */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="notifications"
+                      checked={notificationsEnabled}
+                      onCheckedChange={setNotificationsEnabled}
+                    />
+                    <Label htmlFor="notifications" className="text-sm sm:text-base">Enable Notifications</Label>
+                  </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Volume</Label>
-                        <span className="text-sm text-muted-foreground">{volume[0]}%</span>
+                  {notificationsEnabled && (
+                    <div className="space-y-4 pl-6">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="sound"
+                          checked={soundEnabled}
+                          onCheckedChange={setSoundEnabled}
+                        />
+                        <Label htmlFor="sound" className="text-sm sm:text-base">Sound</Label>
                       </div>
-                      <Slider value={volume} onValueChange={setVolume} max={100} step={5} className="w-full" />
+
+                      {soundEnabled && (
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm sm:text-base">Sound Type</Label>
+                            <Select value={soundType} onValueChange={setSoundType}>
+                              <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bell">Bell</SelectItem>
+                                <SelectItem value="chime">Chime</SelectItem>
+                                <SelectItem value="notification">Notification</SelectItem>
+                                <SelectItem value="gentle">Gentle</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm sm:text-base">Volume</Label>
+                            <Slider
+                              value={volume}
+                              onValueChange={setVolume}
+                              max={100}
+                              step={1}
+                              className="w-full"
+                            />
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>0%</span>
+                              <span>{volume[0]}%</span>
+                              <span>100%</span>
+                            </div>
+                          </div>
+
+                          <Button type="button" variant="outline" onClick={testSound} className="h-8 sm:h-9 text-xs sm:text-sm">
+                            <Volume2 className="mr-2 h-4 w-4" />
+                            Test Sound
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit}>{editingReminder ? "Update Reminder" : "Add Reminder"}</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
-        {/* ...existing filter/search bar if any... */}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
-        {/* Today's Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Today's Reminders
-            </CardTitle>
-            <CardDescription>{getTodaysReminders().length} reminders for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {getTodaysReminders().length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No reminders for today</p>
-            ) : (
-              <div className="space-y-3">
-                {getTodaysReminders().map((reminder) => (
-                  <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
-                      <div>
-                        <p className="font-medium">{reminder.title}</p>
-                        <p className="text-sm text-muted-foreground">{format(reminder.scheduledTime, "h:mm a")}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{reminder.type}</Badge>
-                      <Button size="sm" variant="outline" onClick={() => completeReminder(reminder.id)}>
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Upcoming Reminders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {getUpcomingReminders().length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No upcoming reminders</p>
-            ) : (
-              <div className="space-y-3">
-                {getUpcomingReminders().map((reminder) => (
-                  <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
-                      <div>
-                        <p className="font-medium">{reminder.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {isTomorrow(reminder.scheduledTime)
-                            ? `Tomorrow at ${format(reminder.scheduledTime, "h:mm a")}`
-                            : format(reminder.scheduledTime, "MMM d, h:mm a")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{reminder.type}</Badge>
-                      <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => deleteReminder(reminder.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* All Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Reminders</CardTitle>
-            <CardDescription>{reminders.length} total reminders</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {reminders.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No reminders created yet</p>
-            ) : (
-              <ScrollArea className="h-96">
+                <Button onClick={handleSubmit} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
+                  {editingReminder ? "Update Reminder" : "Create Reminder"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
+          {/* ...existing filter/search bar if any... */}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
+          {/* Today's Reminders */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Today's Reminders
+              </CardTitle>
+              <CardDescription>{getTodaysReminders().length} reminders for today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {getTodaysReminders().length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No reminders for today</p>
+              ) : (
                 <div className="space-y-3">
-                  {reminders.map((reminder) => (
-                    <div
-                      key={reminder.id}
-                      className={`flex items-center justify-between p-3 border rounded-lg ${
-                        reminder.completed ? "opacity-50" : ""
-                      }`}
-                    >
+                  {getTodaysReminders().map((reminder) => (
+                    <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
                         <div>
-                          <p className={`font-medium ${reminder.completed ? "line-through" : ""}`}>{reminder.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(reminder.scheduledTime, "MMM d, h:mm a")}
-                            {reminder.recurring && " (Recurring)"}
-                          </p>
-                          {reminder.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{reminder.description}</p>
-                          )}
+                          <p className="font-medium">{reminder.title}</p>
+                          <p className="text-sm text-muted-foreground">{format(reminder.scheduledTime, "h:mm a")}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{reminder.type}</Badge>
-                        {reminder.completed && <Badge variant="secondary">Completed</Badge>}
+                        <Button size="sm" variant="outline" onClick={() => completeReminder(reminder.id)}>
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Reminders */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Upcoming Reminders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {getUpcomingReminders().length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No upcoming reminders</p>
+              ) : (
+                <div className="space-y-3">
+                  {getUpcomingReminders().map((reminder) => (
+                    <div key={reminder.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
+                        <div>
+                          <p className="font-medium">{reminder.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isTomorrow(reminder.scheduledTime)
+                              ? `Tomorrow at ${format(reminder.scheduledTime, "h:mm a")}`
+                              : format(reminder.scheduledTime, "MMM d, h:mm a")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{reminder.type}</Badge>
                         <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -642,10 +611,60 @@ export default function RemindersPage() {
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* All Reminders */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All Reminders</CardTitle>
+              <CardDescription>{reminders.length} total reminders</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {reminders.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No reminders created yet</p>
+              ) : (
+                <ScrollArea className="h-96">
+                  <div className="space-y-3">
+                    {reminders.map((reminder) => (
+                      <div
+                        key={reminder.id}
+                        className={`flex items-center justify-between p-3 border rounded-lg ${
+                          reminder.completed ? "opacity-50" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${getCategoryColor(reminder.type)}`} />
+                          <div>
+                            <p className={`font-medium ${reminder.completed ? "line-through" : ""}`}>{reminder.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {format(reminder.scheduledTime, "MMM d, h:mm a")}
+                              {reminder.recurring && " (Recurring)"}
+                            </p>
+                            {reminder.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{reminder.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{reminder.type}</Badge>
+                          {reminder.completed && <Badge variant="secondary">Completed</Badge>}
+                          <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => deleteReminder(reminder.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -224,37 +224,38 @@ export default function HabitsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Habits</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Track and build your daily habits</p>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">Track and build your daily habits</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+            <Button className="w-full sm:w-auto mt-2 sm:mt-0 h-10 sm:h-11 text-sm sm:text-base">
               <Plus className="mr-2 h-4 w-4" />
               Add Habit
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Habit</DialogTitle>
-              <DialogDescription>Create a new habit to track daily</DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Add New Habit</DialogTitle>
+              <DialogDescription className="text-sm">Create a new habit to track daily</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Habit Name</Label>
+                <Label htmlFor="name" className="text-sm sm:text-base">Habit Name</Label>
                 <Input
                   id="name"
                   placeholder="What habit do you want to track?"
                   value={newHabit.name}
                   onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+                  className="h-10 sm:h-11 text-sm sm:text-base"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
                 <Select
                   value={newHabit.category}
                   onValueChange={(value) => setNewHabit({ ...newHabit, category: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,39 +266,40 @@ export default function HabitsPage() {
                 </Select>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                 Cancel
               </Button>
-              <Button onClick={addHabit}>Add Habit</Button>
+              <Button onClick={addHabit} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Add Habit</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Habit</DialogTitle>
-              <DialogDescription>Update your habit details</DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Edit Habit</DialogTitle>
+              <DialogDescription className="text-sm">Update your habit details</DialogDescription>
             </DialogHeader>
             {editingHabit && (
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-name">Habit Name</Label>
+                  <Label htmlFor="edit-name" className="text-sm sm:text-base">Habit Name</Label>
                   <Input
                     id="edit-name"
                     placeholder="Habit name"
                     value={editingHabit.name}
                     onChange={(e) => setEditingHabit({ ...editingHabit, name: e.target.value })}
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-category">Category</Label>
+                  <Label htmlFor="edit-category" className="text-sm sm:text-base">Category</Label>
                   <Select
                     value={editingHabit.category}
                     onValueChange={(value) => setEditingHabit({ ...editingHabit, category: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -309,22 +311,22 @@ export default function HabitsPage() {
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                 Cancel
               </Button>
-              <Button onClick={updateHabit}>Save Changes</Button>
+              <Button onClick={updateHabit} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Save Changes</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Daily Habit Tracker</CardTitle>
-          <CardDescription>Track your habits for the last 7 days</CardDescription>
+      <Card className="mt-4 sm:mt-6">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg">Daily Habit Tracker</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Track your habits for the last 7 days</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           {/* Desktop/tablet table view */}
           <div className="overflow-x-auto w-full hidden md:block">
             <table className="w-full min-w-[600px] text-sm">
@@ -390,82 +392,48 @@ export default function HabitsPage() {
           {/* Mobile card/list view */}
           <div className="block md:hidden space-y-4">
             {habits.map((habit: HabitType) => (
-              <Card key={habit.id} className="p-2">
-                <div className="flex items-center gap-2 mb-2">
+              <Card key={habit.id} className="p-4">
+                <div className="flex items-center gap-2 mb-3">
                   {getCategoryIcon(habit.category)}
                   <span className="font-semibold text-base flex-1">{habit.name}</span>
                   <span className="text-xs text-muted-foreground capitalize">{habit.category}</span>
                 </div>
-                <div className="flex flex-wrap gap-1 mb-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {last7Days.map((day, i) => (
                     <button
                       key={i}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors border-2 ${
                         isHabitCompletedOnDate(habit, day)
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
                       }`}
                       onClick={() => toggleHabitCompletion(habit.id, day)}
                     >
-                      {format(day, "d")}
-                      {isHabitCompletedOnDate(habit, day) ? <span className="ml-1">✓</span> : null}
+                      <span className="text-sm font-medium">{format(day, "d")}</span>
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <Flame className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                  <span>Streak: <span className="font-semibold">{habit.streak}</span></span>
-                  <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flame
+                      className={`h-4 w-4 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`}
+                    />
+                    <span className="text-sm font-medium">{habit.streak} day streak</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => startEditHabit(habit)} className="h-8 w-8 p-0">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => deleteHabit(habit.id)} className="h-8 w-8 p-0">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-        {habits.map((habit: HabitType) => (
-          <Card key={habit.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-base">{habit.name}</CardTitle>
-                {getCategoryIcon(habit.category)}
-              </div>
-              <CardDescription>{habit.category.charAt(0).toUpperCase() + habit.category.slice(1)}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Flame className={`h-5 w-5 ${habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                <span className="text-2xl font-bold">{habit.streak}</span>
-                <span className="text-muted-foreground">day streak</span>
-              </div>
-              <div className="mt-4 flex gap-1">
-                {last7Days.slice(-5).map((day, i) => (
-                  <div key={i} className="flex-1">
-                    <div
-                      className={`h-2 rounded-full ${isHabitCompletedOnDate(habit, day) ? "bg-primary" : "bg-muted"}`}
-                    ></div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="pt-0">
-              <Button
-                variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
-                className="w-full"
-                onClick={() => toggleHabitCompletion(habit.id, today)}
-              >
-                {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
     </div>
   )
 }

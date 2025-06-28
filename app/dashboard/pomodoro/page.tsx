@@ -726,24 +726,24 @@ export default function PomodoroPage() {
   // Timer effect
   return (
     <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
-      <div className="mb-6 px-2 sm:px-4">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
-        <p className="text-muted-foreground text-base sm:text-lg">{t("pomodoroDescription")}</p>
+      <div className="mb-4 sm:mb-6 px-2 sm:px-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">🍅 {t("pomodoroTimer")}</h1>
+        <p className="text-muted-foreground text-sm sm:text-base md:text-lg">{t("pomodoroDescription")}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-4">
         {/* Main Timer */}
-        <div className="md:col-span-2 lg:col-span-2">
+        <div className="lg:col-span-2">
           {/* Quick Custom Time Input */}
           <Card className="mb-4 sm:mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200 text-lg sm:text-xl">
-                <Clock className="h-5 w-5" />
+            <CardHeader className="pb-3 px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200 text-base sm:text-lg md:text-xl">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                 Quick Custom Time
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">Set any custom time instantly - no need to go to settings!</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div className="flex items-center gap-2">
                   <Input
@@ -752,7 +752,7 @@ export default function PomodoroPage() {
                     max="999"
                     value={customMinutes}
                     onChange={(e) => setCustomMinutes(Math.max(0, Math.min(999, Number.parseInt(e.target.value) || 0)))}
-                    className="w-16 sm:w-20 text-center"
+                    className="w-16 sm:w-20 text-center h-10 sm:h-11 text-sm sm:text-base"
                     placeholder="25"
                   />
                   <span className="text-xs sm:text-sm text-muted-foreground font-medium">min</span>
@@ -764,7 +764,7 @@ export default function PomodoroPage() {
                     max="59"
                     value={customSeconds}
                     onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number.parseInt(e.target.value) || 0)))}
-                    className="w-16 sm:w-20 text-center"
+                    className="w-16 sm:w-20 text-center h-10 sm:h-11 text-sm sm:text-base"
                     placeholder="00"
                   />
                   <span className="text-xs sm:text-sm text-muted-foreground font-medium">sec</span>
@@ -772,7 +772,7 @@ export default function PomodoroPage() {
                 <Button
                   onClick={handleSetCustomTime}
                   disabled={timer.isActive || (customMinutes === 0 && customSeconds === 0)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm px-3 sm:px-4"
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm px-3 sm:px-4 h-10 sm:h-11"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Set Timer
@@ -785,7 +785,7 @@ export default function PomodoroPage() {
           </Card>
 
           <Card className="mb-4 sm:mb-6">
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   {getModeIcon()}
@@ -796,7 +796,7 @@ export default function PomodoroPage() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
               {/* Mode Selector */}
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -804,9 +804,9 @@ export default function PomodoroPage() {
                   size="sm"
                   onClick={() => switchMode("pomodoro")}
                   disabled={timer.isActive}
-                  className={timer.mode === "pomodoro" ? "bg-red-500 hover:bg-red-600" : ""}
+                  className={`${timer.mode === "pomodoro" ? "bg-red-500 hover:bg-red-600" : ""} h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm`}
                 >
-                  <Target className="h-4 w-4 mr-1" />
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Pomodoro
                 </Button>
                 <Button
@@ -814,9 +814,9 @@ export default function PomodoroPage() {
                   size="sm"
                   onClick={() => switchMode("shortBreak")}
                   disabled={timer.isActive}
-                  className={timer.mode === "shortBreak" ? "bg-green-500 hover:bg-green-600" : ""}
+                  className={`${timer.mode === "shortBreak" ? "bg-green-500 hover:bg-green-600" : ""} h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm`}
                 >
-                  <Coffee className="h-4 w-4 mr-1" />
+                  <Coffee className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Short Break
                 </Button>
                 <Button
@@ -824,42 +824,42 @@ export default function PomodoroPage() {
                   size="sm"
                   onClick={() => switchMode("longBreak")}
                   disabled={timer.isActive}
-                  className={timer.mode === "longBreak" ? "bg-blue-500 hover:bg-blue-600" : ""}
+                  className={`${timer.mode === "longBreak" ? "bg-blue-500 hover:bg-blue-600" : ""} h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm`}
                 >
-                  <Coffee className="h-4 w-4 mr-1" />
+                  <Coffee className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Long Break
                 </Button>
               </div>
 
               {/* Timer Display */}
               <div className="text-center space-y-2 sm:space-y-4">
-                <div className="text-5xl sm:text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
+                <div className="text-4xl sm:text-5xl md:text-6xl font-mono font-bold tracking-wider">{formatTime(timer.timeLeft)}</div>
                 <Progress value={getProgress()} className="h-2 sm:h-3" />
                 <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                   {!timer.isActive ? (
-                    <Button onClick={startTimer} size="lg" className="px-8">
-                      <Play className="h-5 w-5 mr-2" />
+                    <Button onClick={startTimer} size="lg" className="px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg">
+                      <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                       Start
                     </Button>
                   ) : timer.isPaused ? (
-                    <Button onClick={resumeTimer} size="lg" className="px-8">
-                      <Play className="h-5 w-5 mr-2" />
+                    <Button onClick={resumeTimer} size="lg" className="px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg">
+                      <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                       Resume
                     </Button>
                   ) : (
-                    <Button onClick={pauseTimer} size="lg" variant="secondary" className="px-8">
-                      <Pause className="h-5 w-5 mr-2" />
+                    <Button onClick={pauseTimer} size="lg" variant="secondary" className="px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg">
+                      <Pause className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                       Pause
                     </Button>
                   )}
 
-                  <Button onClick={stopTimer} variant="outline" size="lg" disabled={!timer.isActive && !timer.isPaused}>
-                    <Square className="h-5 w-5 mr-2" />
+                  <Button onClick={stopTimer} variant="outline" size="lg" disabled={!timer.isActive && !timer.isPaused} className="h-12 sm:h-14 text-base sm:text-lg">
+                    <Square className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                     Stop
                   </Button>
 
-                  <Button onClick={resetTimer} variant="outline" size="lg">
-                    <RotateCcw className="h-5 w-5 mr-2" />
+                  <Button onClick={resetTimer} variant="outline" size="lg" className="h-12 sm:h-14 text-base sm:text-lg">
+                    <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                     Reset
                   </Button>
                 </div>
@@ -874,7 +874,7 @@ export default function PomodoroPage() {
                   onChange={(e) => setCurrentTask(e.target.value)}
                   placeholder="Enter your current task..."
                   disabled={timer.isActive && !timer.isPaused}
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm h-10 sm:h-11"
                 />
               </div>
             </CardContent>
@@ -885,209 +885,91 @@ export default function PomodoroPage() {
         <div className="space-y-4 sm:space-y-6">
           {/* Today's Stats */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                 Today's Progress
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-500">{stats.todaySessions}</div>
-                  <div className="text-sm text-muted-foreground">Completed</div>
+                  <div className="text-xl sm:text-2xl font-bold text-red-500">{stats.todaySessions}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Completed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-500">{stats.streak}</div>
-                  <div className="text-sm text-muted-foreground">Day Streak</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-500">{formatDuration(stats.totalFocusTime)}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Focus Time</div>
                 </div>
               </div>
-
               <div className="text-center">
-                <div className="text-lg font-semibold">{formatDuration(stats.totalFocusTime)}</div>
-                <div className="text-sm text-muted-foreground">Total Focus Time</div>
+                <div className="text-lg sm:text-xl font-bold text-green-500">{stats.streak}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Day Streak</div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Settings */}
+          {/* Preset Timers */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Settings
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                Preset Timers
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="timer" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="timer">Timer</TabsTrigger>
-                  <TabsTrigger value="audio">Audio</TabsTrigger>
-                  <TabsTrigger value="behavior">Behavior</TabsTrigger>
-                </TabsList>
+            <CardContent className="space-y-3 px-4 sm:px-6 pb-4 sm:pb-6">
+              <Select value={selectedPreset} onValueChange={setSelectedPreset}>
+                <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
+                  <SelectValue placeholder="Select preset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESET_TIMERS.map((preset) => (
+                    <SelectItem key={preset.name} value={preset.name}>
+                      {preset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => applyPreset(PRESET_TIMERS.find((p) => p.name === selectedPreset)!)}
+                disabled={timer.isActive}
+                className="w-full h-10 sm:h-11 text-sm sm:text-base"
+              >
+                Apply Preset
+              </Button>
+            </CardContent>
+          </Card>
 
-                <TabsContent value="timer" className="space-y-4">
-                  {/* Preset Timers */}
-                  <div className="space-y-3">
-                    <Label>Preset Timers</Label>
-                    <div className="grid gap-2">
-                      {[...PRESET_TIMERS, ...customTimers].map((preset) => (
-                        <div key={preset.name} className="flex items-center justify-between p-2 border rounded">
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{preset.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {preset.pomodoro}m / {preset.shortBreak}m / {preset.longBreak}m
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="outline" onClick={() => applyPreset(preset)} disabled={timer.isActive}>
-                              Use
-                            </Button>
-                            {customTimers.some((t) => t.name === preset.name) && (
-                              <Button size="sm" variant="outline" onClick={() => deleteCustomTimer(preset.name)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCustomTimerDialog(true)}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Custom Timer
-                    </Button>
-                  </div>
-
-                  {/* Manual Timer Settings */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Pomodoro Duration: {customPomodoro} minutes</Label>
-                      <Slider
-                        value={[customPomodoro]}
-                        onValueChange={(value) => setCustomPomodoro(value[0])}
-                        max={120}
-                        min={1}
-                        step={1}
-                        disabled={timer.isActive}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Short Break: {customShortBreak} minutes</Label>
-                      <Slider
-                        value={[customShortBreak]}
-                        onValueChange={(value) => setCustomShortBreak(value[0])}
-                        max={30}
-                        min={1}
-                        step={1}
-                        disabled={timer.isActive}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Long Break: {customLongBreak} minutes</Label>
-                      <Slider
-                        value={[customLongBreak]}
-                        onValueChange={(value) => setCustomLongBreak(value[0])}
-                        max={60}
-                        min={1}
-                        step={1}
-                        disabled={timer.isActive}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Long Break Interval: Every {longBreakInterval} sessions</Label>
-                      <Slider
-                        value={[longBreakInterval]}
-                        onValueChange={(value) => setLongBreakInterval(value[0])}
-                        max={10}
-                        min={2}
-                        step={1}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="audio" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="sound-enabled">Enable Sound</Label>
-                    <Switch id="sound-enabled" checked={soundEnabled} onCheckedChange={setSoundEnabled} />
-                  </div>
-
-                  {soundEnabled && (
-                    <>
-                      <div className="space-y-2">
-                        <Label>Volume: {soundVolume}%</Label>
-                        <Slider
-                          value={[soundVolume]}
-                          onValueChange={(value) => setSoundVolume(value[0])}
-                          max={100}
-                          min={0}
-                          step={5}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Sound Type</Label>
-                        <Select value={selectedSound} onValueChange={setSelectedSound}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bell">🔔 Bell</SelectItem>
-                            <SelectItem value="chime">🎵 Chime</SelectItem>
-                            <SelectItem value="beep">📢 Beep</SelectItem>
-                            <SelectItem value="ding">🔊 Ding</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={playNotificationSound}
-                        className="w-full"
-                        disabled={!soundEnabled}
-                      >
-                        <Volume2 className="h-4 w-4 mr-2" />
-                        Test Sound
-                      </Button>
-                    </>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="behavior" className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications-enabled">Browser Notifications</Label>
-                    <Switch
-                      id="notifications-enabled"
-                      checked={notificationsEnabled}
-                      onCheckedChange={setNotificationsEnabled}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="auto-start-breaks">Auto-start Breaks</Label>
-                    <Switch id="auto-start-breaks" checked={autoStartBreaks} onCheckedChange={setAutoStartBreaks} />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="auto-start-pomodoros">Auto-start Pomodoros</Label>
-                    <Switch
-                      id="auto-start-pomodoros"
-                      checked={autoStartPomodoros}
-                      onCheckedChange={setAutoStartPomodoros}
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
+          {/* Quick Settings */}
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                Quick Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm sm:text-base">Sound</Label>
+                  <div className="text-xs text-muted-foreground">Timer notifications</div>
+                </div>
+                <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm sm:text-base">Notifications</Label>
+                  <div className="text-xs text-muted-foreground">Browser notifications</div>
+                </div>
+                <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm sm:text-base">Auto-start breaks</Label>
+                  <div className="text-xs text-muted-foreground">Start breaks automatically</div>
+                </div>
+                <Switch checked={autoStartBreaks} onCheckedChange={setAutoStartBreaks} />
+              </div>
             </CardContent>
           </Card>
         </div>

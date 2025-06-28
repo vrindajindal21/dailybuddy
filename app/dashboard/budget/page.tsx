@@ -405,58 +405,60 @@ export default function BudgetPage() {
         <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
           <Dialog open={isAddExpenseDialogOpen} onOpenChange={setIsAddExpenseDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Expense
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Expense</DialogTitle>
-                <DialogDescription>Record a new expense to track your spending</DialogDescription>
+                <DialogTitle className="text-lg sm:text-xl">Add New Expense</DialogTitle>
+                <DialogDescription className="text-sm">Record a new expense to track your spending</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title" className="text-sm sm:text-base">Title</Label>
                   <Input
                     id="title"
                     placeholder="Expense title"
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                     value={newExpense.title}
                     onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="amount">Amount</Label>
+                  <Label htmlFor="amount" className="text-sm sm:text-base">Amount</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-3 sm:top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="amount"
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="0.00"
-                      className="pl-8"
+                      className="pl-8 h-10 sm:h-11 text-sm sm:text-base"
                       value={newExpense.amount}
                       onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
                     />
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="date">Date</Label>
+                  <Label htmlFor="date" className="text-sm sm:text-base">Date</Label>
                   <Input
                     id="date"
                     type="date"
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                     value={newExpense.date}
                     onChange={e => setNewExpense({ ...newExpense, date: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
                   <Select
                     value={newExpense.category}
                     onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -469,67 +471,69 @@ export default function BudgetPage() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Label htmlFor="notes" className="text-sm sm:text-base">Notes (Optional)</Label>
                   <Textarea
                     id="notes"
                     placeholder="Additional details"
+                    className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
                     value={newExpense.notes}
                     onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
                   />
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddExpenseDialogOpen(false)}>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setIsAddExpenseDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                   Cancel
                 </Button>
-                <Button onClick={addExpense}>Add Expense</Button>
+                <Button onClick={addExpense} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Add Expense</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
           <Dialog open={isAddBudgetDialogOpen} onOpenChange={setIsAddBudgetDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="secondary" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Budget
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Budget</DialogTitle>
-                <DialogDescription>Add a new budget category</DialogDescription>
+                <DialogTitle className="text-lg sm:text-xl">Add New Budget</DialogTitle>
+                <DialogDescription className="text-sm">Add a new budget category</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
                   <Input
                     id="category"
                     placeholder="Enter category name"
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                     value={newBudget.category}
                     onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="limit">Monthly Limit</Label>
+                  <Label htmlFor="limit" className="text-sm sm:text-base">Monthly Limit</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-3 sm:top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="limit"
                       type="number"
                       step="0.01"
                       min="0"
                       placeholder="0.00"
-                      className="pl-8"
+                      className="pl-8 h-10 sm:h-11 text-sm sm:text-base"
                       value={newBudget.limit}
                       onChange={(e) => setNewBudget({ ...newBudget, limit: e.target.value })}
                     />
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddBudgetDialogOpen(false)}>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setIsAddBudgetDialogOpen(false)} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">
                   Cancel
                 </Button>
-                <Button onClick={addBudget}>Add Budget</Button>
+                <Button onClick={addBudget} className="w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base">Add Budget</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -538,26 +542,26 @@ export default function BudgetPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center mt-2 mb-4">
         {/* ...existing filter/search bar if any... */}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="px-3 sm:px-6 py-3 sm:py-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Expenses</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getTotalExpenses())}</div>
+          <CardContent className="px-0 pb-0">
+            <div className="text-lg sm:text-2xl font-bold">{formatCurrency(getTotalExpenses())}</div>
             <p className="text-xs text-muted-foreground">{expenses.length} transactions</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Largest Expense</CardTitle>
-            <ArrowUpCircle className="h-4 w-4 text-red-500" />
+        <Card className="px-3 sm:px-6 py-3 sm:py-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Largest Expense</CardTitle>
+            <ArrowUpCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(Math.max(...expenses.map((e) => e.amount), 0))}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="px-0 pb-0">
+            <div className="text-lg sm:text-2xl font-bold">{formatCurrency(Math.max(...expenses.map((e) => e.amount), 0))}</div>
+            <p className="text-xs text-muted-foreground truncate">
               {expenses.length > 0
                 ? expenses.reduce((max, e) => (e.amount > max.amount ? e : max), expenses[0]).title
                 : "No expenses"}
@@ -565,26 +569,26 @@ export default function BudgetPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budget Categories</CardTitle>
-            <PieChart className="h-4 w-4 text-muted-foreground" />
+        <Card className="px-3 sm:px-6 py-3 sm:py-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Budget Categories</CardTitle>
+            <PieChart className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{budgets.length}</div>
+          <CardContent className="px-0 pb-0">
+            <div className="text-lg sm:text-2xl font-bold">{budgets.length}</div>
             <p className="text-xs text-muted-foreground">
               Total budget: {formatCurrency(budgets.reduce((sum, b) => sum + b.limit, 0))}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Remaining Budget</CardTitle>
-            <ArrowDownCircle className="h-4 w-4 text-green-500" />
+        <Card className="px-3 sm:px-6 py-3 sm:py-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Remaining Budget</CardTitle>
+            <ArrowDownCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-0 pb-0">
+            <div className="text-lg sm:text-2xl font-bold">
               {formatCurrency(Math.max(budgets.reduce((sum, b) => sum + b.limit, 0) - getTotalExpenses(), 0))}
             </div>
             <p className="text-xs text-muted-foreground">
