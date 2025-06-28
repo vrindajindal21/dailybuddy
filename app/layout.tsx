@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   title: "DailyBuddy - Your Friendly Productivity Companion",
   description: "DailyBuddy helps you thrive with smart reminders, health tracking, and a friendly touch for all ages.",
   manifest: "/manifest.json",
-  themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   generator: 'v0.dev'
 }
 
@@ -28,6 +26,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: "no",
+  themeColor: "#000000",
 };
 
 // Ensure reminders are always checked globally
