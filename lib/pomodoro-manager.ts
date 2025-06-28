@@ -22,6 +22,7 @@ export class PomodoroManager {
   static timer = getInitialTimerState()
   static intervalRef: NodeJS.Timeout | null = null
   static isInitialized = false
+  static currentTimerId: string | null = null
 
   static initialize() {
     if (this.isInitialized) return
@@ -29,8 +30,22 @@ export class PomodoroManager {
     window.addEventListener("start-pomodoro-timer", this.handleStart as EventListener)
     window.addEventListener("stop-pomodoro-timer", this.handleStop as EventListener)
     this.startBackgroundCountdown()
+    this.setupServiceWorkerCommunication()
     this.isInitialized = true
     console.log('[PomodoroManager] Initialized')
+  }
+
+  static setupServiceWorkerCommunication() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      // Listen for messages from service worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'POMODORO_COMPLETE') {
+          this.handleServiceWorkerTimerComplete(event.data.timer)
+        } else if (event.data.type === 'POMODORO_SYNC') {
+          this.syncWithServiceWorker(event.data.timers)
+        }
+      })
+    }
   }
 
   static handleStart = (e: any) => {
@@ -48,6 +63,16 @@ export class PomodoroManager {
     }
     this.saveTimer()
     this.startBackgroundCountdown()
+    
+    // Send to service worker for background timing
+    this.sendToServiceWorker('POMODORO_TIMER_START', {
+      timer: {
+        mode: this.timer.mode,
+        duration: this.timer.duration,
+        task: this.timer.task
+      }
+    })
+    
     console.log('[PomodoroManager] Timer started', this.timer)
   }
 
@@ -55,7 +80,52 @@ export class PomodoroManager {
     this.timer = { ...getInitialTimerState(), isActive: false }
     this.saveTimer()
     this.clearCountdown()
+    
+    // Stop service worker timer
+    if (this.currentTimerId) {
+      this.sendToServiceWorker('POMODORO_TIMER_STOP', { timerId: this.currentTimerId })
+      this.currentTimerId = null
+    }
+    
     console.log('[PomodoroManager] Timer stopped')
+  }
+
+  static sendToServiceWorker(type: string, data: any) {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type,
+        ...data
+      })
+    }
+  }
+
+  static handleServiceWorkerTimerComplete(timer: any) {
+    console.log('[PomodoroManager] Service worker timer completed:', timer)
+    this.showCompletionNotification(timer.mode, timer.duration / 60, timer.task)
+    this.timer = { ...getInitialTimerState(), isActive: false }
+    this.saveTimer()
+    this.currentTimerId = null
+  }
+
+  static syncWithServiceWorker(serviceWorkerTimers: any[]) {
+    // Sync timer state with service worker
+    if (serviceWorkerTimers.length > 0) {
+      const activeTimer = serviceWorkerTimers[0] // Get the first active timer
+      if (activeTimer && activeTimer.isActive) {
+        this.timer = {
+          isActive: activeTimer.isActive,
+          isPaused: activeTimer.isPaused,
+          mode: activeTimer.mode,
+          duration: activeTimer.duration,
+          timeLeft: activeTimer.timeLeft,
+          startTimestamp: activeTimer.startTime,
+          task: activeTimer.task
+        }
+        this.currentTimerId = activeTimer.id
+        this.saveTimer()
+        console.log('[PomodoroManager] Synced with service worker:', this.timer)
+      }
+    }
   }
 
   static loadTimer() {
@@ -114,9 +184,8 @@ export class PomodoroManager {
           ? `Excellent focus! You completed ${durationStr}${task ? ` working on: ${task}` : ""}.`
           : `Your ${durationStr} break is over. Time to get back to work!`,
         requireInteraction: true,
-        vibrate: [200, 100, 200],
         tag: `pomodoro-${Date.now()}`,
-      } as NotificationOptions & { vibrate?: number[] },
+      },
       isPomodoro ? "pomodoro" : "break",
       80
     )

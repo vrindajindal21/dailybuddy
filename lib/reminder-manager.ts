@@ -25,14 +25,17 @@ export class ReminderManager {
   private static reminders: Map<string | number, Reminder> = new Map()
   private static scheduledTimers: Map<string | number, NodeJS.Timeout> = new Map()
   private static isInitialized = false
+  private static checkInterval: NodeJS.Timeout | null = null
 
   static initialize() {
     if (this.isInitialized) return
 
     this.loadReminders()
+    this.startBackgroundChecking()
+    this.setupServiceWorkerCommunication()
 
     // Check reminders every 30 seconds for better accuracy
-    setInterval(() => this.checkReminders(), 30000)
+    setInterval(() => this.checkDueReminders(), 30000)
 
     // Register for periodic background sync if available
     if (
@@ -54,6 +57,26 @@ export class ReminderManager {
     }
 
     this.isInitialized = true
+    console.log('[ReminderManager] Initialized')
+  }
+
+  static setupServiceWorkerCommunication() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'REMINDER_COMPLETE') {
+          this.handleServiceWorkerReminderComplete(event.data.reminder)
+        }
+      })
+    }
+  }
+
+  static sendToServiceWorker(type: string, data: any) {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type,
+        ...data
+      })
+    }
   }
 
   private static loadReminders() {
@@ -109,6 +132,11 @@ export class ReminderManager {
     this.scheduleReminder(reminder)
     this.saveReminders()
 
+    // Send to service worker for background scheduling
+    this.sendToServiceWorker('SCHEDULE_REMINDER', {
+      reminder: reminder
+    })
+
     return reminder.id
   }
 
@@ -138,6 +166,9 @@ export class ReminderManager {
     this.cancelReminder(id)
     this.saveReminders()
 
+    // Notify service worker
+    this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId: id })
+
     return true
   }
 
@@ -149,6 +180,9 @@ export class ReminderManager {
     this.cancelReminder(id)
     this.reminders.delete(id)
     this.saveReminders()
+
+    // Remove from service worker
+    this.sendToServiceWorker('REMOVE_REMINDER', { reminderId: id })
 
     return true
   }
@@ -251,183 +285,76 @@ export class ReminderManager {
     }
   }
 
-  private static checkReminders() {
-    const now = new Date()
-
-    this.reminders.forEach((reminder, id) => {
-      const scheduledTime = reminder.scheduledTime
-
-      // Check if reminder is due and not completed
-      if (!reminder.completed && scheduledTime <= now && scheduledTime >= new Date(now.getTime() - 30000)) {
-        // Unified deduplication: Only show once per reminder per scheduled time
-        const dedupeKey = `reminder-shown-${reminder.id}-${scheduledTime.toISOString()}`
-        if (localStorage.getItem(dedupeKey)) return
-        localStorage.setItem(dedupeKey, "1")
-        
-        // Trigger notification
-        if (reminder.notificationEnabled) {
-          NotificationService.showNotification(
-            reminder.title,
-            {
-              body: this.getNotificationDescription(reminder),
-              tag: `${reminder.type}-${reminder.id}`,
-              requireInteraction: true,
-              vibrate: reminder.vibrationEnabled ? [200, 100, 200] : undefined,
-              data: {
-                url: this.getUrlForReminderType(reminder.type),
-                reminderData: reminder.data,
-                reminderId: reminder.id,
-              },
-            } as any,
-            reminder.soundType as any,
-            reminder.soundVolume || 70,
-          )
-          // Dispatch in-app notification popup
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(
-              new CustomEvent('inAppNotification', {
-                detail: {
-                  title: `🔔 Reminder: ${reminder.title}`,
-                  options: {
-                    body: this.getNotificationDescription(reminder),
-                  },
-                },
-              })
-            )
-          }
-        }
-
-        // Handle recurring reminders
-        if (reminder.recurring && reminder.recurringPattern) {
-          const nextOccurrence = this.calculateNextOccurrence(reminder)
-          if (nextOccurrence) {
-            const updatedReminder = {
-              ...reminder,
-              scheduledTime: nextOccurrence,
-              completed: false,
-              completedAt: undefined,
-            }
-            this.updateReminder(updatedReminder)
-          } else {
-            this.removeReminder(id)
-          }
-        } else {
-          // For non-recurring reminders, mark as completed but don't remove
-          reminder.completed = true
-          reminder.completedAt = new Date()
-          this.saveReminders()
-        }
-      }
-    })
-
-    try {
-      // Register for periodic background sync if available
-      if (
-        "serviceWorker" in navigator &&
-        "ready" in navigator.serviceWorker &&
-        navigator.serviceWorker.ready instanceof Promise
-      ) {
-        navigator.serviceWorker.ready.then((registration) => {
-          if ("periodicSync" in registration) {
-            (registration as any).periodicSync
-              .register("check-reminders", {
-                minInterval: 5 * 60 * 1000, // 5 minutes
-              })
-              .catch((error: any) => {
-                console.error("Error registering periodic sync:", error)
-              })
-          }
-        })
-      }
-    } catch (error: any) {
-      console.error("Error checking scheduled reminders:", error)
-    }
+  static startBackgroundChecking() {
+    // Check for due reminders every minute
+    this.checkInterval = setInterval(() => {
+      this.checkDueReminders()
+    }, 60000) // Check every minute
+    
+    // Also check immediately
+    this.checkDueReminders()
   }
 
-  private static calculateNextOccurrence(reminder: Reminder): Date | null {
-    const pattern = reminder.recurringPattern
-    const currentDate = new Date()
+  static checkDueReminders() {
+    const now = Date.now()
+    const dueReminders = Array.from(this.reminders.values()).filter(
+      reminder => !reminder.completed && 
+      reminder.scheduledTime.getTime() <= now && 
+      reminder.scheduledTime.getTime() > now - 60000 // Within the last minute
+    )
 
-    if (!pattern) return null
+    dueReminders.forEach(reminder => {
+      this.showReminderNotification(reminder)
+    })
+  }
 
-    if (pattern === "daily") {
-      const nextDay = new Date(reminder.scheduledTime)
-      nextDay.setDate(nextDay.getDate() + 1)
-      return nextDay
-    }
+  static showReminderNotification(reminder: Reminder) {
+    if (!reminder.notificationEnabled) return
 
-    if (pattern === "weekly" && reminder.data?.days) {
-      const days: string[] = reminder.data.days;
-      const dayMap: { [key: string]: number } = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
-      const now = new Date();
-      let soonest: Date | null = null;
-      for (const day of days) {
-        const dayIdx = dayMap[day as string];
-        let daysToAdd = (dayIdx - now.getDay() + 7) % 7;
-        const candidate = new Date(now);
-        candidate.setDate(now.getDate() + daysToAdd);
-        candidate.setHours(reminder.scheduledTime.getHours());
-        candidate.setMinutes(reminder.scheduledTime.getMinutes());
-        candidate.setSeconds(0);
-        candidate.setMilliseconds(0);
-        // If today and time is in the past, skip to next week
-        if (daysToAdd === 0 && candidate <= now) {
-          candidate.setDate(candidate.getDate() + 7);
+    const notificationOptions = {
+      body: this.getNotificationDescription(reminder),
+      requireInteraction: reminder.type === "medication",
+      tag: `reminder-${reminder.id}`,
+      data: {
+        url: this.getUrlForReminderType(reminder.type),
+        type: reminder.type,
+        reminderId: reminder.id
+      },
+      actions: [
+        {
+          action: "complete",
+          title: "✓ Complete"
+        },
+        {
+          action: "snooze",
+          title: "⏰ Snooze 5min"
+        },
+        {
+          action: "view",
+          title: "👁 View"
         }
-        if (!soonest || candidate < soonest) {
-          soonest = candidate;
-        }
-      }
-      return soonest;
+      ]
     }
 
-    if (pattern === "weekly") {
-      const nextWeek = new Date(reminder.scheduledTime)
-      nextWeek.setDate(nextWeek.getDate() + 7)
-      return nextWeek
+    NotificationService.showNotification(reminder.title, notificationOptions)
+    
+    // Also show in-app notification
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent("inAppNotification", {
+          detail: {
+            key: `reminder-${reminder.id}`,
+            title: reminder.title,
+            options: {
+              body: this.getNotificationDescription(reminder),
+              type: reminder.type
+            },
+          },
+        })
+      )
     }
 
-    if (pattern === "monthly") {
-      const nextMonth = new Date(reminder.scheduledTime)
-      nextMonth.setMonth(nextMonth.getMonth() + 1)
-      return nextMonth
-    }
-
-    if (pattern.includes(",")) {
-      const days = pattern.split(",")
-      const dayMap: { [key: string]: number } = {
-        sunday: 0,
-        monday: 1,
-        tuesday: 2,
-        wednesday: 3,
-        thursday: 4,
-        friday: 5,
-        saturday: 6,
-      }
-
-      const currentDayOfWeek = currentDate.getDay()
-      let daysToAdd = 7
-
-      for (let i = 1; i <= 7; i++) {
-        const nextDayIndex = (currentDayOfWeek + i) % 7
-        const nextDayName = Object.keys(dayMap).find((key) => dayMap[key] === nextDayIndex)
-
-        if (nextDayName && days.includes(nextDayName)) {
-          daysToAdd = i
-          break
-        }
-      }
-
-      const nextOccurrence = new Date(reminder.scheduledTime)
-      nextOccurrence.setDate(nextOccurrence.getDate() + daysToAdd)
-      nextOccurrence.setHours(reminder.scheduledTime.getHours())
-      nextOccurrence.setMinutes(reminder.scheduledTime.getMinutes())
-      nextOccurrence.setSeconds(0)
-
-      return nextOccurrence
-    }
-
-    return null
+    console.log('[ReminderManager] Reminder notification shown:', reminder)
   }
 
   private static getUrlForReminderType(type: ReminderType): string {
@@ -449,6 +376,11 @@ export class ReminderManager {
       default:
         return "/dashboard"
     }
+  }
+
+  static handleServiceWorkerReminderComplete(reminder: Reminder) {
+    console.log('[ReminderManager] Service worker reminder completed:', reminder)
+    this.showReminderNotification(reminder)
   }
 }
 
