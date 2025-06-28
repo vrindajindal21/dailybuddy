@@ -100,80 +100,80 @@ export default function TutorialPage() {
       content: (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-2xl font-bold mb-4">Welcome to DailyBuddy!</h3>
-            <p className="text-lg text-muted-foreground mb-6">
+            <div className="text-4xl sm:text-6xl mb-4">🎯</div>
+            <h3 className="text-xl sm:text-2xl font-bold mb-4">Welcome to DailyBuddy!</h3>
+            <p className="text-base sm:text-lg text-muted-foreground mb-6">
               Your all-in-one productivity companion designed to help you focus, learn, and achieve your goals.
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <Clock className="h-8 w-8 text-red-500" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
                 <div>
-                  <h4 className="font-semibold">Pomodoro Timer</h4>
-                  <p className="text-sm text-muted-foreground">Focus in 25-minute sessions</p>
+                  <h4 className="font-semibold text-sm sm:text-base">Pomodoro Timer</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Focus in 25-minute sessions</p>
                 </div>
               </div>
-              <p className="text-sm">Boost your productivity with scientifically-proven time management techniques.</p>
+              <p className="text-xs sm:text-sm">Boost your productivity with scientifically-proven time management techniques.</p>
             </Card>
 
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <CheckSquare className="h-8 w-8 text-green-500" />
+                <CheckSquare className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
                 <div>
-                  <h4 className="font-semibold">Task Management</h4>
-                  <p className="text-sm text-muted-foreground">Organize your work efficiently</p>
+                  <h4 className="font-semibold text-sm sm:text-base">Task Management</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Organize your work efficiently</p>
                 </div>
               </div>
-              <p className="text-sm">Create, prioritize, and track your tasks with smart organization tools.</p>
+              <p className="text-xs sm:text-sm">Create, prioritize, and track your tasks with smart organization tools.</p>
             </Card>
 
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <Heart className="h-8 w-8 text-red-500" />
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
                 <div>
-                  <h4 className="font-semibold">Health Tracking</h4>
-                  <p className="text-sm text-muted-foreground">Monitor your wellness</p>
+                  <h4 className="font-semibold text-sm sm:text-base">Health Tracking</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Monitor your wellness</p>
                 </div>
               </div>
-              <p className="text-sm">Track your health metrics like a pro athlete with comprehensive insights.</p>
+              <p className="text-xs sm:text-sm">Track your health metrics like a pro athlete with comprehensive insights.</p>
             </Card>
 
             <Card className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <Brain className="h-8 w-8 text-purple-500" />
+                <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
                 <div>
-                  <h4 className="font-semibold">AI Insights</h4>
-                  <p className="text-sm text-muted-foreground">Get personalized recommendations</p>
+                  <h4 className="font-semibold text-sm sm:text-base">AI Insights</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Get personalized recommendations</p>
                 </div>
               </div>
-              <p className="text-sm">Receive smart suggestions based on your productivity patterns.</p>
+              <p className="text-xs sm:text-sm">Receive smart suggestions based on your productivity patterns.</p>
             </Card>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-6 rounded-lg">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 sm:p-6 rounded-lg">
+            <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm sm:text-base">
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
               Quick Start Checklist
             </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Enable notifications for reminders</span>
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                <span className="text-xs sm:text-sm">Enable notifications for reminders</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Set up your first task</span>
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                <span className="text-xs sm:text-sm">Set up your first task</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Try a 25-minute Pomodoro session</span>
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                <span className="text-xs sm:text-sm">Try a 25-minute Pomodoro session</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Customize your settings</span>
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                <span className="text-xs sm:text-sm">Customize your settings</span>
               </div>
             </div>
           </div>
@@ -198,82 +198,84 @@ export default function TutorialPage() {
       description: "Master the art of focused work sessions",
       icon: <Clock className="h-6 w-6 text-red-500" />,
       content: (
-        <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
+        <div className="space-y-6">
           <div className="text-center">
-            <div className="text-4xl mb-4">⏰</div>
-            <h3 className="text-xl font-bold mb-4">The Pomodoro Technique</h3>
-            <p className="text-muted-foreground mb-6">
+            <div className="text-3xl sm:text-4xl mb-4">⏰</div>
+            <h3 className="text-lg sm:text-xl font-bold mb-4">The Pomodoro Technique</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6">
               Work in focused 25-minute sessions followed by 5-minute breaks to maximize productivity.
             </p>
           </div>
-          <div className="flex flex-col gap-4 w-full">
-            <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg w-full">
-              <Target className="h-8 w-8 text-red-500 mx-auto mb-2" />
-              <h4 className="font-semibold mb-1">Focus</h4>
-              <p className="text-sm text-muted-foreground">25 minutes of deep work</p>
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 mx-auto mb-2" />
+              <h4 className="font-semibold mb-1 text-sm sm:text-base">Focus</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">25 minutes of deep work</p>
             </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg w-full">
-              <Coffee className="h-8 w-8 text-green-500 mx-auto mb-2" />
-              <h4 className="font-semibold mb-1">Short Break</h4>
-              <p className="text-sm text-muted-foreground">5 minutes to recharge</p>
+            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+              <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mx-auto mb-2" />
+              <h4 className="font-semibold mb-1 text-sm sm:text-base">Short Break</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">5 minutes to recharge</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg w-full">
-              <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-              <h4 className="font-semibold mb-1">Repeat</h4>
-              <p className="text-sm text-muted-foreground">Continue the cycle</p>
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mx-auto mb-2" />
+              <h4 className="font-semibold mb-1 text-sm sm:text-base">Repeat</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">Continue the cycle</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg w-full">
-              <Zap className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-              <h4 className="font-semibold mb-1">Long Break</h4>
-              <p className="text-sm text-muted-foreground">15-30 minutes after 4 cycles</p>
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+              <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 mx-auto mb-2" />
+              <h4 className="font-semibold mb-1 text-sm sm:text-base">Long Break</h4>
+              <p className="text-xs sm:text-sm text-muted-foreground">15-30 minutes after 4 cycles</p>
             </div>
           </div>
-          <Card className="p-6 w-full">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
+          
+          <Card className="p-4 sm:p-6">
+            <h4 className="font-semibold mb-4 flex items-center gap-2 text-sm sm:text-base">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
               Pro Tips for Success
             </h4>
             <div className="space-y-3">
               <div className="flex gap-3">
-                <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-blue-600 dark:text-blue-400">1</span>
                 </div>
                 <div>
-                  <p className="font-medium">Choose One Task</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-sm sm:text-base">Choose One Task</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Focus on a single task during each Pomodoro session for maximum effectiveness.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-green-600 dark:text-green-400">2</span>
                 </div>
                 <div>
-                  <p className="font-medium">Eliminate Distractions</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-sm sm:text-base">Eliminate Distractions</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Turn off notifications, close unnecessary tabs, and create a focused environment.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="w-6 h-6 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-orange-600 dark:text-orange-400">3</span>
                 </div>
                 <div>
-                  <p className="font-medium">Take Real Breaks</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-sm sm:text-base">Take Real Breaks</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Step away from your work completely during breaks to recharge effectively.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">4</span>
                 </div>
                 <div>
-                  <p className="font-medium">Track Your Progress</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-sm sm:text-base">Track Your Progress</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Monitor your completed sessions to understand your productivity patterns.
                   </p>
                 </div>
@@ -303,105 +305,105 @@ export default function TutorialPage() {
       content: (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="text-4xl mb-4">✅</div>
-            <h3 className="text-xl font-bold mb-4">Smart Task Organization</h3>
-            <p className="text-muted-foreground mb-6">
+            <div className="text-3xl sm:text-4xl mb-4">✅</div>
+            <h3 className="text-lg sm:text-xl font-bold mb-4">Smart Task Organization</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6">
               Create, organize, and track your tasks with intelligent prioritization and categorization.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card className="p-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <h4 className="font-semibold text-red-700 dark:text-red-300">High Priority</h4>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full"></div>
+                <h4 className="font-semibold text-red-700 dark:text-red-300 text-sm sm:text-base">High Priority</h4>
               </div>
-              <p className="text-sm text-red-600 dark:text-red-400">
+              <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">
                 Urgent and important tasks that need immediate attention.
               </p>
             </Card>
 
             <Card className="p-4 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <h4 className="font-semibold text-yellow-700 dark:text-yellow-300">Medium Priority</h4>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full"></div>
+                <h4 className="font-semibold text-yellow-700 dark:text-yellow-300 text-sm sm:text-base">Medium Priority</h4>
               </div>
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              <p className="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400">
                 Important tasks that can be scheduled for later completion.
               </p>
             </Card>
 
             <Card className="p-4 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <h4 className="font-semibold text-green-700 dark:text-green-300">Low Priority</h4>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
+                <h4 className="font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base">Low Priority</h4>
               </div>
-              <p className="text-sm text-green-600 dark:text-green-400">
+              <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
                 Nice-to-have tasks that can be done when time permits.
               </p>
             </Card>
           </div>
 
-          <Card className="p-6">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <Zap className="h-5 w-5 text-blue-500" />
+          <Card className="p-4 sm:p-6">
+            <h4 className="font-semibold mb-4 flex items-center gap-2 text-sm sm:text-base">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
               Smart Features
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Bell className="h-5 w-5 text-blue-500 mt-0.5" />
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Smart Reminders</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-sm sm:text-base">Smart Reminders</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Automatic notifications based on due dates and priorities.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-green-500 mt-0.5" />
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Due Date Tracking</p>
-                    <p className="text-sm text-muted-foreground">Visual indicators for upcoming deadlines.</p>
+                    <p className="font-medium text-sm sm:text-base">Due Date Tracking</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Visual indicators for upcoming deadlines.</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <BarChart3 className="h-5 w-5 text-purple-500 mt-0.5" />
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Progress Analytics</p>
-                    <p className="text-sm text-muted-foreground">Track completion rates and productivity trends.</p>
+                    <p className="font-medium text-sm sm:text-base">Progress Analytics</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Track completion rates and productivity trends.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Target className="h-5 w-5 text-orange-500 mt-0.5" />
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Goal Integration</p>
-                    <p className="text-sm text-muted-foreground">Link tasks to your larger goals and objectives.</p>
+                    <p className="font-medium text-sm sm:text-base">Goal Integration</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Link tasks to your larger goals and objectives.</p>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
 
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 p-6 rounded-lg">
-            <h4 className="font-semibold mb-3">🎯 Task Management Best Practices</h4>
-            <ul className="space-y-2 text-sm">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 p-4 sm:p-6 rounded-lg">
+            <h4 className="font-semibold mb-3 text-sm sm:text-base">🎯 Task Management Best Practices</h4>
+            <ul className="space-y-2 text-xs sm:text-sm">
               <li className="flex items-start gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Break large tasks into smaller, manageable subtasks</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Set realistic deadlines and buffer time for unexpected delays</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Review and update your task list regularly</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckSquare className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Use categories to organize tasks by project or context</span>
               </li>
             </ul>
@@ -1143,13 +1145,14 @@ export default function TutorialPage() {
   const completionPercentage = (completedSections.size / tutorialSections.length) * 100
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-2 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutorial</h2>
           <p className="text-muted-foreground text-base sm:text-lg">Learn how to use all features</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="text-right">
             <div className="text-sm font-medium">Progress: {Math.round(completionPercentage)}%</div>
             <Progress value={completionPercentage} className="w-32 h-2" />
@@ -1163,13 +1166,14 @@ export default function TutorialPage() {
         </div>
       </div>
 
+      {/* Tutorial Sections */}
       <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto">
           {tutorialSections.map((section) => (
-            <TabsTrigger key={section.id} value={section.id} className="text-xs">
-              <div className="flex items-center gap-1">
+            <TabsTrigger key={section.id} value={section.id} className="text-xs h-auto py-2 px-1 sm:px-2">
+              <div className="flex flex-col sm:flex-row items-center gap-1">
                 {section.icon}
-                <span className="hidden sm:inline">{section.title.split(" ")[1] || section.title}</span>
+                <span className="hidden sm:inline text-xs">{section.title.split(" ")[1] || section.title}</span>
                 {completedSections.has(section.id) && <CheckSquare className="h-3 w-3 text-green-500" />}
               </div>
             </TabsTrigger>
@@ -1180,18 +1184,18 @@ export default function TutorialPage() {
           <TabsContent key={section.id} value={section.id} className="space-y-4">
             <Card className="bg-transparent border-border/50">
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-primary/10">{section.icon}</div>
                     <div>
-                      <CardTitle className="text-xl">{section.title}</CardTitle>
-                      <CardDescription className="text-base">{section.description}</CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">{section.title}</CardTitle>
+                      <CardDescription className="text-sm sm:text-base">{section.description}</CardDescription>
                     </div>
                   </div>
                   {completedSections.has(section.id) ? (
                     <Badge
                       variant="secondary"
-                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 w-fit"
                     >
                       <CheckSquare className="h-3 w-3 mr-1" />
                       Completed
@@ -1201,7 +1205,7 @@ export default function TutorialPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => markSectionComplete(section.id)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 w-fit"
                     >
                       <CheckSquare className="h-4 w-4" />
                       Mark Complete
@@ -1209,11 +1213,11 @@ export default function TutorialPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
                 {section.content}
 
                 {section.actions && section.actions.length > 0 && (
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t">
                     {section.actions.map((action, index) => (
                       <Button
                         key={index}
@@ -1233,23 +1237,24 @@ export default function TutorialPage() {
         ))}
       </Tabs>
 
+      {/* First Time Help Card */}
       {showFirstTimeHelp && (
         <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/50">
-          <CardContent className="flex items-center justify-between p-6">
+          <CardContent className="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6 gap-4">
             <div className="flex items-center gap-3">
-              <HelpCircle className="h-8 w-8 text-blue-500" />
+              <HelpCircle className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200">New to DailyBuddy?</h3>
-                <p className="text-sm text-blue-600 dark:text-blue-300">
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200 text-sm sm:text-base">New to DailyBuddy?</h3>
+                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-300">
                   Take our interactive tutorial to get started quickly and learn all the essential features.
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowFirstTimeHelp(false)}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => setShowFirstTimeHelp(false)} className="w-full sm:w-auto">
                 Maybe Later
               </Button>
-              <Button onClick={startFirstTimeTutorial} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={startFirstTimeTutorial} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                 Start Tutorial
               </Button>
             </div>
