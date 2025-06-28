@@ -319,7 +319,8 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Habits</CardTitle>
@@ -332,7 +333,6 @@ export default function HabitsPage() {
             </p>
           </CardContent>
         </Card>
-
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Streaks</CardTitle>
@@ -347,7 +347,6 @@ export default function HabitsPage() {
             </p>
           </CardContent>
         </Card>
-
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
@@ -362,7 +361,6 @@ export default function HabitsPage() {
             </p>
           </CardContent>
         </Card>
-
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Best Streak</CardTitle>
@@ -377,6 +375,7 @@ export default function HabitsPage() {
         </Card>
       </div>
 
+      {/* Habit Cards */}
       {habits.length === 0 ? (
         <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
@@ -388,7 +387,7 @@ export default function HabitsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {habits.map((habit: HabitType) => (
             <Card key={habit.id} className="p-4 sm:p-6">
               <CardHeader className="pb-2">
@@ -419,7 +418,6 @@ export default function HabitsPage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <div className="text-sm font-medium">7-Day Tracker</div>
                     <div className="flex gap-1">
