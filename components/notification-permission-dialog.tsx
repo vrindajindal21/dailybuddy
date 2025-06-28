@@ -33,25 +33,69 @@ export function NotificationPermissionDialog() {
   }, [])
 
   const handleRequestPermission = async () => {
-    const granted = await NotificationService.requestPermission()
-    setPermissionState(granted ? "granted" : "denied")
+    try {
+      const granted = await NotificationService.requestPermission()
+      setPermissionState(granted ? "granted" : "denied")
 
-    if (granted) {
-      toast({
-        title: "Notifications enabled",
-        description: "You will now receive important reminders and alerts.",
-      })
-
-      // Test notification
-      setTimeout(() => {
-        NotificationService.showNotification("Notifications are working!", {
-          body: "You will now receive reminders even when the app is in the background.",
+      if (granted) {
+        toast({
+          title: "Notifications enabled",
+          description: "You will now receive important reminders and alerts.",
         })
-      }, 1000)
-    } else {
+
+        // Trigger Firebase token generation
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            // Import Firebase messaging dynamically
+            import('firebase/messaging').then(({ getMessaging, getToken }) => {
+              import('../lib/firebase').then((firebaseApp) => {
+                const messaging = getMessaging(firebaseApp.default)
+                const VAPID_KEY = "BDj5ugh74kaut_pCPDrg04SGaC3Z7HRUcrB6oaxgCTGOATLzaOcFhklUEniJu79_bIOJIT-jMImAvIZUQe047AY"
+                
+                getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration })
+                  .then((currentToken) => {
+                    if (currentToken) {
+                      let userId = localStorage.getItem('userId')
+                      if (!userId) {
+                        userId = 'user-' + Math.random().toString(36).substr(2, 16)
+                        localStorage.setItem('userId', userId)
+                      }
+                      // Send token to backend
+                      fetch('/api/save-fcm-token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: currentToken, userId })
+                      })
+                      console.log('FCM Token generated after permission grant:', currentToken.substring(0, 20) + '...')
+                    }
+                  })
+                  .catch((err) => {
+                    console.error('Error generating FCM token:', err)
+                  })
+              })
+            })
+          })
+        }
+
+        // Test notification
+        setTimeout(() => {
+          NotificationService.showNotification("Notifications are working!", {
+            body: "You will now receive reminders even when the app is in the background.",
+            icon: '/android-chrome-192x192.png'
+          })
+        }, 1000)
+      } else {
+        toast({
+          title: "Notifications disabled",
+          description: "You will not receive reminders when the app is in the background.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error)
       toast({
-        title: "Notifications disabled",
-        description: "You will not receive reminders when the app is in the background.",
+        title: "Error",
+        description: "Failed to enable notifications. Please try again.",
         variant: "destructive",
       })
     }

@@ -11,6 +11,7 @@ import { PomodoroFloatingWidget } from "./pomodoro-floating-widget";
 import { InAppNotification } from "./in-app-notification";
 import PWARegister from "./pwa-register";
 import FirebaseMessagingClient from "./FirebaseMessagingClient";
+import { NotificationPermissionDialog } from "./notification-permission-dialog";
 
 export default function RootClientLayout({ children }: { children: React.ReactNode }) {
   // Font size logic
@@ -67,6 +68,7 @@ export default function RootClientLayout({ children }: { children: React.ReactNo
           <SmartPopupSystem />
           <PomodoroBackgroundService />
           <PomodoroFloatingWidget />
+          <NotificationPermissionDialog />
         </LanguageProvider>
       </ThemeProvider>
     </>

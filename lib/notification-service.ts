@@ -56,7 +56,6 @@ export class NotificationService {
       type: "medication",
       data: medicationData,
       requireInteraction: true,
-      vibrate: [200, 100, 200, 100, 200],
     })
   }
 
@@ -93,16 +92,26 @@ export class NotificationService {
     })
   }
 
-  static showRichNotification(options: {
-    title: string
-    body: string
-    type: string
-    data?: any
+  static showRichNotification(title: string, options: {
+    body?: string
+    icon?: string
+    badge?: string
+    tag?: string
     requireInteraction?: boolean
-    vibrate?: number[]
-  }): boolean {
-    const instance = NotificationService.getInstance()
-    return instance.showRichNotification(options)
+    data?: any
+  } = {}) {
+    if (!this.isSupported()) return;
+
+    const notificationOptions: NotificationOptions = {
+      body: options.body || '',
+      icon: options.icon || '/android-chrome-192x192.png',
+      badge: options.badge || '/android-chrome-192x192.png',
+      tag: options.tag || 'default',
+      requireInteraction: options.requireInteraction || false,
+      data: options.data || {}
+    };
+
+    return this.showNotification(title, notificationOptions);
   }
 
   async initialize(): Promise<boolean> {
@@ -210,7 +219,6 @@ export class NotificationService {
         tag: options.tag || "default",
         requireInteraction: options.requireInteraction || false,
         silent: options.silent || false,
-        vibrate: options.vibrate || [200, 100, 200],
       })
 
       notification.onclick = () => {
@@ -239,7 +247,6 @@ export class NotificationService {
     type: string
     data?: any
     requireInteraction?: boolean
-    vibrate?: number[]
   }): boolean {
     try {
       if (Notification.permission !== "granted") {
@@ -252,7 +259,6 @@ export class NotificationService {
         icon: this.getIconForType(options.type),
         tag: `${options.type}-${Date.now()}`,
         requireInteraction: options.requireInteraction || false,
-        vibrate: options.vibrate || [200, 100, 200],
         data: options.data,
       })
 
@@ -379,6 +385,51 @@ export class NotificationService {
 
   isSupported(): boolean {
     return NotificationService.isSupported()
+  }
+
+  static async testPushNotification() {
+    if (!this.isSupported()) {
+      console.log('Notifications not supported');
+      return false;
+    }
+
+    if (Notification.permission !== 'granted') {
+      console.log('Notification permission not granted');
+      return false;
+    }
+
+    try {
+      // Test local notification
+      this.showNotification('Test Notification', {
+        body: 'This is a test notification to verify push notifications are working.',
+        icon: '/android-chrome-192x192.png',
+        badge: '/android-chrome-192x192.png',
+        tag: 'test-notification',
+        requireInteraction: true
+      });
+
+      // Test Firebase push notification (if token exists)
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        // Send test push notification to backend
+        fetch('/api/test-push-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId,
+            title: 'Test Push Notification',
+            body: 'This is a test push notification from DailyBuddy!'
+          })
+        }).catch(err => {
+          console.log('Test push notification endpoint not available:', err);
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error testing notification:', error);
+      return false;
+    }
   }
 }
 

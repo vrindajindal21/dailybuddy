@@ -15,11 +15,51 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-  const notificationTitle = payload?.notification?.title || 'Background Message Title';
+  const notificationTitle = payload?.notification?.title || 'DailyBuddy';
   const notificationOptions = {
-    body: payload?.notification?.body || 'Background Message body.',
-    icon: payload?.notification?.icon || '/android-chrome-192x192.png'
+    body: payload?.notification?.body || 'You have a new notification.',
+    icon: payload?.notification?.icon || '/android-chrome-192x192.png',
+    badge: '/android-chrome-192x192.png',
+    tag: 'dailybuddy-notification',
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      },
+      {
+        action: 'close',
+        title: 'Close'
+      }
+    ],
+    data: payload.data || {}
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('[firebase-messaging-sw.js] Notification click received.');
+  
+  event.notification.close();
+
+  if (event.action === 'open') {
+    // Open the app
+    event.waitUntil(
+      clients.openWindow('/dashboard')
+    );
+  }
+});
+
+// Handle service worker installation
+self.addEventListener('install', (event) => {
+  console.log('[firebase-messaging-sw.js] Service Worker installing...');
+  self.skipWaiting();
+});
+
+// Handle service worker activation
+self.addEventListener('activate', (event) => {
+  console.log('[firebase-messaging-sw.js] Service Worker activating...');
+  event.waitUntil(self.clients.claim());
 }); 
