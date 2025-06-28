@@ -48,6 +48,9 @@ export default function HabitsPage() {
 
   const [isMounted, setIsMounted] = useState(false)
 
+  const [filter, setFilter] = useState("all")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+
   // Generate last 7 days for tracking
   const today = new Date()
   const last7Days = eachDayOfInterval({
@@ -215,6 +218,21 @@ export default function HabitsPage() {
     }
   }
 
+  // Filtering logic for habits
+  const filteredHabits = habits.filter((habit) => {
+    // Status filter
+    if (filter === "active") {
+      // Active: not completed today
+      if (isHabitCompletedOnDate(habit, today)) return false;
+    } else if (filter === "completed") {
+      // Completed: completed today
+      if (!isHabitCompletedOnDate(habit, today)) return false;
+    }
+    // Category filter
+    if (categoryFilter !== "all" && habit.category !== categoryFilter) return false;
+    return true;
+  });
+
   if (!isMounted) {
     return null
   }
@@ -319,6 +337,34 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
+      {/* Filter Controls (like Goals page) */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Filter:</span>
+        </div>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Habits</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="health">Health</SelectItem>
+            <SelectItem value="learning">Learning</SelectItem>
+            <SelectItem value="mindfulness">Mindfulness</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="p-4 sm:p-6">
@@ -376,19 +422,19 @@ export default function HabitsPage() {
       </div>
 
       {/* Habit Cards */}
-      {habits.length === 0 ? (
+      {filteredHabits.length === 0 ? (
         <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
             <Flame className="h-10 w-10 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No habits yet</h3>
+            <h3 className="text-lg font-medium">No habits found</h3>
             <p className="text-sm text-muted-foreground">
-              Add your first habit to start building healthy routines
+              Try changing your filters or add a new habit
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {habits.map((habit: HabitType) => (
+          {filteredHabits.map((habit: HabitType) => (
             <Card key={habit.id} className="p-4 sm:p-6">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
