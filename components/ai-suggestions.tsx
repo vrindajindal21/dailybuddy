@@ -5,10 +5,55 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { Lightbulb, RefreshCw, ThumbsUp, ThumbsDown, Sparkles } from "lucide-react"
+import React from "react"
 
-export function AiSuggestions({ tasks = [], habits = [], studySessions = [], goals = [] }) {
+// Define prop types
+export type TaskType = {
+  id: number;
+  title: string;
+  dueDate: string;
+  completed: boolean;
+  priority: string;
+};
+
+export type HabitType = {
+  id: number;
+  name: string;
+  completed: boolean;
+  streak: number;
+};
+
+export type StudySessionType = {
+  id: number;
+  date: string;
+  duration: number;
+  subject: string;
+};
+
+export type GoalType = {
+  id: number;
+  title: string;
+  progress: number;
+};
+
+export type SuggestionType = {
+  id: string | number;
+  type: string;
+  text: string;
+  actionText: string;
+  actionLink: string;
+};
+
+interface AiSuggestionsProps {
+  tasks?: TaskType[];
+  habits?: HabitType[];
+  studySessions?: StudySessionType[];
+  goals?: GoalType[];
+}
+
+export function AiSuggestions({ tasks = [], habits = [], studySessions = [], goals = [] }: AiSuggestionsProps) {
   const { toast } = useToast()
-  const [suggestions, setSuggestions] = useState([])
+  const [suggestions, setSuggestions] = useState<SuggestionType[]>([])
   const [loading, setLoading] = useState(true)
 
   // Generate dynamic suggestions based on user data
@@ -227,7 +272,7 @@ export function AiSuggestions({ tasks = [], habits = [], studySessions = [], goa
     generateSuggestions()
   }, [tasks, habits, studySessions, goals])
 
-  const handleFeedback = (suggestionId, isPositive) => {
+  const handleFeedback = (suggestionId: string | number, isPositive: boolean) => {
     toast({
       title: isPositive ? "Thanks for the feedback!" : "We'll improve our suggestions",
       description: isPositive
@@ -249,7 +294,7 @@ export function AiSuggestions({ tasks = [], habits = [], studySessions = [], goa
     }, 100)
   }
 
-  const getSuggestionIcon = (type) => {
+  const getSuggestionIcon = (type: string) => {
     switch (type) {
       case "task":
         return (

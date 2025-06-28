@@ -119,21 +119,19 @@ export default function FamilyFeatures() {
   }
 
   const toggleGoalCompletion = (goalId: string) => {
+    const goal = familyGoals.find((g) => g.id === goalId)
+    const willComplete = goal && !goal.completed
     setFamilyGoals((prev) =>
-      prev.map((goal) => {
-        if (goal.id === goalId) {
-          const updated = { ...goal, completed: !goal.completed }
-          if (updated.completed) {
-            toast({
-              title: "Goal completed! 🎉",
-              description: `Great job! You earned ${goal.points} points!`,
-            })
-          }
-          return updated
-        }
-        return goal
-      }),
+      prev.map((goal) =>
+        goal.id === goalId ? { ...goal, completed: !goal.completed } : goal
+      )
     )
+    if (goal && willComplete) {
+      toast({
+        title: "Goal completed! 🎉",
+        description: `Great job! You earned ${goal.points} points!`,
+      })
+    }
   }
 
   const addAppreciation = () => {

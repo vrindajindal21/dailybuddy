@@ -337,7 +337,7 @@ export default function HabitsPage() {
         </Dialog>
       </div>
 
-      {/* Filter Controls (always at top, compact) */}
+      {/* Filter Controls */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-0 sm:px-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Filter:</span>
@@ -365,7 +365,7 @@ export default function HabitsPage() {
         </Select>
       </div>
 
-      {/* Stat Cards (always directly below filters) */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="p-4 sm:p-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -411,8 +411,8 @@ export default function HabitsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Best Streak</CardTitle>
             <Trophy className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
+        </CardHeader>
+        <CardContent>
             <div className="text-2xl font-bold">
               {habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0}
             </div>
@@ -421,7 +421,7 @@ export default function HabitsPage() {
         </Card>
       </div>
 
-      {/* Habit Cards (or empty state) always directly below stat cards */}
+      {/* Habit Cards Grid */}
       {filteredHabits.length === 0 ? (
         <Card className="p-4 sm:p-6">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
@@ -438,18 +438,18 @@ export default function HabitsPage() {
             <Card key={habit.id} className="p-4 sm:p-6">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    {getCategoryIcon(habit.category)}
+                      <div className="flex items-center gap-2">
+                        {getCategoryIcon(habit.category)}
                     <CardTitle className="text-lg sm:text-xl">{habit.name}</CardTitle>
-                  </div>
+                      </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                        <Button variant="ghost" size="icon" onClick={() => startEditHabit(habit)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteHabit(habit.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                 </div>
                 <CardDescription className="capitalize">{habit.category}</CardDescription>
               </CardHeader>
@@ -467,44 +467,44 @@ export default function HabitsPage() {
                   <div className="space-y-2">
                     <div className="text-sm font-medium">7-Day Tracker</div>
                     <div className="flex gap-1">
-                      {last7Days.map((day, i) => (
-                        <button
-                          key={i}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
-                            isHabitCompletedOnDate(habit, day)
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
-                          }`}
-                          onClick={() => toggleHabitCompletion(habit.id, day)}
+                  {last7Days.map((day, i) => (
+                    <button
+                      key={i}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-colors ${
+                        isHabitCompletedOnDate(habit, day)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted hover:bg-muted/80 border-muted-foreground/20"
+                      }`}
+                      onClick={() => toggleHabitCompletion(habit.id, day)}
                           title={`${format(day, "EEE, MMM d")} - ${isHabitCompletedOnDate(habit, day) ? "Completed" : "Not completed"}`}
-                        >
-                          {format(day, "d")}
+                    >
+                      {format(day, "d")}
                           {isHabitCompletedOnDate(habit, day) && <span className="ml-0.5">✓</span>}
-                        </button>
-                      ))}
-                    </div>
+                    </button>
+                  ))}
+                </div>
                     <div className="text-xs text-muted-foreground">
                       {last7Days.map((day, i) => (
                         <span key={i} className="inline-block w-8 text-center">
                           {format(day, "EEE")}
                         </span>
-                      ))}
-                    </div>
+            ))}
+          </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button
-                  variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
-                  className="w-full"
-                  onClick={() => toggleHabitCompletion(habit.id, today)}
-                >
-                  {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-0">
+              <Button
+                variant={isHabitCompletedOnDate(habit, today) ? "outline" : "default"}
+                className="w-full"
+                onClick={() => toggleHabitCompletion(habit.id, today)}
+              >
+                {isHabitCompletedOnDate(habit, today) ? "Completed Today" : "Mark Complete"}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
       )}
     </div>
   )

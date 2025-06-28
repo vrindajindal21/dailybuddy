@@ -886,27 +886,27 @@ export default function BudgetPage() {
                   <p className="text-sm text-muted-foreground">Add expenses to see analytics</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-4 w-full">
                   {budgets.map((budget) => {
                     const spent = getExpensesByCategory(budget.category)
                     const percentage = (spent / getTotalExpenses()) * 100 || 0
 
                     return (
-                      <div key={budget.category} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div key={budget.category} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 border rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className={`w-2 h-10 rounded-full ${budget.color}`}></div>
-                          <div>
-                            <h4 className="font-medium">
+                          <div className="min-w-0">
+                            <h4 className="font-medium truncate">
                               {budget.category.charAt(0).toUpperCase() + budget.category.slice(1)}
                             </h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               <span>{formatCurrency(spent)}</span>
                               <span>•</span>
                               <span>{percentage.toFixed(1)}% of total</span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-sm font-medium">
+                        <div className="text-sm font-medium text-right sm:text-left">
                           {percentage.toFixed(1)}%
                         </div>
                       </div>
