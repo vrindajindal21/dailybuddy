@@ -198,7 +198,7 @@ export default function TutorialPage() {
       description: "Master the art of focused work sessions",
       icon: <Clock className="h-6 w-6 text-red-500" />,
       content: (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
           <div className="text-center">
             <div className="text-4xl mb-4">⏰</div>
             <h3 className="text-xl font-bold mb-4">The Pomodoro Technique</h3>
@@ -206,31 +206,29 @@ export default function TutorialPage() {
               Work in focused 25-minute sessions followed by 5-minute breaks to maximize productivity.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+          <div className="flex flex-col gap-4 w-full">
+            <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg w-full">
               <Target className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-semibold mb-1">Focus</h4>
               <p className="text-sm text-muted-foreground">25 minutes of deep work</p>
             </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg w-full">
               <Coffee className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <h4 className="font-semibold mb-1">Short Break</h4>
               <p className="text-sm text-muted-foreground">5 minutes to recharge</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg w-full">
               <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h4 className="font-semibold mb-1">Repeat</h4>
               <p className="text-sm text-muted-foreground">Continue the cycle</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg w-full">
               <Zap className="h-8 w-8 text-purple-500 mx-auto mb-2" />
               <h4 className="font-semibold mb-1">Long Break</h4>
               <p className="text-sm text-muted-foreground">15-30 minutes after 4 cycles</p>
             </div>
           </div>
-
-          <Card className="p-6">
+          <Card className="p-6 w-full">
             <h4 className="font-semibold mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               Pro Tips for Success
@@ -429,7 +427,7 @@ export default function TutorialPage() {
       description: "Track your physical and mental well-being",
       icon: <Heart className="h-6 w-6 text-red-500" />,
       content: (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
           <div className="text-center">
             <div className="text-4xl mb-4">🏃‍♂️</div>
             <h3 className="text-xl font-bold mb-4">Comprehensive Health Tracking</h3>
@@ -437,82 +435,77 @@ export default function TutorialPage() {
               Monitor your health metrics like a professional athlete with real-time insights and recommendations.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            <Card className="p-4 text-center">
+          <div className="flex flex-col gap-4 w-full">
+            <Card className="p-4 text-center w-full">
               <Heart className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Heart Rate</h4>
               <p className="text-xs text-muted-foreground">Real-time monitoring</p>
             </Card>
-            <Card className="p-4 text-center">
+            <Card className="p-4 text-center w-full">
               <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Recovery</h4>
               <p className="text-xs text-muted-foreground">HRV-based scoring</p>
             </Card>
-            <Card className="p-4 text-center">
+            <Card className="p-4 text-center w-full">
               <Zap className="h-8 w-8 text-orange-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Strain</h4>
               <p className="text-xs text-muted-foreground">Activity intensity</p>
             </Card>
-            <Card className="p-4 text-center">
+            <Card className="p-4 text-center w-full">
               <Clock className="h-8 w-8 text-purple-500 mx-auto mb-2" />
               <h4 className="font-semibold text-sm">Sleep</h4>
               <p className="text-xs text-muted-foreground">Stage analysis</p>
             </Card>
           </div>
-
+          <Card className="p-6 w-full">
+            <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-green-500" />
+              Health Metrics Dashboard
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Steps</span>
+                <span className="text-sm font-medium">8,247 / 10,000</span>
+              </div>
+              <Progress value={82} className="h-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Water Intake</span>
+                <span className="text-sm font-medium">6 / 8 glasses</span>
+              </div>
+              <Progress value={75} className="h-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Active Minutes</span>
+                <span className="text-sm font-medium">45 / 60 min</span>
+              </div>
+              <Progress value={75} className="h-2" />
+            </div>
+          </Card>
           <Card className="p-6">
             <h4 className="font-semibold mb-4 flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-green-500" />
               Health Metrics Dashboard
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-              <div>
-                <h5 className="font-medium mb-3">Daily Tracking</h5>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Steps</span>
-                    <span className="text-sm font-medium">8,247 / 10,000</span>
-                  </div>
-                  <Progress value={82} className="h-2" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Water Intake</span>
-                    <span className="text-sm font-medium">6 / 8 glasses</span>
-                  </div>
-                  <Progress value={75} className="h-2" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Active Minutes</span>
-                    <span className="text-sm font-medium">45 / 60 min</span>
-                  </div>
-                  <Progress value={75} className="h-2" />
+            <div className="space-y-3">
+              <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-700 dark:text-green-300">Good Recovery</span>
                 </div>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  Your body is well-recovered. Great day for intense training.
+                </p>
               </div>
-              <div>
-                <h5 className="font-medium mb-3">Recovery Insights</h5>
-                <div className="space-y-3">
-                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-green-700 dark:text-green-300">Good Recovery</span>
-                    </div>
-                    <p className="text-xs text-green-600 dark:text-green-400">
-                      Your body is well-recovered. Great day for intense training.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Sleep Quality</span>
-                    </div>
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      7h 32m sleep with 85% efficiency. Consider earlier bedtime.
-                    </p>
-                  </div>
+              <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Sleep Quality</span>
                 </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  7h 32m sleep with 85% efficiency. Consider earlier bedtime.
+                </p>
               </div>
             </div>
           </Card>
-
           <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 p-6 rounded-lg">
             <h4 className="font-semibold mb-3 flex items-center gap-2">
               <Shield className="h-5 w-5 text-red-500" />
@@ -1185,7 +1178,7 @@ export default function TutorialPage() {
 
         {tutorialSections.map((section) => (
           <TabsContent key={section.id} value={section.id} className="space-y-4">
-            <Card>
+            <Card className="bg-transparent border-border/50">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -1241,7 +1234,7 @@ export default function TutorialPage() {
       </Tabs>
 
       {showFirstTimeHelp && (
-        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+        <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/50">
           <CardContent className="flex items-center justify-between p-6">
             <div className="flex items-center gap-3">
               <HelpCircle className="h-8 w-8 text-blue-500" />
