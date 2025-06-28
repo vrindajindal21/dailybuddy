@@ -192,54 +192,56 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-full overflow-x-hidden">
+    <div className="space-y-6 px-2 sm:px-4 md:px-6 lg:px-8 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* Header and Greeting - Centered */}
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate">
+      <div className="text-center space-y-4 w-full max-w-full min-w-0 overflow-x-hidden">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight truncate w-full max-w-full min-w-0">
           {greeting}
         </h1>
-        <p className="text-muted-foreground text-base sm:text-lg truncate">Welcome to your dashboard. Here's a quick overview of your productivity and upcoming items.</p>
-        <DailyQuoteWidget />
+        <p className="text-muted-foreground text-base sm:text-lg break-words w-full max-w-full min-w-0">Welcome to your dashboard. Here's a quick overview of your productivity and upcoming items.</p>
+        <div className="w-full max-w-full min-w-0 overflow-x-hidden">
+          <DailyQuoteWidget />
+        </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0">
-            <CardTitle className="text-sm font-medium truncate">Upcoming Tasks</CardTitle>
+      <div className="grid grid-cols-1 gap-4 w-full max-w-full min-w-0 overflow-x-hidden sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0 w-full max-w-full overflow-x-hidden">
+            <CardTitle className="text-sm font-medium truncate w-full max-w-full min-w-0">Upcoming Tasks</CardTitle>
             <CheckSquare className="h-4 w-4 text-blue-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <div className="text-2xl font-bold">{upcomingTasks.length}</div>
             <p className="text-xs text-muted-foreground">tasks due soon</p>
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0">
-            <CardTitle className="text-sm font-medium truncate">Upcoming Events</CardTitle>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0 w-full max-w-full overflow-x-hidden">
+            <CardTitle className="text-sm font-medium truncate w-full max-w-full min-w-0">Upcoming Events</CardTitle>
             <Calendar className="h-4 w-4 text-green-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <div className="text-2xl font-bold">{upcomingEvents.length}</div>
             <p className="text-xs text-muted-foreground">events scheduled</p>
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0">
-            <CardTitle className="text-sm font-medium truncate">Medications</CardTitle>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0 w-full max-w-full overflow-x-hidden">
+            <CardTitle className="text-sm font-medium truncate w-full max-w-full min-w-0">Medications</CardTitle>
             <Heart className="h-4 w-4 text-red-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">active medications</p>
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0">
-            <CardTitle className="text-sm font-medium truncate">Tracked Habits</CardTitle>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-w-0 w-full max-w-full overflow-x-hidden">
+            <CardTitle className="text-sm font-medium truncate w-full max-w-full min-w-0">Tracked Habits</CardTitle>
             <Heart className="h-4 w-4 text-pink-500 shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <div className="text-2xl font-bold">{habits.length}</div>
             <p className="text-xs text-muted-foreground">habits tracked</p>
           </CardContent>
@@ -247,21 +249,21 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Grids */}
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-4 w-full max-w-full min-w-0 overflow-x-hidden">
         {/* Upcoming Tasks */}
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Upcoming Tasks</CardTitle>
-            <CardDescription className="truncate">Your next tasks to complete</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Upcoming Tasks</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Your next tasks to complete</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             {upcomingTasks.length === 0 ? (
               <div className="text-center text-muted-foreground">No upcoming tasks</div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2 w-full max-w-full min-w-0">
                 {upcomingTasks.map((task) => (
-                  <li key={task.id} className="flex items-center justify-between min-w-0">
-                    <span className="truncate flex-1 mr-2 min-w-0">{task.title}</span>
+                  <li key={task.id} className="flex items-center justify-between min-w-0 w-full max-w-full">
+                    <span className="truncate flex-1 mr-2 min-w-0 w-full max-w-full">{task.title}</span>
                     <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'} className="shrink-0">{task.priority}</Badge>
                   </li>
                 ))}
@@ -270,19 +272,19 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         {/* Upcoming Events */}
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Upcoming Events</CardTitle>
-            <CardDescription className="truncate">Your next scheduled events</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Upcoming Events</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Your next scheduled events</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             {upcomingEvents.length === 0 ? (
               <div className="text-center text-muted-foreground">No upcoming events</div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2 w-full max-w-full min-w-0">
                 {upcomingEvents.map((event) => (
-                  <li key={event.id} className="flex items-center justify-between min-w-0">
-                    <span className="truncate flex-1 mr-2 min-w-0">{event.title}</span>
+                  <li key={event.id} className="flex items-center justify-between min-w-0 w-full max-w-full">
+                    <span className="truncate flex-1 mr-2 min-w-0 w-full max-w-full">{event.title}</span>
                     <span className="text-xs text-muted-foreground shrink-0">{event.date} {event.time}</span>
                   </li>
                 ))}
@@ -291,19 +293,19 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         {/* Tracked Habits */}
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Tracked Habits</CardTitle>
-            <CardDescription className="truncate">Your recent habit activity</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Tracked Habits</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Your recent habit activity</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             {habits.length === 0 ? (
               <div className="text-center text-muted-foreground">No habits tracked</div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2 w-full max-w-full min-w-0">
                 {habits.map((habit) => (
-                  <li key={habit.id} className="flex items-center justify-between min-w-0">
-                    <span className="truncate flex-1 mr-2 min-w-0">{habit.name}</span>
+                  <li key={habit.id} className="flex items-center justify-between min-w-0 w-full max-w-full">
+                    <span className="truncate flex-1 mr-2 min-w-0 w-full max-w-full">{habit.name}</span>
                     <span className="text-xs text-muted-foreground shrink-0">Streak: {habit.streak}</span>
                   </li>
                 ))}
@@ -314,22 +316,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Extra Widgets (Weather, AI, Games, Family) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Weather</CardTitle>
-            <CardDescription className="truncate">Stay updated with the latest weather</CardDescription>
+      <div className="grid grid-cols-1 gap-4 w-full max-w-full min-w-0 overflow-x-hidden sm:grid-cols-2">
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Weather</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Stay updated with the latest weather</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <WeatherWidget />
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">AI Suggestions</CardTitle>
-            <CardDescription className="truncate">Personalized productivity tips</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">AI Suggestions</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Personalized productivity tips</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <AiSuggestions 
               tasks={upcomingTasks} 
               habits={habits} 
@@ -338,21 +340,21 @@ export default function DashboardPage() {
             />
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Brain Games</CardTitle>
-            <CardDescription className="truncate">Sharpen your mind</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Brain Games</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Sharpen your mind</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <BrainGames />
           </CardContent>
         </Card>
-        <Card className="p-4 sm:p-6 min-w-0 w-full">
-          <CardHeader>
-            <CardTitle className="truncate">Family Features</CardTitle>
-            <CardDescription className="truncate">Connect with your family</CardDescription>
+        <Card className="p-4 sm:p-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <CardHeader className="w-full max-w-full min-w-0">
+            <CardTitle className="truncate w-full max-w-full min-w-0">Family Features</CardTitle>
+            <CardDescription className="truncate w-full max-w-full min-w-0">Connect with your family</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="w-full max-w-full min-w-0">
             <FamilyFeatures />
           </CardContent>
         </Card>

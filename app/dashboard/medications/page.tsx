@@ -157,6 +157,10 @@ export default function MedicationsPage() {
   const oscillatorRef = useRef<OscillatorNode | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
 
+  // Add state for error messages
+  const [addError, setAddError] = useState("");
+  const [editError, setEditError] = useState("");
+
   useEffect(() => {
     setIsMounted(true)
     return () => {
@@ -1055,6 +1059,40 @@ export default function MedicationsPage() {
                 <DialogDescription>Add a new medication to your tracking list</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                {/* Medication Name & Dosage */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Medication Name <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="name"
+                      placeholder="Medication name"
+                      value={newMedication.name}
+                      onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dosage">Dosage <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="dosage"
+                      placeholder="e.g., 500mg"
+                      value={newMedication.dosage}
+                      onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value })}
+                    />
+                  </div>
+                </div>
+                {addError && <div className="text-red-500 text-sm">{addError}</div>}
+
+                {/* Instructions */}
+                <div className="grid gap-2">
+                  <Label htmlFor="instructions">Instructions</Label>
+                  <Textarea
+                    id="instructions"
+                    placeholder="e.g., Take with food"
+                    value={newMedication.instructions}
+                    onChange={(e) => setNewMedication({ ...newMedication, instructions: e.target.value })}
+                  />
+                </div>
+
                 {/* SCHEDULE SECTION */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -1249,7 +1287,14 @@ export default function MedicationsPage() {
                 </div>
               </div>
               <DialogFooter className="flex flex-col gap-2 pt-2">
-                <Button className="w-full" onClick={addMedication}>Add Medication</Button>
+                <Button className="w-full" onClick={() => {
+                  if (!newMedication.name.trim() || !newMedication.dosage.trim()) {
+                    setAddError("Medication Name and Dosage are required.");
+                    return;
+                  }
+                  setAddError("");
+                  addMedication();
+                }}>Add Medication</Button>
                 <Button className="w-full" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
@@ -1502,6 +1547,40 @@ export default function MedicationsPage() {
           </DialogHeader>
           {editingMedication && (
             <div className="grid gap-4 py-4">
+              {/* Medication Name & Dosage */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Medication Name <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="edit-name"
+                    placeholder="Medication name"
+                    value={editingMedication.name || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-dosage">Dosage <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="edit-dosage"
+                    placeholder="e.g., 500mg"
+                    value={editingMedication.dosage || ""}
+                    onChange={(e) => setEditingMedication({ ...editingMedication, dosage: e.target.value })}
+                  />
+                </div>
+              </div>
+              {editError && <div className="text-red-500 text-sm">{editError}</div>}
+
+              {/* Instructions */}
+              <div className="grid gap-2">
+                <Label htmlFor="edit-instructions">Instructions</Label>
+                <Textarea
+                  id="edit-instructions"
+                  placeholder="e.g., Take with food"
+                  value={editingMedication.instructions || ""}
+                  onChange={(e) => setEditingMedication({ ...editingMedication, instructions: e.target.value })}
+                />
+              </div>
+
               {/* SCHEDULE SECTION */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1697,7 +1776,14 @@ export default function MedicationsPage() {
             </div>
           )}
           <DialogFooter className="flex flex-col gap-2 pt-2">
-            <Button className="w-full" onClick={updateMedication}>Update Medication</Button>
+            <Button className="w-full" onClick={() => {
+              if (!editingMedication?.name?.trim() || !editingMedication?.dosage?.trim()) {
+                setEditError("Medication Name and Dosage are required.");
+                return;
+              }
+              setEditError("");
+              updateMedication();
+            }}>Update Medication</Button>
             <Button className="w-full" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
