@@ -20,10 +20,8 @@ function getInitialTimerState() {
 
 export class PomodoroManager {
   static timer = getInitialTimerState()
-  static intervalRef: NodeJS.Timeout | null = null
   static isInitialized = false
   static currentTimerId: string | null = null
-  static syncInterval: NodeJS.Timeout | null = null
 
   static initialize() {
     if (this.isInitialized) return
@@ -31,9 +29,9 @@ export class PomodoroManager {
     window.addEventListener("start-pomodoro-timer", this.handleStart as EventListener)
     window.addEventListener("stop-pomodoro-timer", this.handleStop as EventListener)
     this.setupServiceWorkerCommunication()
-    this.startSyncWithServiceWorker()
+    this.requestServiceWorkerSync() // Get current state on startup
     this.isInitialized = true
-    console.log('[PomodoroManager] Initialized')
+    console.log('[PomodoroManager] Initialized - Service Worker Primary Timer')
   }
 
   static setupServiceWorkerCommunication() {
@@ -46,34 +44,33 @@ export class PomodoroManager {
           this.syncWithServiceWorker(event.data.timers)
         } else if (event.data.type === 'POMODORO_TICK') {
           this.updateTimerFromServiceWorker(event.data.timer)
+        } else if (event.data.type === 'POMODORO_STATE_UPDATE') {
+          this.updateTimerFromServiceWorker(event.data.timer)
         }
       })
     }
   }
 
-  static startSyncWithServiceWorker() {
-    // Sync with service worker every second when app is active
-    this.syncInterval = setInterval(() => {
-      if (this.timer.isActive && !this.timer.isPaused) {
-        this.requestServiceWorkerSync()
-      }
-    }, 1000)
-  }
-
   static requestServiceWorkerSync() {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
-        type: 'POMODORO_SYNC_REQUEST',
-        timerId: this.currentTimerId
+        type: 'POMODORO_SYNC_REQUEST'
       })
     }
   }
 
   static updateTimerFromServiceWorker(serviceWorkerTimer: any) {
-    if (serviceWorkerTimer && serviceWorkerTimer.id === this.currentTimerId) {
-      this.timer.timeLeft = serviceWorkerTimer.timeLeft
-      this.timer.isActive = serviceWorkerTimer.isActive
-      this.timer.isPaused = serviceWorkerTimer.isPaused
+    if (serviceWorkerTimer) {
+      this.timer = {
+        isActive: serviceWorkerTimer.isActive,
+        isPaused: serviceWorkerTimer.isPaused,
+        mode: serviceWorkerTimer.mode,
+        duration: serviceWorkerTimer.duration,
+        timeLeft: serviceWorkerTimer.timeLeft,
+        startTimestamp: serviceWorkerTimer.startTime,
+        task: serviceWorkerTimer.task || ""
+      }
+      this.currentTimerId = serviceWorkerTimer.id
       this.saveTimer()
       
       // Dispatch update event for UI
@@ -87,41 +84,47 @@ export class PomodoroManager {
     window.dispatchEvent(new CustomEvent("pomodoro-stop-repeat"));
     const { duration, mode, task } = e.detail
     const now = Date.now()
-    this.timer = {
-      isActive: true,
-      isPaused: false,
+    
+    // Create timer data for service worker
+    const timerData = {
       mode: mode || "pomodoro",
       duration,
-      timeLeft: duration,
-      startTimestamp: now,
       task: task || "",
+      startTime: now
     }
-    this.saveTimer()
     
-    // Send to service worker for background timing
+    // Send to service worker - it will handle all timing
     this.sendToServiceWorker('POMODORO_TIMER_START', {
-      timer: {
-        mode: this.timer.mode,
-        duration: this.timer.duration,
-        task: this.timer.task
-      }
+      timer: timerData
     })
     
-    console.log('[PomodoroManager] Timer started', this.timer)
+    console.log('[PomodoroManager] Timer start requested to service worker:', timerData)
   }
 
   static handleStop = () => {
-    this.timer = { ...getInitialTimerState(), isActive: false }
-    this.saveTimer()
-    this.clearCountdown()
-    
     // Stop service worker timer
     if (this.currentTimerId) {
       this.sendToServiceWorker('POMODORO_TIMER_STOP', { timerId: this.currentTimerId })
-      this.currentTimerId = null
     }
     
-    console.log('[PomodoroManager] Timer stopped')
+    // Reset local state
+    this.timer = { ...getInitialTimerState(), isActive: false }
+    this.currentTimerId = null
+    this.saveTimer()
+    
+    console.log('[PomodoroManager] Timer stop requested to service worker')
+  }
+
+  static handlePause = () => {
+    if (this.currentTimerId) {
+      this.sendToServiceWorker('POMODORO_TIMER_PAUSE', { timerId: this.currentTimerId })
+    }
+  }
+
+  static handleResume = () => {
+    if (this.currentTimerId) {
+      this.sendToServiceWorker('POMODORO_TIMER_RESUME', { timerId: this.currentTimerId })
+    }
   }
 
   static sendToServiceWorker(type: string, data: any) {
@@ -136,9 +139,11 @@ export class PomodoroManager {
   static handleServiceWorkerTimerComplete(timer: any) {
     console.log('[PomodoroManager] Service worker timer completed:', timer)
     this.showCompletionNotification(timer.mode, timer.duration / 60, timer.task)
+    
+    // Reset local state
     this.timer = { ...getInitialTimerState(), isActive: false }
-    this.saveTimer()
     this.currentTimerId = null
+    this.saveTimer()
   }
 
   static syncWithServiceWorker(serviceWorkerTimers: any[]) {
@@ -146,19 +151,19 @@ export class PomodoroManager {
     if (serviceWorkerTimers.length > 0) {
       const activeTimer = serviceWorkerTimers[0] // Get the first active timer
       if (activeTimer && activeTimer.isActive) {
-        this.timer = {
-          isActive: activeTimer.isActive,
-          isPaused: activeTimer.isPaused,
-          mode: activeTimer.mode,
-          duration: activeTimer.duration,
-          timeLeft: activeTimer.timeLeft,
-          startTimestamp: activeTimer.startTime,
-          task: activeTimer.task
-        }
-        this.currentTimerId = activeTimer.id
-        this.saveTimer()
+        this.updateTimerFromServiceWorker(activeTimer)
         console.log('[PomodoroManager] Synced with service worker:', this.timer)
+      } else {
+        // No active timer, reset state
+        this.timer = { ...getInitialTimerState(), isActive: false }
+        this.currentTimerId = null
+        this.saveTimer()
       }
+    } else {
+      // No timers, reset state
+      this.timer = { ...getInitialTimerState(), isActive: false }
+      this.currentTimerId = null
+      this.saveTimer()
     }
   }
 
@@ -167,13 +172,8 @@ export class PomodoroManager {
   }
 
   static saveTimer() {
-    localStorage.setItem(POMODORO_TIMER_KEY, JSON.stringify(this.timer))
-  }
-
-  static clearCountdown() {
-    if (this.intervalRef) {
-      clearInterval(this.intervalRef)
-      this.intervalRef = null
+    if (typeof window !== "undefined") {
+      localStorage.setItem(POMODORO_TIMER_KEY, JSON.stringify(this.timer))
     }
   }
 

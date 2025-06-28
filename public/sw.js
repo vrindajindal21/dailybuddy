@@ -8,15 +8,17 @@ let backgroundTimers = new Map()
 let backgroundReminders = new Map()
 
 self.addEventListener("install", (event) => {
+  console.log('[firebase-messaging-sw.js] Service Worker installing...')
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()),
+      .then(() => self.skipWaiting())
   )
 })
 
 self.addEventListener("activate", (event) => {
+  console.log('[firebase-messaging-sw.js] Service Worker activating...')
   event.waitUntil(
     caches
       .keys()
@@ -29,7 +31,12 @@ self.addEventListener("activate", (event) => {
           }),
         )
       })
-      .then(() => self.clients.claim()),
+      .then(() => self.clients.claim())
+      .then(() => {
+        // Start keep-alive mechanism
+        startKeepAlive()
+        return Promise.resolve()
+      })
   )
 })
 
@@ -39,6 +46,8 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(handlePomodoroSync())
   } else if (event.tag === 'reminder-sync') {
     event.waitUntil(handleReminderSync())
+  } else if (event.tag === 'background-timer-sync') {
+    event.waitUntil(syncPomodoroTimers())
   }
 })
 
@@ -46,6 +55,8 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'background-updates') {
     event.waitUntil(updateBackgroundItems())
+  } else if (event.tag === 'pomodoro-sync') {
+    event.waitUntil(syncPomodoroTimers())
   }
 })
 
@@ -80,16 +91,16 @@ function startBackgroundTimer(timerData) {
     mode: timerData.mode,
     duration: timerData.duration,
     timeLeft: timerData.duration,
-    startTime: Date.now(),
+    startTime: timerData.startTime || Date.now(),
     isActive: true,
     isPaused: false,
     task: timerData.task || '',
-    endTime: Date.now() + (timerData.duration * 1000)
+    endTime: (timerData.startTime || Date.now()) + (timerData.duration * 1000)
   }
 
   backgroundTimers.set(timerId, timer)
   
-  // Set up the countdown
+  // Set up the countdown - this runs independently in service worker
   const countdown = setInterval(() => {
     const currentTimer = backgroundTimers.get(timerId)
     if (!currentTimer || !currentTimer.isActive || currentTimer.isPaused) {
@@ -100,7 +111,7 @@ function startBackgroundTimer(timerData) {
     currentTimer.timeLeft -= 1
     backgroundTimers.set(timerId, currentTimer)
 
-    // Send tick update to main app if it's open
+    // Send regular updates to main app (every second)
     sendTimerTick(currentTimer)
 
     // Check if timer is complete
@@ -115,14 +126,17 @@ function startBackgroundTimer(timerData) {
   timer.countdownInterval = countdown
   backgroundTimers.set(timerId, timer)
 
-  console.log('[SW] Background Pomodoro timer started:', timer)
+  console.log('[SW] Background Pomodoro timer started (Primary Timer):', timer)
+  
+  // Send initial state to main app
+  sendTimerTick(timer)
 }
 
 function sendTimerTick(timer) {
   self.clients.matchAll().then(clients => {
     clients.forEach(client => {
       client.postMessage({
-        type: 'POMODORO_TICK',
+        type: 'POMODORO_STATE_UPDATE',
         timer: timer
       })
     })
@@ -158,6 +172,7 @@ function pauseBackgroundTimer(timerId) {
     timer.isPaused = true
     backgroundTimers.set(timerId, timer)
     console.log('[SW] Background Pomodoro timer paused:', timerId)
+    sendTimerTick(timer)
   }
 }
 
@@ -167,6 +182,7 @@ function resumeBackgroundTimer(timerId) {
     timer.isPaused = false
     backgroundTimers.set(timerId, timer)
     console.log('[SW] Background Pomodoro timer resumed:', timerId)
+    sendTimerTick(timer)
   }
 }
 
@@ -371,6 +387,33 @@ async function updateBackgroundItems() {
   })
 }
 
+// Keep service worker alive and sync timers periodically
+function syncPomodoroTimers() {
+  console.log('[SW] Periodic Pomodoro sync - keeping timers alive')
+  
+  // Send current timer states to any open clients
+  const activeTimers = Array.from(backgroundTimers.values())
+  if (activeTimers.length > 0) {
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'POMODORO_SYNC',
+          timers: activeTimers
+        })
+      })
+    })
+  }
+  
+  // Register next periodic sync
+  if ('periodicSync' in self.registration) {
+    self.registration.periodicSync.register('pomodoro-sync', {
+      minInterval: 30 * 1000 // 30 seconds
+    }).catch(err => {
+      console.log('[SW] Periodic sync registration failed:', err)
+    })
+  }
+}
+
 self.addEventListener("push", (event) => {
   let data = {
     title: "DailyBuddy Reminder",
@@ -501,4 +544,30 @@ function sendMedicationSync() {
       })
     })
   })
+}
+
+// Keep service worker alive
+function startKeepAlive() {
+  console.log('[SW] Starting keep-alive mechanism')
+  
+  // Send periodic keep-alive messages
+  setInterval(() => {
+    const activeTimers = Array.from(backgroundTimers.values())
+    const activeReminders = Array.from(backgroundReminders.values())
+    
+    if (activeTimers.length > 0 || activeReminders.length > 0) {
+      console.log('[SW] Keep-alive: Active timers:', activeTimers.length, 'Active reminders:', activeReminders.length)
+      
+      // Send sync to any open clients
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'KEEP_ALIVE',
+            timers: activeTimers,
+            reminders: activeReminders
+          })
+        })
+      })
+    }
+  }, 10000) // Every 10 seconds
 }

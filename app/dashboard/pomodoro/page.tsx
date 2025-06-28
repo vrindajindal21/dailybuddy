@@ -97,14 +97,33 @@ export default function PomodoroPage() {
       }
     }
     
-    window.addEventListener("pomodoro-timer-update", handleTimerUpdate as EventListener)
+    // Listen for service worker messages
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data.type === 'POMODORO_STATE_UPDATE' || 
+          event.data.type === 'POMODORO_SYNC' || 
+          event.data.type === 'KEEP_ALIVE') {
+        if (event.data.timer) {
+          setTimer(event.data.timer)
+        } else if (event.data.timers && event.data.timers.length > 0) {
+          setTimer(event.data.timers[0])
+        }
+      }
+    }
     
-    // Poll every second for updates
+    // Listen for service worker messages
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
+    }
+    
+    // Poll every second for updates (fallback)
     const interval = setInterval(updateTimer, 1000)
     
     return () => {
       window.removeEventListener("storage", updateTimer)
       window.removeEventListener("pomodoro-timer-update", handleTimerUpdate as EventListener)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
+      }
       clearInterval(interval)
     }
   }, [])
