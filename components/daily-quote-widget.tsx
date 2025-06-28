@@ -137,53 +137,53 @@ export default function DailyQuoteWidget() {
   }
 
   return (
-    <Card className="w-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-2 border-blue-200 dark:border-blue-800">
+    <Card className="w-full max-w-full sm:max-w-2xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-2 border-blue-200 dark:border-blue-800">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <BookOpen className="h-5 w-5 text-blue-600" />
-          {showDailyQuote ? "Today's Inspiration" : "Fresh Inspiration"}
-          <span className="text-2xl">{getCategoryEmoji(quote.category)}</span>
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+          <span className="text-sm sm:text-base">{showDailyQuote ? "Today's Inspiration" : "Fresh Inspiration"}</span>
+          <span className="text-xl sm:text-2xl">{getCategoryEmoji(quote.category)}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <blockquote className="text-lg font-medium leading-relaxed text-gray-800 dark:text-gray-200 italic">
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <blockquote className="text-base sm:text-lg font-medium leading-relaxed text-gray-800 dark:text-gray-200 italic">
           "{quote.text}"
         </blockquote>
 
-        <div className="flex items-center justify-between">
-          <cite className="text-sm font-semibold text-blue-600 dark:text-blue-400">— {quote.author}</cite>
-          <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full capitalize">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <cite className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400">— {quote.author}</cite>
+          <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full capitalize self-start sm:self-auto">
             {quote.category}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 pt-2 justify-center sm:justify-start">
           <Button
             variant="outline"
             size="sm"
             onClick={handleLike}
-            className={`flex items-center gap-1 ${
+            className={`flex items-center gap-1 min-w-0 px-2 sm:px-3 ${
               isLiked ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" : "hover:bg-gray-50"
             }`}
           >
-            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
-            {isLiked ? "Liked" : "Like"}
+            <Heart className={`h-4 w-4 flex-shrink-0 ${isLiked ? "fill-current" : ""}`} />
+            <span className="hidden sm:inline">{isLiked ? "Liked" : "Like"}</span>
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleShare} className="flex items-center gap-1">
-            <Share2 className="h-4 w-4" />
-            Share
+          <Button variant="outline" size="sm" onClick={handleShare} className="flex items-center gap-1 min-w-0 px-2 sm:px-3">
+            <Share2 className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Share</span>
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleNewQuote} className="flex items-center gap-1">
-            <RefreshCw className="h-4 w-4" />
-            New Quote
+          <Button variant="outline" size="sm" onClick={handleNewQuote} className="flex items-center gap-1 min-w-0 px-2 sm:px-3">
+            <RefreshCw className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline">New Quote</span>
           </Button>
 
           {!showDailyQuote && (
-            <Button variant="outline" size="sm" onClick={handleBackToDaily} className="flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
-              Daily Quote
+            <Button variant="outline" size="sm" onClick={handleBackToDaily} className="flex items-center gap-1 min-w-0 px-2 sm:px-3">
+              <BookOpen className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Daily Quote</span>
             </Button>
           )}
         </div>
