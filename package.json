@@ -6,7 +6,11 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "scheduler": "node scripts/send-due-reminders.js",
+    "scheduler:watch": "node scripts/scheduler-watch.js",
+    "test:reminder": "node scripts/test-reminder.js",
+    "test:quick": "node scripts/quick-test.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -48,6 +52,8 @@
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-themes": "latest",
+    "node-cron": "^4.1.1",
+    "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.2.0",

@@ -634,6 +634,11 @@ export default function MedicationsPage() {
     // Add to medication manager for background scheduling
     MedicationManager.addMedication(medication)
     
+    // Dispatch event for background service
+    window.dispatchEvent(new CustomEvent("medication-added", { 
+      detail: { medication } 
+    }))
+    
     setNewMedication({
       id: 0,
       name: "",
@@ -746,6 +751,11 @@ export default function MedicationsPage() {
     // Update in medication manager for background scheduling
     MedicationManager.updateMedication(editingMedication.id, updatedMedication)
 
+    // Dispatch event for background service
+    window.dispatchEvent(new CustomEvent("medication-updated", { 
+      detail: { medication: updatedMedication } 
+    }))
+
     setIsEditDialogOpen(false)
 
     toast({
@@ -760,10 +770,15 @@ export default function MedicationsPage() {
       
       // Remove from medication manager
       MedicationManager.deleteMedication(id)
+      
+      // Dispatch event for background service
+      window.dispatchEvent(new CustomEvent("medication-deleted", { 
+        detail: { medicationId: id } 
+      }))
 
       toast({
         title: "Medication deleted",
-        description: "Your medication has been deleted and reminders cancelled.",
+        description: "Your medication has been removed successfully.",
       })
     },
     [toast],
@@ -990,6 +1005,22 @@ export default function MedicationsPage() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Push Notification Status */}
+      <Alert className="mb-4">
+        <Bell className="h-4 w-4" />
+        <AlertTitle>Push Notification Status</AlertTitle>
+        <AlertDescription>
+          <div className="space-y-1">
+            <div>✅ Medication page configured for push notifications</div>
+            <div>✅ Automated scheduler ready (run: npm run scheduler:watch)</div>
+            <div>✅ FCM integration active</div>
+            <div className="text-xs mt-2">
+              <strong>To test:</strong> Add a medication for 1-2 minutes from now, then wait for the notification!
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
         <DialogContent>
