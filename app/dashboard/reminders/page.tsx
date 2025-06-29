@@ -547,6 +547,12 @@ export default function RemindersPage() {
                       <Button size="sm" variant="outline" onClick={() => completeReminder(reminder.id)}>
                         <CheckCircle className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="ghost" onClick={() => editReminder(reminder)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => deleteReminder(reminder.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
