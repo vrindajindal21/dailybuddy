@@ -114,23 +114,36 @@ export default function HabitsPage() {
 
     // Schedule a daily reminder for this habit
     const now = new Date()
-    const nextReminder = new Date(now)
-    nextReminder.setHours(9, 0, 0, 0) // Default to 9:00 AM
-    if (nextReminder < now) nextReminder.setDate(nextReminder.getDate() + 1)
+    const nextReminderTime = new Date(now)
+    nextReminderTime.setHours(8, 0, 0, 0) // Default to 8:00 AM
+    if (nextReminderTime < now) {
+      nextReminderTime.setDate(nextReminderTime.getDate() + 1)
+    }
     ReminderManager.addReminder({
-      id: `habit-${habit.id}`,
-      title: `Habit: ${habit.name}`,
-      description: `Don't forget your daily habit: ${habit.name}`,
-      scheduledTime: nextReminder,
-      type: "habit",
+      id: Date.now(),
+      title: `Habit Reminder: ${habit.name}`,
+      description: `It's time for your habit: ${habit.name}`,
+      scheduledTime: nextReminderTime,
+      type: 'habit',
+      recurring: true,
+      recurringPattern: 'daily',
       soundEnabled: true,
-      soundType: "habit",
+      soundType: 'bell',
       soundVolume: 70,
       notificationEnabled: true,
       vibrationEnabled: true,
-      data: { habitId: habit.id, category: habit.category },
-      recurring: true,
-      recurringPattern: "daily",
+      data: { ...habit },
+    })
+    // AUTOMATION: Save for push notification
+    fetch('/api/save-reminder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: `Habit Reminder: ${habit.name}`,
+        body: `It's time for your habit: ${habit.name}`,
+        time: nextReminderTime.toISOString(),
+        data: { type: 'habit', ...habit }
+      })
     })
 
     toast({

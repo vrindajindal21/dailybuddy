@@ -245,6 +245,17 @@ export default function RemindersPage() {
           }
         );
       }
+      // AUTOMATION: Save for push notification
+      await fetch('/api/save-reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: reminder.title,
+          body: reminder.description || 'You have a scheduled reminder!',
+          time: reminder.scheduledTime.toISOString(),
+          data: { type: reminder.type, ...reminder.data }
+        })
+      })
       loadReminders()
       setIsDialogOpen(false)
       resetForm()

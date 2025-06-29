@@ -320,6 +320,17 @@ export class MedicationManager {
               this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
               // Also add to ReminderManager for in-app notifications
               ReminderManager.addReminder(reminderObj)
+              // AUTOMATION: Save for push notification
+              fetch('/api/save-reminder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  title: reminderObj.title,
+                  body: reminderObj.description || 'Time to take your medication!',
+                  time: reminderObj.scheduledTime.toISOString(),
+                  data: reminderObj
+                })
+              })
             }
           }
         }

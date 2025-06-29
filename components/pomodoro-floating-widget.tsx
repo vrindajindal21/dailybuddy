@@ -51,9 +51,17 @@ export function PomodoroFloatingWidget() {
     syncFromStorage()
     const interval = setInterval(syncFromStorage, 1000)
     window.addEventListener("storage", syncFromStorage)
+    // Listen for custom event for instant updates
+    const handlePomodoroUpdate = (event: CustomEvent) => {
+      if (event.detail && event.detail.timer) {
+        setTimer(event.detail.timer)
+      }
+    }
+    window.addEventListener("pomodoro-timer-update", handlePomodoroUpdate as EventListener)
     return () => {
       clearInterval(interval)
       window.removeEventListener("storage", syncFromStorage)
+      window.removeEventListener("pomodoro-timer-update", handlePomodoroUpdate as EventListener)
     }
   }, [])
 

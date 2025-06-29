@@ -98,6 +98,19 @@ export class PomodoroManager {
       timer: timerData
     })
     
+    // AUTOMATION: Save for push notification
+    const scheduledTime = new Date(now + duration * 1000)
+    fetch('/api/save-reminder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: '🍅 Pomodoro Complete!',
+        body: task ? `Pomodoro session complete for: ${task}` : 'Pomodoro session complete!',
+        time: scheduledTime.toISOString(),
+        data: { type: 'pomodoro', task, duration }
+      })
+    })
+    
     console.log('[PomodoroManager] Timer start requested to service worker:', timerData)
   }
 
