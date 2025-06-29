@@ -1,10 +1,11 @@
+require('dotenv').config({ path: '.env.local' });
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
 const REMINDERS_FILE = path.join(__dirname, '../reminders.json');
 const TOKENS_FILE = path.join(__dirname, '../fcm_tokens.json');
-const API_URL = 'http://localhost:3000/api/send-fcm-notification'; // Change to your deployed URL if needed
+const API_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}/api/send-fcm-notification`;
 
 function loadReminders() {
   if (!fs.existsSync(REMINDERS_FILE)) return [];
