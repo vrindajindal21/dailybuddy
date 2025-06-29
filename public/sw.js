@@ -508,18 +508,39 @@ self.addEventListener("notificationclick", (event) => {
     }
     console.log("Reminder completed")
   } else {
-    // Default action - open app
+    // Default action - open app with robust fallback
     event.waitUntil(
-      clients.matchAll({ type: "window" }).then((clientList) => {
-        const targetUrl = data.url || "/dashboard"
+      self.clients.matchAll({ type: "window" }).then((clientList) => {
+        let targetUrl = "/dashboard"
+        // Fallback logic for main pages
+        switch (data?.type) {
+          case "medication":
+            targetUrl = "/dashboard/medications"
+            break
+          case "pomodoro":
+            targetUrl = "/dashboard/pomodoro"
+            break
+          case "habit":
+            targetUrl = "/dashboard/habits"
+            break
+          case "reminder":
+          case "task":
+            targetUrl = "/dashboard/reminders"
+            break
+          default:
+            if (data?.url) {
+              targetUrl = data.url
+            }
+            // else fallback to /dashboard
+        }
         for (const client of clientList) {
           if (client.url.includes(self.location.origin) && "focus" in client) {
             client.navigate(targetUrl)
             return client.focus()
           }
         }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl)
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl)
         }
       }),
     )

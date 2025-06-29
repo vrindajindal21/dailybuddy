@@ -1,8 +1,19 @@
 // Enhanced reminder manager with better notifications
 import { NotificationService } from "./notification-service"
 
-export type ReminderType = "medication" | "task" | "habit" | "goal" | "timer" | "study" | "general" | "health"
+// Unified ReminderType for all supported reminders
+export type ReminderType =
+  | "pomodoro"
+  | "habit"
+  | "medication"
+  | "task"
+  | "goal"
+  | "timer"
+  | "study"
+  | "general"
+  | "health"
 
+// Unified Reminder interface
 export interface Reminder {
   id: string | number
   title: string
@@ -21,6 +32,10 @@ export interface Reminder {
   completedAt?: Date
 }
 
+/**
+ * Unified ReminderManager for all reminder types.
+ * Handles scheduling, updating, and removing reminders for both in-app and background (service worker) notifications.
+ */
 export class ReminderManager {
   private static reminders: Map<string | number, Reminder> = new Map()
   private static scheduledTimers: Map<string | number, NodeJS.Timeout> = new Map()
@@ -113,11 +128,14 @@ export class ReminderManager {
     }
   }
 
+  /**
+   * Add a new reminder of any type (pomodoro, habit, medication, etc.).
+   * Schedules both in-app and background notifications.
+   */
   static addReminder(reminder: Reminder): string | number {
     if (!reminder.id) {
       reminder.id = Date.now().toString()
     }
-
     reminder = {
       soundEnabled: true,
       soundType: reminder.type,
@@ -127,63 +145,59 @@ export class ReminderManager {
       completed: false,
       ...reminder,
     }
-
     this.reminders.set(reminder.id, reminder)
     this.scheduleReminder(reminder)
     this.saveReminders()
-
     // Send to service worker for background scheduling
-    this.sendToServiceWorker('SCHEDULE_REMINDER', {
-      reminder: reminder
-    })
-
+    this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
     return reminder.id
   }
 
+  /**
+   * Update an existing reminder.
+   */
   static updateReminder(reminder: Reminder): boolean {
     if (!this.reminders.has(reminder.id)) {
       return false
     }
-
     this.cancelReminder(reminder.id)
     this.reminders.set(reminder.id, reminder)
-
     if (!reminder.completed) {
       this.scheduleReminder(reminder)
     }
-
     this.saveReminders()
+    // Update in service worker
+    this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
     return true
   }
 
-  static completeReminder(id: string | number): boolean {
-    const reminder = this.reminders.get(id)
-    if (!reminder) return false
-
-    reminder.completed = true
-    reminder.completedAt = new Date()
-
-    this.cancelReminder(id)
-    this.saveReminders()
-
-    // Notify service worker
-    this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId: id })
-
-    return true
-  }
-
+  /**
+   * Remove a reminder by ID.
+   */
   static removeReminder(id: string | number): boolean {
     if (!this.reminders.has(id)) {
       return false
     }
-
     this.cancelReminder(id)
     this.reminders.delete(id)
     this.saveReminders()
-
     // Remove from service worker
     this.sendToServiceWorker('REMOVE_REMINDER', { reminderId: id })
+    return true
+  }
 
+  /**
+   * Mark a reminder as complete.
+   */
+  static completeReminder(id: string | number): boolean {
+    const reminder = this.reminders.get(id)
+    if (!reminder) return false
+    reminder.completed = true
+    reminder.completedAt = new Date()
+    this.cancelReminder(id)
+    this.saveReminders()
+    // Notify service worker
+    this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId: id })
     return true
   }
 
@@ -210,14 +224,15 @@ export class ReminderManager {
       .sort((a, b) => a.scheduledTime.getTime() - b.scheduledTime.getTime())
   }
 
+  /**
+   * Schedule an in-app notification for the reminder.
+   */
   private static scheduleReminder(reminder: Reminder) {
     const now = new Date()
     const scheduledTime = reminder.scheduledTime
-
     if (scheduledTime > now && !reminder.completed) {
       const delayMs = scheduledTime.getTime() - now.getTime()
-
-      // Use setTimeout to schedule the notification, like medications
+      // Use setTimeout to schedule the notification
       const timerId = setTimeout(() => {
         NotificationService.showNotification(
           reminder.title,
@@ -249,7 +264,6 @@ export class ReminderManager {
           )
         }
       }, delayMs)
-
       this.scheduledTimers.set(reminder.id, timerId)
     }
   }

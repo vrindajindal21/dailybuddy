@@ -1,4 +1,5 @@
 import { NotificationService } from "./notification-service"
+import { ReminderManager } from "./reminder-manager"
 
 export interface MedicationSchedule {
   id: string
@@ -307,17 +308,18 @@ export class MedicationManager {
             
             // Send to service worker for background scheduling
             if (schedule.notificationsEnabled) {
-              this.sendToServiceWorker('SCHEDULE_REMINDER', {
-                reminder: {
-                  ...reminder,
-                  type: 'medication',
-                  title: `💊 ${schedule.name}`,
-                  description: `Time to take ${schedule.dosage}`,
-                  soundEnabled: schedule.alarmEnabled,
-                  soundType: schedule.alarmSound,
-                  soundVolume: schedule.alarmVolume
-                }
-              })
+              const reminderObj = {
+                ...reminder,
+                type: 'medication' as const,
+                title: `💊 ${schedule.name}`,
+                description: `Time to take ${schedule.dosage}`,
+                soundEnabled: schedule.alarmEnabled,
+                soundType: schedule.alarmSound,
+                soundVolume: schedule.alarmVolume
+              }
+              this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
+              // Also add to ReminderManager for in-app notifications
+              ReminderManager.addReminder(reminderObj)
             }
           }
         }

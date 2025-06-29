@@ -18,8 +18,12 @@ export function NotificationPermissionDialog() {
   const [open, setOpen] = useState(false)
   const [permissionState, setPermissionState] = useState<NotificationPermission>("default")
   const { toast } = useToast()
+  const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
+    // Detect iOS
+    const userAgent = window.navigator.userAgent || window.navigator.vendor || (window as any).opera
+    setIsIOS(/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream)
     // Check if notifications are supported
     if (NotificationService.isSupported()) {
       const currentPermission = NotificationService.getPermissionState()
@@ -83,7 +87,21 @@ export function NotificationPermissionDialog() {
           </DialogTitle>
           <DialogDescription>
             Notifications allow you to receive important reminders even when the app is in the background. This is
-            essential for medication reminders, task due dates, and timer completions.
+            essential for medication reminders, task due dates, and timer completions.<br />
+            <span className="font-semibold">How to enable notifications:</span>
+            <ul className="list-disc pl-6 text-sm mt-1">
+              <li>When prompted, click <b>Allow</b> in your browser's notification popup.</li>
+              <li>On Android, for best results, <b>Add to Home Screen</b> and open the app from your home screen.</li>
+              <li>Check your device and browser settings to ensure notifications are enabled for this site.</li>
+            </ul>
+            {isIOS && (
+              <div className="mt-2 text-yellow-700 bg-yellow-100 rounded p-2 text-xs">
+                <b>Note for iPhone/iPad users:</b> Due to iOS limitations, you may not receive reminders when the app is closed or in the background. This is a restriction by Apple for web apps.
+              </div>
+            )}
+            <div className="mt-2 text-xs text-blue-700">
+              Need help? <a href="#/help" className="underline">Read our notification setup guide</a>.
+            </div>
           </DialogDescription>
         </DialogHeader>
 

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast"
 import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns"
 import { Plus, Trash2, Edit, Heart, Award, Flame, Trophy } from "lucide-react"
+import { ReminderManager } from "@/lib/reminder-manager"
 
 type HabitType = {
   id: number;
@@ -111,9 +112,30 @@ export default function HabitsPage() {
     })
     setIsAddDialogOpen(false)
 
+    // Schedule a daily reminder for this habit
+    const now = new Date()
+    const nextReminder = new Date(now)
+    nextReminder.setHours(9, 0, 0, 0) // Default to 9:00 AM
+    if (nextReminder < now) nextReminder.setDate(nextReminder.getDate() + 1)
+    ReminderManager.addReminder({
+      id: `habit-${habit.id}`,
+      title: `Habit: ${habit.name}`,
+      description: `Don't forget your daily habit: ${habit.name}`,
+      scheduledTime: nextReminder,
+      type: "habit",
+      soundEnabled: true,
+      soundType: "habit",
+      soundVolume: 70,
+      notificationEnabled: true,
+      vibrationEnabled: true,
+      data: { habitId: habit.id, category: habit.category },
+      recurring: true,
+      recurringPattern: "daily",
+    })
+
     toast({
       title: "Habit added",
-      description: "Your new habit has been added.",
+      description: "Your new habit has been added and a daily reminder is scheduled.",
     })
   }
 

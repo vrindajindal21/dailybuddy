@@ -97,8 +97,24 @@ export default function RemindersPage() {
   const [titleError, setTitleError] = useState("")
   const [scheduleError, setScheduleError] = useState("")
 
+  const [notificationPermission, setNotificationPermission] = useState<string>(typeof window !== 'undefined' ? Notification.permission : 'default')
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false)
+
   useEffect(() => {
     loadReminders()
+    // Fallback: Register service worker if not already registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (!reg) {
+          navigator.serviceWorker.register('/sw.js').catch(console.error)
+        }
+      })
+    }
+    // Check notification permission
+    if (Notification.permission === 'denied') {
+      setShowPermissionAlert(true)
+    }
+    setNotificationPermission(Notification.permission)
   }, [])
 
   const loadReminders = () => {
@@ -222,11 +238,12 @@ export default function RemindersPage() {
         if (NotificationService.isSupported() && Notification.permission !== 'granted') {
           await NotificationService.requestPermission();
         }
-        NotificationService.showRichNotification({
-          title: `✅ Reminder Created: ${title}`,
-          body: `Your reminder has been set up successfully`,
-          type: category,
-        });
+        NotificationService.showRichNotification(
+          `✅ Reminder Created: ${title}`,
+          {
+            body: `Your reminder has been set up successfully`
+          }
+        );
       }
       loadReminders()
       setIsDialogOpen(false)
@@ -279,6 +296,11 @@ export default function RemindersPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {showPermissionAlert && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+          <strong>Notifications are disabled.</strong> To receive reminders when the app is closed or in the background, please enable notifications in your browser settings.
+        </div>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>

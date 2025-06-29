@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
@@ -39,6 +39,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (!reg) {
+          navigator.serviceWorker.register('/sw.js').catch(console.error)
+        }
+      })
+    }
+  }, [])
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className + " bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100 min-h-screen dark:bg-gradient-to-br dark:from-gray-900 dark:via-indigo-900 dark:to-gray-800"}>
