@@ -8,7 +8,7 @@ let backgroundTimers = new Map()
 let backgroundReminders = new Map()
 
 self.addEventListener("install", (event) => {
-  console.log('[firebase-messaging-sw.js] Service Worker installing...')
+  console.log('[sw.js] Service Worker installing...')
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -18,7 +18,7 @@ self.addEventListener("install", (event) => {
 })
 
 self.addEventListener("activate", (event) => {
-  console.log('[firebase-messaging-sw.js] Service Worker activating...')
+  console.log('[sw.js] Service Worker activating...')
   event.waitUntil(
     caches
       .keys()

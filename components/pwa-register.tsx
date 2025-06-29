@@ -31,16 +31,6 @@ export default function PWARegister() {
         .catch((registrationError) => {
           console.log("[PWA] Service Worker registration failed: ", registrationError);
         });
-
-      // Register Firebase Messaging service worker for push notifications
-      navigator.serviceWorker
-        .register("/firebase-messaging-sw.js")
-        .then((registration) => {
-          console.log("[Push] Firebase Messaging Service Worker registered: ", registration);
-        })
-        .catch((registrationError) => {
-          console.log("[Push] Firebase Messaging Service Worker registration failed: ", registrationError);
-        });
     }
   }, []);
   return null;

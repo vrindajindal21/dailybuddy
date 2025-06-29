@@ -10,7 +10,6 @@ import { PomodoroBackgroundService } from "../components/pomodoro-background-ser
 import { PomodoroFloatingWidget } from "../components/pomodoro-floating-widget";
 import { InAppNotification } from "../components/in-app-notification";
 import PWARegister from "../components/pwa-register";
-import FirebaseMessagingClient from "../components/FirebaseMessagingClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,7 +54,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }, []);
   return (
     <body className={inter.className + " " + fontSizeClass + " bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100 min-h-screen dark:bg-gradient-to-br dark:from-gray-900 dark:via-indigo-900 dark:to-gray-800"}>
-      <FirebaseMessagingClient />
       <PWARegister />
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <LanguageProvider>
