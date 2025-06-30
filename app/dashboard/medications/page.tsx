@@ -66,6 +66,7 @@ type MedicationType = {
 interface ScheduledDose extends MedicationType {
   dayName: string;
   date: Date;
+  scheduleTime: Date;
 }
 
 export default function MedicationsPage() {
@@ -517,15 +518,31 @@ export default function MedicationsPage() {
     return doses;
   };
 
+  // Helper: Check if a dose is taken (by id and scheduleTime)
+  const isDoseTaken = (dose: ScheduledDose) => {
+    // You may need to adjust this logic if you track taken doses differently
+    // For now, assume a 'takenDoses' array in localStorage with keys like `${dose.id}-${dose.scheduleTime?.toISOString()}`
+    if (!dose.scheduleTime) return false;
+    const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
+    return takenDoses.includes(`${dose.id}-${dose.scheduleTime.toISOString()}`);
+  };
+
   // Update today's medications
   const updateTodaysMedications = useCallback(() => {
     if (!isMounted) return;
     const now = new Date();
     const todayName = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
-    const todaysDoses = getAllScheduledDoses(1).filter(dose => dose.dayName === todayName);
+    const todayDateStr = now.toISOString().split('T')[0];
+    const todaysDoses = getAllScheduledDoses(1).filter(dose => {
+      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
+      return doseDateStr === todayDateStr;
+    });
     setTodaysMedications(todaysDoses);
-    // For upcoming, show all future doses (today after now, and all future days)
-    const upcoming = getAllScheduledDoses(7).filter(dose => dose.scheduleTime > now);
+    // For upcoming, show all future doses (excluding today), and only those not taken
+    const upcoming = getAllScheduledDoses(7).filter(dose => {
+      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
+      return doseDateStr !== todayDateStr && !isDoseTaken(dose);
+    });
     setUpcomingMedications(upcoming);
   }, [isMounted, medications]);
 
@@ -1493,13 +1510,30 @@ export default function MedicationsPage() {
         <TabsContent value="schedule" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>All Scheduled Doses (Next 7 Days)</CardTitle>
-              <CardDescription>Your full medication schedule for the week</CardDescription>
+              <CardTitle>Weekly Schedule</CardTitle>
+              <CardDescription>Your medication schedule for the week</CardDescription>
             </CardHeader>
             <CardContent>
               {(() => {
-                const allDoses = getAllScheduledDoses(7);
-                if (allDoses.length === 0) {
+                // Dynamically collect all unique times from all medication schedules
+                const allTimesSet = new Set<string>();
+                medications.forEach((med) => {
+                  med.schedule.forEach((sch) => {
+                    allTimesSet.add(sch.time);
+                  });
+                });
+                const allTimes = Array.from(allTimesSet).sort();
+                const daysOfWeek = [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday",
+                  "saturday",
+                  "sunday",
+                ];
+                const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                if (allTimes.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center p-6 text-center">
                       <Pill className="h-10 w-10 text-muted-foreground mb-4" />
@@ -1508,33 +1542,50 @@ export default function MedicationsPage() {
                     </div>
                   );
                 }
-                // Group by day
-                const grouped: { [date: string]: ScheduledDose[] } = {};
-                allDoses.forEach((dose) => {
-                  const dateStr = format(dose.scheduleTime!, "yyyy-MM-dd");
-                  if (!grouped[dateStr]) grouped[dateStr] = [];
-                  grouped[dateStr].push(dose);
-                });
                 return (
-                  <div className="space-y-6">
-                    {Object.entries(grouped).map(([dateStr, doses]) => (
-                      <div key={dateStr}>
-                        <div className="font-semibold mb-2">{format(new Date(dateStr), "EEEE, MMM d, yyyy")}</div>
-                        <div className="space-y-2">
-                          {doses.sort((a, b) => a.scheduleTime!.getTime() - b.scheduleTime!.getTime()).map((dose, idx) => (
-                            <div key={dose.id + '-' + idx} className="flex items-center gap-3 p-2 border rounded-lg">
-                              <div className={`w-2 h-6 rounded-full ${getMedicationColor(dose.color)}`}></div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium truncate">{dose.name}</span>
-                                  <Badge className="ml-2">{dose.formattedTime || dose.dueTime}</Badge>
-                                </div>
-                              </div>
-                            </div>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full border-collapse text-xs md:text-sm min-w-[600px]">
+                      <thead>
+                        <tr>
+                          <th className="border p-1 md:p-2 text-left whitespace-nowrap">Time</th>
+                          {dayLabels.map((day) => (
+                            <th key={day} className="border p-1 md:p-2 text-center whitespace-nowrap">{day}</th>
                           ))}
-                        </div>
-                      </div>
-                    ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allTimes.map((time) => (
+                          <tr key={time}>
+                            <td className="border p-1 md:p-2 font-medium whitespace-nowrap">
+                              {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
+                            </td>
+                            {daysOfWeek.map((day) => {
+                              const medsForTimeAndDay = medications.filter((med) =>
+                                med.schedule.some((s) => s.time === time && s.days.includes(day)),
+                              );
+                              return (
+                                <td key={day} className="border p-1 md:p-2 text-center align-top">
+                                  {medsForTimeAndDay.length > 0 ? (
+                                    <div className="flex flex-col gap-1">
+                                      {medsForTimeAndDay.map((med) => (
+                                        <div
+                                          key={med.id}
+                                          className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white break-words`}
+                                        >
+                                          {med.name}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 );
               })()}
