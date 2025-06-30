@@ -223,13 +223,25 @@ export default function RemindersPage() {
       clearInterval(notificationIntervalRef.current);
     }
 
+    // On first mount, set lastCheckTimeRef to now and skip the first notification check
+    let isFirstRun = true;
+    lastCheckTimeRef.current = new Date();
+
     // Set up interval to check for due reminders every minute
     const interval = setInterval(() => {
       const now = new Date();
       const lastCheck = lastCheckTimeRef.current;
+      // Skip the first run to avoid spamming notifications on load
+      if (isFirstRun) {
+        isFirstRun = false;
+        lastCheckTimeRef.current = now;
+        return;
+      }
       lastCheckTimeRef.current = now;
 
       reminders.forEach((reminder) => {
+        // Skip medication-type reminders
+        if (reminder.type === 'medication') return;
         // Create a unique ID for this reminder's notification
         const reminderDate = reminder.scheduledTime ? new Date(reminder.scheduledTime) : null;
         const notificationId = reminderDate ? 
