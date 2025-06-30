@@ -969,12 +969,27 @@ export default function MedicationsPage() {
       type: 'medication'
     };
     localStorage.setItem(NotificationService.NOTIFICATION_SYNC_KEY, JSON.stringify(syncState));
- 
+
     setMedications((prev) => {
       const updated = [...prev, newMedication];
       localStorage.setItem("medications", JSON.stringify(updated));
       return updated;
     });
+
+    // Show in-app notification and play sound
+    window.dispatchEvent(
+      new CustomEvent('inAppNotification', {
+        detail: {
+          title: `💊 Medication Added`,
+          options: {
+            body: `${newMedication.name} has been added to your schedule.`,
+          },
+        },
+      })
+    );
+    if (soundEnabled) {
+      playNotificationSound();
+    }
   };
 
   // Medication notification logic
@@ -1078,7 +1093,7 @@ export default function MedicationsPage() {
             notificationId
           });
 
-          // Play notification sound if enabled
+          // Play notification sound if enabled (for both browser and in-app)
           if (soundEnabled) {
             playNotificationSound();
           }
@@ -1101,7 +1116,7 @@ export default function MedicationsPage() {
             soundVolume
           );
 
-          // Dispatch in-app popup globally
+          // Dispatch in-app popup globally and play sound
           window.dispatchEvent(
             new CustomEvent('inAppNotification', {
               detail: {
@@ -1112,6 +1127,9 @@ export default function MedicationsPage() {
               },
             })
           );
+          if (soundEnabled) {
+            playNotificationSound();
+          }
         }
       });
     }, 60000); // check every minute
