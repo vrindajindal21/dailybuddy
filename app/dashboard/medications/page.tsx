@@ -227,33 +227,24 @@ export default function MedicationsPage() {
 
   // Load medications from localStorage
   useEffect(() => {
-    if (isMounted && !medicationsInitialized) {
+    if (isMounted) {
       const savedMedications = localStorage.getItem("medications")
       if (savedMedications) {
-        try {
-          setMedications(JSON.parse(savedMedications))
-        } catch (e) {
-          console.error("Error parsing saved medications:", e)
+        const parsed = JSON.parse(savedMedications)
+        // Ensure dates are properly parsed and only include future or current medications
+        const withDates = parsed.map((med: any) => ({
+          ...med,
+          scheduleTime: new Date(med.scheduleTime)
+        }))
+        setMedications(withDates)
+
+        // Set last sync time for this device if not set
+        if (!localStorage.getItem('lastDeviceSync')) {
+          localStorage.setItem('lastDeviceSync', new Date().toISOString());
         }
       }
-
-      // Check notification permission
-      if (Notification.permission === "granted") {
-        setNotificationPermission("granted")
-      } else {
-        setNotificationPermission("default")
-        setShowPermissionAlert(true)
-      }
-
-      // Check time format preference
-      const savedTimeFormat = localStorage.getItem("timeFormat")
-      if (savedTimeFormat) {
-        setUse12HourFormat(savedTimeFormat === "12h")
-      }
-
-      setMedicationsInitialized(true)
     }
-  }, [isMounted, medicationsInitialized])
+  }, [isMounted])
 
   // Update today's and upcoming medications (split by time)
   const updateTodaysAndUpcomingMedications = useCallback(() => {
@@ -959,50 +950,124 @@ export default function MedicationsPage() {
   useEffect(() => {
     if (!isMounted) return;
     
+    // Get or set device sync time
+    const lastDeviceSync = localStorage.getItem('lastDeviceSync') 
+      ? new Date(localStorage.getItem('lastDeviceSync')!)
+      : new Date();
+
+    // Debug log current state
+    console.log('Current medications:', todaysMedications.map(med => ({
+      name: med.name,
+      scheduleTime: med.scheduleTime,
+      notificationsEnabled: med.notificationsEnabled
+    })));
+
     // Clear any previous interval
     if (notificationIntervalRef.current) {
       clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
     }
 
+    // Register with service worker for background notifications
+    const registerBackgroundSync = async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const swRegistration = await navigator.serviceWorker.ready;
+          // @ts-ignore - Background Sync API types not included in TypeScript
+          if ('periodicSync' in swRegistration) {
+            try {
+              // @ts-ignore
+              await swRegistration.periodicSync.register('check-medications', {
+                minInterval: 60 * 1000 // Minimum 1 minute
+              });
+              console.log('Periodic background sync registered for medications');
+            } catch (err) {
+              console.log('Periodic background sync registration failed:', err);
+            }
+          }
+          console.log('Background sync registered for medications');
+        }
+      } catch (error) {
+        console.error('Error registering background sync:', error);
+      }
+    };
+
+    // Call the registration function
+    void registerBackgroundSync();
+
     // Set up interval to check for due medications every minute
     notificationIntervalRef.current = setInterval(() => {
       const now = new Date();
       const lastCheck = lastCheckTimeRef.current;
-      lastCheckTimeRef.current = now;
+      // Debug log check times
+      console.log('Checking medications at:', now.toISOString());
+      console.log('Last check was at:', lastCheck.toISOString());
 
       todaysMedications.forEach((dose) => {
         // Create a unique ID for this dose's notification
         const doseDate = new Date(dose.scheduleTime);
         const notificationId = `${dose.id}-${doseDate.toISOString().split('T')[0]}-${doseDate.getHours()}-${doseDate.getMinutes()}`;
 
+        // Check if this dose is in the past (more than 5 minutes ago)
+        const isTooOld = doseDate.getTime() < now.getTime() - 5 * 60 * 1000;
+
+        // Check if this dose was scheduled before this device was synced
+        const isBeforeDeviceSync = doseDate.getTime() < lastDeviceSync.getTime();
+
         // Calculate if this dose became due since our last check
         const becameDueSinceLastCheck = 
-          dose.scheduleTime.getTime() <= now.getTime() && // is due now
+          // Check if it's within 1 minute of scheduled time
+          Math.abs(dose.scheduleTime.getTime() - now.getTime()) <= 60000 && // is due now (within 1 minute)
           dose.scheduleTime.getTime() > lastCheck.getTime(); // became due after our last check
 
         // Check if this is today's dose
         const isToday = doseDate.toISOString().split('T')[0] === now.toISOString().split('T')[0];
+
+        // Debug log notification check
+        if (becameDueSinceLastCheck && isToday) {
+          console.log('Potential notification for:', {
+            name: dose.name,
+            scheduleTime: dose.scheduleTime,
+            notificationId,
+            alreadyShown: shownNotificationsRef.current.has(notificationId),
+            isTooOld,
+            isBeforeDeviceSync
+          });
+        }
 
         // Only show notification if:
         // 1. Notifications are enabled
         // 2. The dose became due since our last check
         // 3. We haven't shown this notification before
         // 4. This is today's dose
+        // 5. The dose isn't too old
+        // 6. The dose wasn't scheduled before this device was synced
         if (
           dose.notificationsEnabled &&
           becameDueSinceLastCheck &&
           isToday &&
           !shownNotificationsRef.current.has(notificationId) &&
+          !isTooOld &&
+          !isBeforeDeviceSync &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
+          // Debug log actual notification
+          console.log('Showing notification for:', {
+            name: dose.name,
+            scheduleTime: dose.scheduleTime,
+            notificationId
+          });
+
           // Mark this notification as shown
           shownNotificationsRef.current.add(notificationId);
-          // Save to localStorage
-          localStorage.setItem(
-            'shown-medication-notifications',
-            JSON.stringify(Array.from(shownNotificationsRef.current))
-          );
+          
+          // Save to localStorage with timestamp
+          const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
+          shownNotifications[notificationId] = {
+            timestamp: now.toISOString(),
+            deviceId: localStorage.getItem('deviceId') || 'unknown'
+          };
+          localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
 
           // Play notification sound if enabled
           if (soundEnabled) {
@@ -1016,7 +1081,12 @@ export default function MedicationsPage() {
               icon: '/android-chrome-192x192.png',
               requireInteraction: true,
               vibrate: [200, 100, 200],
-              tag: notificationId
+              tag: notificationId,
+              data: {
+                type: 'medication',
+                id: dose.id,
+                scheduleTime: dose.scheduleTime.toISOString()
+              }
             } as NotificationOptions & { vibrate?: number[] },
             selectedSound,
             soundVolume
@@ -1041,28 +1111,18 @@ export default function MedicationsPage() {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
       }
-      // Clear shown notifications on unmount
-      shownNotificationsRef.current.clear();
       // Reset last check time on unmount
       lastCheckTimeRef.current = new Date();
     };
   }, [isMounted, todaysMedications, soundEnabled, selectedSound, soundVolume]);
 
-  // Clear shown notifications at midnight
+  // Generate unique device ID on component mount if not exists
   useEffect(() => {
-    if (!isMounted) return;
-
-    const checkMidnight = () => {
-      const now = new Date();
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        shownNotificationsRef.current.clear();
-        localStorage.setItem('shown-medication-notifications', '[]');
-      }
-    };
-
-    const interval = setInterval(checkMidnight, 60000);
-    return () => clearInterval(interval);
-  }, [isMounted]);
+    if (!localStorage.getItem('deviceId')) {
+      const deviceId = `device_${Math.random().toString(36).substring(2)}${Date.now()}`;
+      localStorage.setItem('deviceId', deviceId);
+    }
+  }, []);
 
   const playNotificationSound = () => {
     try {

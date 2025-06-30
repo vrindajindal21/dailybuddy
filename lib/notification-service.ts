@@ -6,6 +6,7 @@ export class NotificationService {
   private isInitialized = false
   private permissionState: NotificationPermission = "default"
   private audioContext: AudioContext | null = null
+  private lastShownNotifications = new Map<string, number>()
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -209,17 +210,56 @@ export class NotificationService {
         return false
       }
 
-      // Play sound first
-      this.playSound(options.type || "default", volume)
+      // Check if a notification with this tag was shown in the last 5 seconds
+      const now = Date.now();
+      const tag = options.tag || "default";
+      const lastShownTime = this.lastShownNotifications.get(tag);
+      if (lastShownTime && (now - lastShownTime) < 5000) {
+        console.log('Debouncing notification:', tag);
+        return false;
+      }
+
+      // Check if this notification was already shown on another device
+      const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
+      const deviceId = localStorage.getItem('deviceId') || 'unknown';
+      
+      if (shownNotifications[tag]) {
+        const notifInfo = shownNotifications[tag];
+        const notifTime = new Date(notifInfo.timestamp).getTime();
+        
+        // If notification was shown on another device in the last 5 minutes, don't show it again
+        if (now - notifTime < 5 * 60 * 1000 && notifInfo.deviceId !== deviceId) {
+          console.log('Notification already shown on device:', notifInfo.deviceId);
+          return false;
+        }
+      }
 
       // Create basic notification
       const notification = new Notification(title, {
         body: options.body || "",
         icon: options.icon || "/icon-192x192.png",
-        tag: options.tag || "default",
+        tag: tag,
         requireInteraction: options.requireInteraction || false,
         silent: options.silent || false,
+        data: {
+          ...options.data,
+          deviceId: deviceId,
+          timestamp: now
+        }
       })
+
+      // Only play sound if notification was successfully created
+      this.playSound(options.type || "default", volume)
+      
+      // Update last shown time
+      this.lastShownNotifications.set(tag, now);
+
+      // Update shown notifications in localStorage
+      shownNotifications[tag] = {
+        timestamp: new Date(now).toISOString(),
+        deviceId: deviceId
+      };
+      localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
 
       notification.onclick = () => {
         window.focus()
@@ -429,6 +469,30 @@ export class NotificationService {
     } catch (error) {
       console.error('Error testing notification:', error);
       return false;
+    }
+  }
+
+  // Clear old notifications (older than 24 hours)
+  private clearOldNotifications() {
+    try {
+      const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
+      const now = Date.now();
+      const oneDayAgo = now - 24 * 60 * 60 * 1000;
+      
+      let hasChanges = false;
+      Object.entries(shownNotifications).forEach(([key, value]: [string, any]) => {
+        const notifTime = new Date(value.timestamp).getTime();
+        if (notifTime < oneDayAgo) {
+          delete shownNotifications[key];
+          hasChanges = true;
+        }
+      });
+      
+      if (hasChanges) {
+        localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
+      }
+    } catch (error) {
+      console.error('Error clearing old notifications:', error);
     }
   }
 }
