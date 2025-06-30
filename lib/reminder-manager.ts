@@ -366,6 +366,32 @@ export class ReminderManager {
           },
         })
       )
+      // Also show smart popup (show-popup) for reminders
+      window.dispatchEvent(
+        new CustomEvent('show-popup', {
+          detail: {
+            type: 'scheduled-reminder',
+            title: `🔔 ${reminder.title}`,
+            message: this.getNotificationDescription(reminder),
+            duration: 10000,
+            priority: 'high',
+            actions: [
+              {
+                label: 'Mark Done',
+                action: () => {
+                  this.completeReminder(reminder.id)
+                }
+              },
+              {
+                label: 'Snooze 5min',
+                action: () => {
+                  window.dispatchEvent(new CustomEvent('reminder-snooze', { detail: { id: reminder.id, snooze: 5 } }))
+                }
+              }
+            ]
+          }
+        })
+      )
     }
 
     console.log('[ReminderManager] Reminder notification shown:', reminder)

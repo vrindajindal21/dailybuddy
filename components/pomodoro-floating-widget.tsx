@@ -49,13 +49,32 @@ export function PomodoroFloatingWidget() {
       }
     }
     syncFromStorage()
-    const interval = setInterval(syncFromStorage, 1000)
     window.addEventListener("storage", syncFromStorage)
     return () => {
-      clearInterval(interval)
       window.removeEventListener("storage", syncFromStorage)
     }
   }, [])
+
+  // Live countdown effect
+  useEffect(() => {
+    if (!timer || !timer.isActive || timer.isPaused) return
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (!prev || !prev.isActive || prev.isPaused) return prev
+        if (prev.timeLeft <= 1) {
+          // Timer complete, stop
+          window.dispatchEvent(new CustomEvent("stop-pomodoro-timer"))
+          return { ...prev, timeLeft: 0, isActive: false }
+        }
+        const updated = { ...prev, timeLeft: prev.timeLeft - 1 }
+        // Persist to localStorage
+        const saved = JSON.parse(localStorage.getItem(POMODORO_TIMER_KEY) || "{}")
+        localStorage.setItem(POMODORO_TIMER_KEY, JSON.stringify({ ...saved, timeLeft: updated.timeLeft }))
+        return updated
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [timer?.isActive, timer?.isPaused])
 
   // Listen for global start/stop events
   useEffect(() => {

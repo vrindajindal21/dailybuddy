@@ -320,6 +320,35 @@ export class MedicationManager {
               this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
               // Also add to ReminderManager for in-app notifications
               ReminderManager.addReminder(reminderObj)
+              // Dispatch in-app popup (show-popup) for medication
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('show-popup', {
+                    detail: {
+                      type: 'medication-reminder',
+                      title: `💊 Medication Time: ${schedule.name}`,
+                      message: `Time to take your ${schedule.name} (${schedule.dosage}). ${schedule.instructions || ''}`,
+                      duration: 0, // Don't auto-dismiss medication reminders
+                      priority: 'high',
+                      actions: [
+                        {
+                          label: 'Taken',
+                          action: () => {
+                            // Mark as taken (could call MedicationManager.completeReminder if needed)
+                            window.dispatchEvent(new CustomEvent('medication-taken', { detail: { id: reminderObj.id } }))
+                          }
+                        },
+                        {
+                          label: 'Snooze 15min',
+                          action: () => {
+                            window.dispatchEvent(new CustomEvent('medication-snooze', { detail: { id: reminderObj.id, snooze: 15 } }))
+                          }
+                        }
+                      ]
+                    }
+                  })
+                )
+              }
             }
           }
         }
