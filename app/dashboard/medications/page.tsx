@@ -62,6 +62,12 @@ type MedicationType = {
   scheduleTime?: Date;
 };
 
+// Add a new type for scheduled doses
+interface ScheduledDose extends MedicationType {
+  dayName: string;
+  date: Date;
+}
+
 export default function MedicationsPage() {
   const { toast } = useToast()
   const [medications, setMedications] = useState<MedicationType[]>([
@@ -475,73 +481,53 @@ export default function MedicationsPage() {
     [generateSound, toast],
   )
 
+  // Helper: Generate all scheduled doses for the next N days
+  const getAllScheduledDoses = (daysAhead = 7): ScheduledDose[] => {
+    const doses: ScheduledDose[] = [];
+    const now = new Date();
+    for (let offset = 0; offset < daysAhead; offset++) {
+      const date = new Date(now);
+      date.setDate(now.getDate() + offset);
+      const dayName = date.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      medications.forEach((med: MedicationType) => {
+        // Check if medication is active on this date
+        const startDate = med.startDate ? new Date(med.startDate) : null;
+        const endDate = med.endDate ? new Date(med.endDate) : null;
+        if (startDate && startDate > date) return;
+        if (endDate && endDate < date) return;
+        med.schedule.forEach((sch: { time: string; days: string[] }) => {
+          if (sch.days.includes(dayName)) {
+            const [hours, minutes] = sch.time.split(":").map(Number);
+            const doseDate = new Date(date);
+            doseDate.setHours(hours, minutes, 0, 0);
+            doses.push({
+              ...med,
+              dueTime: sch.time,
+              formattedTime: formatTime(sch.time),
+              scheduleTime: doseDate,
+              dayName,
+              date: doseDate,
+            });
+          }
+        });
+      });
+    }
+    // Sort by date/time
+    doses.sort((a: ScheduledDose, b: ScheduledDose) => a.scheduleTime!.getTime() - b.scheduleTime!.getTime());
+    return doses;
+  };
+
   // Update today's medications
   const updateTodaysMedications = useCallback(() => {
-    if (!isMounted) return
-
-    const now = new Date()
-    // Fix: Use proper weekday format
-    const today =
-      now.getDay() === 0
-        ? "sunday"
-        : now.getDay() === 1
-          ? "monday"
-          : now.getDay() === 2
-            ? "tuesday"
-            : now.getDay() === 3
-              ? "wednesday"
-              : now.getDay() === 4
-                ? "thursday"
-                : now.getDay() === 5
-                  ? "friday"
-                  : "saturday"
-
-    const todaysMeds: MedicationType[] = []
-    const upcomingMeds: MedicationType[] = []
-
-    medications.forEach((medication: MedicationType) => {
-      // Check if medication is active based on start/end dates
-      const startDate = medication.startDate ? new Date(medication.startDate) : null
-      const endDate = medication.endDate ? new Date(medication.endDate) : null
-
-      if (startDate && startDate > now) return
-      if (endDate && endDate < now) return
-
-      medication.schedule.forEach((schedule: { time: string; days: string[] }) => {
-        if (schedule.days.includes(today)) {
-          const [hours, minutes] = schedule.time.split(":").map(Number)
-          const scheduleTime = new Date(now)
-          scheduleTime.setHours(hours, minutes, 0, 0)
-
-          const medicationDue: MedicationType = {
-            ...medication,
-            dueTime: schedule.time,
-            formattedTime: formatTime(schedule.time),
-            scheduleTime,
-          }
-
-          if (scheduleTime > now) {
-            upcomingMeds.push(medicationDue)
-          } else {
-            todaysMeds.push(medicationDue)
-          }
-        }
-      })
-    })
-
-    // Sort by time
-    todaysMeds.sort((a: MedicationType, b: MedicationType) => {
-      if (!a.scheduleTime || !b.scheduleTime) return 0;
-      return a.scheduleTime.getTime() - b.scheduleTime.getTime();
-    });
-    upcomingMeds.sort((a: MedicationType, b: MedicationType) => {
-      if (!a.scheduleTime || !b.scheduleTime) return 0;
-      return a.scheduleTime.getTime() - b.scheduleTime.getTime();
-    });
-
-    setTodaysMedications(todaysMeds)
-    setUpcomingMedications(upcomingMeds)
-  }, [isMounted, medications])
+    if (!isMounted) return;
+    const now = new Date();
+    const todayName = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+    const todaysDoses = getAllScheduledDoses(1).filter(dose => dose.dayName === todayName);
+    setTodaysMedications(todaysDoses);
+    // For upcoming, show all future doses (today after now, and all future days)
+    const upcoming = getAllScheduledDoses(7).filter(dose => dose.scheduleTime > now);
+    setUpcomingMedications(upcoming);
+  }, [isMounted, medications]);
 
   // Format time based on user preference (12h or 24h)
   const formatTime = useCallback(
@@ -1432,7 +1418,7 @@ export default function MedicationsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredMedications.map((medication) => (
+                  {getAllScheduledDoses(7).map((medication) => (
                     <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
                       <div
                         className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
@@ -1507,54 +1493,51 @@ export default function MedicationsPage() {
         <TabsContent value="schedule" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Weekly Schedule</CardTitle>
-              <CardDescription>Your medication schedule for the week</CardDescription>
+              <CardTitle>All Scheduled Doses (Next 7 Days)</CardTitle>
+              <CardDescription>Your full medication schedule for the week</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse text-xs md:text-sm min-w-[600px]">
-                  <thead>
-                    <tr>
-                      <th className="border p-1 md:p-2 text-left whitespace-nowrap">Time</th>
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                        <th key={day} className="border p-1 md:p-2 text-center whitespace-nowrap">{day}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {["08:00", "12:00", "16:00", "20:00"].map((time) => (
-                      <tr key={time}>
-                        <td className="border p-1 md:p-2 font-medium whitespace-nowrap">
-                          {use12HourFormat ? format(parse(time, "HH:mm", new Date()), "h:mm a") : time}
-                        </td>
-                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
-                          const medsForTimeAndDay = filteredMedications.filter((med) =>
-                            med.schedule.some((s) => s.time === time && s.days.includes(day)),
-                          )
-                          return (
-                            <td key={day} className="border p-1 md:p-2 text-center align-top">
-                              {medsForTimeAndDay.length > 0 ? (
-                                <div className="flex flex-col gap-1">
-                                  {medsForTimeAndDay.map((med) => (
-                                    <div
-                                      key={med.id}
-                                      className={`text-xs p-1 rounded-md ${getMedicationColor(med.color)} text-white break-words`}
-                                    >
-                                      {med.name}
-                                    </div>
-                                  ))}
+              {(() => {
+                const allDoses = getAllScheduledDoses(7);
+                if (allDoses.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                      <Pill className="h-10 w-10 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No scheduled doses found</h3>
+                      <p className="text-sm text-muted-foreground">Add medications and schedules to see them here</p>
+                    </div>
+                  );
+                }
+                // Group by day
+                const grouped: { [date: string]: ScheduledDose[] } = {};
+                allDoses.forEach((dose) => {
+                  const dateStr = format(dose.scheduleTime!, "yyyy-MM-dd");
+                  if (!grouped[dateStr]) grouped[dateStr] = [];
+                  grouped[dateStr].push(dose);
+                });
+                return (
+                  <div className="space-y-6">
+                    {Object.entries(grouped).map(([dateStr, doses]) => (
+                      <div key={dateStr}>
+                        <div className="font-semibold mb-2">{format(new Date(dateStr), "EEEE, MMM d, yyyy")}</div>
+                        <div className="space-y-2">
+                          {doses.sort((a, b) => a.scheduleTime!.getTime() - b.scheduleTime!.getTime()).map((dose, idx) => (
+                            <div key={dose.id + '-' + idx} className="flex items-center gap-3 p-2 border rounded-lg">
+                              <div className={`w-2 h-6 rounded-full ${getMedicationColor(dose.color)}`}></div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium truncate">{dose.name}</span>
+                                  <Badge className="ml-2">{dose.formattedTime || dose.dueTime}</Badge>
                                 </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
-                              )}
-                            </td>
-                          )
-                        })}
-                      </tr>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
