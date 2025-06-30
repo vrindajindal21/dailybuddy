@@ -7,6 +7,7 @@ export class NotificationService {
   private permissionState: NotificationPermission = "default"
   private audioContext: AudioContext | null = null
   private lastShownNotifications = new Map<string, number>()
+  public static NOTIFICATION_SYNC_KEY = 'notification-sync-state'
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -210,26 +211,22 @@ export class NotificationService {
         return false
       }
 
-      // Check if a notification with this tag was shown in the last 5 seconds
-      const now = Date.now();
-      const tag = options.tag || "default";
-      const lastShownTime = this.lastShownNotifications.get(tag);
-      if (lastShownTime && (now - lastShownTime) < 5000) {
-        console.log('Debouncing notification:', tag);
-        return false;
-      }
-
-      // Check if this notification was already shown on another device
-      const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
+      // Get current device ID
       const deviceId = localStorage.getItem('deviceId') || 'unknown';
       
-      if (shownNotifications[tag]) {
-        const notifInfo = shownNotifications[tag];
-        const notifTime = new Date(notifInfo.timestamp).getTime();
-        
-        // If notification was shown on another device in the last 5 minutes, don't show it again
-        if (now - notifTime < 5 * 60 * 1000 && notifInfo.deviceId !== deviceId) {
-          console.log('Notification already shown on device:', notifInfo.deviceId);
+      // Get global notification state
+      const syncState = this.getNotificationSyncState();
+      const now = Date.now();
+      const tag = options.tag || "default";
+
+      // Clean up old notifications from sync state (older than 5 minutes)
+      this.cleanupOldNotifications(syncState);
+
+      // Check if this notification was recently shown on any device
+      if (syncState[tag]) {
+        const notifInfo = syncState[tag];
+        if (now - notifInfo.timestamp < 5 * 60 * 1000) { // within last 5 minutes
+          console.log(`Notification "${title}" already shown on device ${notifInfo.deviceId}`);
           return false;
         }
       }
@@ -251,15 +248,14 @@ export class NotificationService {
       // Only play sound if notification was successfully created
       this.playSound(options.type || "default", volume)
       
-      // Update last shown time
-      this.lastShownNotifications.set(tag, now);
-
-      // Update shown notifications in localStorage
-      shownNotifications[tag] = {
-        timestamp: new Date(now).toISOString(),
-        deviceId: deviceId
+      // Update sync state with this notification
+      syncState[tag] = {
+        timestamp: now,
+        deviceId: deviceId,
+        title: title,
+        type: options.type || 'default'
       };
-      localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
+      this.saveNotificationSyncState(syncState);
 
       notification.onclick = () => {
         window.focus()
@@ -475,25 +471,53 @@ export class NotificationService {
   // Clear old notifications (older than 24 hours)
   private clearOldNotifications() {
     try {
-      const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
+      const syncState = this.getNotificationSyncState();
       const now = Date.now();
       const oneDayAgo = now - 24 * 60 * 60 * 1000;
       
       let hasChanges = false;
-      Object.entries(shownNotifications).forEach(([key, value]: [string, any]) => {
-        const notifTime = new Date(value.timestamp).getTime();
+      Object.entries(syncState).forEach(([key, info]: [string, any]) => {
+        const notifTime = info.timestamp;
         if (notifTime < oneDayAgo) {
-          delete shownNotifications[key];
+          delete syncState[key];
           hasChanges = true;
         }
       });
       
       if (hasChanges) {
-        localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
+        this.saveNotificationSyncState(syncState);
       }
     } catch (error) {
       console.error('Error clearing old notifications:', error);
     }
+  }
+
+  private getNotificationSyncState(): Record<string, { timestamp: number; deviceId: string; title: string; type: string }> {
+    try {
+      return JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+    } catch (error) {
+      console.error('Error reading notification sync state:', error);
+      return {};
+    }
+  }
+
+  private saveNotificationSyncState(state: Record<string, any>): void {
+    try {
+      localStorage.setItem(NotificationService.NOTIFICATION_SYNC_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Error saving notification sync state:', error);
+    }
+  }
+
+  private cleanupOldNotifications(syncState: Record<string, any>): void {
+    const now = Date.now();
+    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    
+    Object.entries(syncState).forEach(([tag, info]: [string, any]) => {
+      if (info.timestamp < fiveMinutesAgo) {
+        delete syncState[tag];
+      }
+    });
   }
 }
 

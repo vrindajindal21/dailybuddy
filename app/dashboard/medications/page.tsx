@@ -946,6 +946,27 @@ export default function MedicationsPage() {
     return true;
   });
 
+  // Handle adding new medication
+  const handleAddMedication = (newMedication: any) => {
+    // Don't show notification for newly added medication
+    const notificationId = `${newMedication.id}-${new Date(newMedication.scheduleTime).toISOString().split('T')[0]}-${new Date(newMedication.scheduleTime).getHours()}-${new Date(newMedication.scheduleTime).getMinutes()}`;
+    // Mark this notification as handled in the sync state
+    const syncState = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+    syncState[notificationId] = {
+      timestamp: Date.now(),
+      deviceId: localStorage.getItem('deviceId') || 'unknown',
+      title: `💊 Time to take ${newMedication.name}`,
+      type: 'medication'
+    };
+    localStorage.setItem(NotificationService.NOTIFICATION_SYNC_KEY, JSON.stringify(syncState));
+ 
+    setMedications((prev) => {
+      const updated = [...prev, newMedication];
+      localStorage.setItem("medications", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Medication notification logic
   useEffect(() => {
     if (!isMounted) return;
@@ -967,33 +988,6 @@ export default function MedicationsPage() {
       clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
     }
 
-    // Register with service worker for background notifications
-    const registerBackgroundSync = async () => {
-      try {
-        if ('serviceWorker' in navigator) {
-          const swRegistration = await navigator.serviceWorker.ready;
-          // @ts-ignore - Background Sync API types not included in TypeScript
-          if ('periodicSync' in swRegistration) {
-            try {
-              // @ts-ignore
-              await swRegistration.periodicSync.register('check-medications', {
-                minInterval: 60 * 1000 // Minimum 1 minute
-              });
-              console.log('Periodic background sync registered for medications');
-            } catch (err) {
-              console.log('Periodic background sync registration failed:', err);
-            }
-          }
-          console.log('Background sync registered for medications');
-        }
-      } catch (error) {
-        console.error('Error registering background sync:', error);
-      }
-    };
-
-    // Call the registration function
-    void registerBackgroundSync();
-
     // Set up interval to check for due medications every minute
     notificationIntervalRef.current = setInterval(() => {
       const now = new Date();
@@ -1013,6 +1007,11 @@ export default function MedicationsPage() {
         // Check if this dose was scheduled before this device was synced
         const isBeforeDeviceSync = doseDate.getTime() < lastDeviceSync.getTime();
 
+        // Get notification sync state
+        const syncState = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+        const isAlreadyShown = syncState[notificationId] && 
+          (Date.now() - syncState[notificationId].timestamp < 5 * 60 * 1000);
+
         // Calculate if this dose became due since our last check
         const becameDueSinceLastCheck = 
           // Check if it's within 1 minute of scheduled time
@@ -1028,7 +1027,7 @@ export default function MedicationsPage() {
             name: dose.name,
             scheduleTime: dose.scheduleTime,
             notificationId,
-            alreadyShown: shownNotificationsRef.current.has(notificationId),
+            alreadyShown: isAlreadyShown,
             isTooOld,
             isBeforeDeviceSync
           });
@@ -1045,7 +1044,7 @@ export default function MedicationsPage() {
           dose.notificationsEnabled &&
           becameDueSinceLastCheck &&
           isToday &&
-          !shownNotificationsRef.current.has(notificationId) &&
+          !isAlreadyShown &&
           !isTooOld &&
           !isBeforeDeviceSync &&
           NotificationService.isSupported() &&
@@ -1057,17 +1056,6 @@ export default function MedicationsPage() {
             scheduleTime: dose.scheduleTime,
             notificationId
           });
-
-          // Mark this notification as shown
-          shownNotificationsRef.current.add(notificationId);
-          
-          // Save to localStorage with timestamp
-          const shownNotifications = JSON.parse(localStorage.getItem('shown-medication-notifications') || '{}');
-          shownNotifications[notificationId] = {
-            timestamp: now.toISOString(),
-            deviceId: localStorage.getItem('deviceId') || 'unknown'
-          };
-          localStorage.setItem('shown-medication-notifications', JSON.stringify(shownNotifications));
 
           // Play notification sound if enabled
           if (soundEnabled) {
