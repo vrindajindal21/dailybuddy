@@ -195,11 +195,6 @@ export class MedicationManager {
     this.saveSchedules()
     this.generateReminders()
     
-    // Dispatch event for background services
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('medication-added', { detail: { medication } }))
-    }
-    
     return medicationId
   }
 
@@ -244,11 +239,6 @@ export class MedicationManager {
     this.saveSchedules()
     this.generateReminders()
     
-    // Dispatch event for background services
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('medication-updated', { detail: { medication } }))
-    }
-    
     return true
   }
 
@@ -268,11 +258,6 @@ export class MedicationManager {
     
     this.saveSchedules()
     this.saveReminders()
-    
-    // Dispatch event for background services
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('medication-deleted', { detail: { medicationId } }))
-    }
     
     return true
   }
@@ -335,30 +320,6 @@ export class MedicationManager {
               this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
               // Also add to ReminderManager for in-app notifications
               ReminderManager.addReminder(reminderObj)
-              // AUTOMATION: Save for push notification
-              console.log('Saving medication for push notification:', {
-                title: reminderObj.title,
-                body: reminderObj.description || 'Time to take your medication!',
-                time: reminderObj.scheduledTime.toISOString(),
-                data: reminderObj
-              });
-              
-              fetch('/api/save-reminder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  title: reminderObj.title,
-                  body: reminderObj.description || 'Time to take your medication!',
-                  time: reminderObj.scheduledTime.toISOString(),
-                  data: reminderObj
-                })
-              }).then(response => response.json())
-                .then(result => {
-                  console.log('Medication saved for push notification:', result);
-                })
-                .catch(error => {
-                  console.error('Error saving medication for push notification:', error);
-                });
             }
           }
         }
@@ -380,11 +341,6 @@ export class MedicationManager {
     
     // Notify service worker
     this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId })
-    
-    // Dispatch event for background services
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('medication-completed', { detail: { reminderId } }))
-    }
     
     return true
   }

@@ -19,9 +19,6 @@ yarn-error.log*
 # env files
 .env*
 
-# Firebase service key
-service_key.json
-
 # vercel
 .vercel
 

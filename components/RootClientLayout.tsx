@@ -8,8 +8,6 @@ import { GlobalNotificationService } from "./global-notification-service";
 import { SmartPopupSystem } from "./smart-popup-system";
 import { PomodoroBackgroundService } from "./pomodoro-background-service";
 import { PomodoroFloatingWidget } from "./pomodoro-floating-widget";
-import { MedicationBackgroundService } from "./medication-background-service";
-import { ReminderBackgroundService } from "./reminder-background-service";
 import { InAppNotification } from "./in-app-notification";
 import PWARegister from "./pwa-register";
 import { NotificationPermissionDialog } from "./notification-permission-dialog";
@@ -68,8 +66,6 @@ export default function RootClientLayout({ children }: { children: React.ReactNo
           <SmartPopupSystem />
           <PomodoroBackgroundService />
           <PomodoroFloatingWidget />
-          <MedicationBackgroundService />
-          <ReminderBackgroundService />
           <NotificationPermissionDialog />
         </LanguageProvider>
       </ThemeProvider>

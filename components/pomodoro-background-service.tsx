@@ -63,26 +63,8 @@ export function PomodoroBackgroundService() {
       saveTimer(newTimer)
     }
     const handleStop = () => {
-      const defaultState = {
-        isActive: false,
-        isPaused: false,
-        mode: "pomodoro",
-        duration: 1500,
-        timeLeft: 1500,
-        startTimestamp: null,
-        task: "",
-      }
-      setTimer(defaultState)
-      saveTimer(defaultState)
-      
-      // Clear any existing intervals
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      
-      // Dispatch stop event for floating widget
-      window.dispatchEvent(new CustomEvent("stop-pomodoro-timer"))
+      setTimer({ ...getInitialTimerState(), isActive: false })
+      saveTimer({ ...getInitialTimerState(), isActive: false })
     }
     const handleReset = () => {
       // Always reset to default state and clear localStorage
@@ -106,15 +88,6 @@ export function PomodoroBackgroundService() {
         sessionCount: 0,
         currentTask: "",
       }))
-      
-      // Clear any existing intervals
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      
-      // Dispatch reset event for floating widget
-      window.dispatchEvent(new CustomEvent("reset-pomodoro-timer"))
     }
     window.addEventListener("start-pomodoro-timer", handleStart as EventListener)
     window.addEventListener("stop-pomodoro-timer", handleStop as EventListener)
@@ -170,35 +143,11 @@ export function PomodoroBackgroundService() {
   const handleTimerComplete = (prevTimer: any) => {
     showCompletionNotification(prevTimer.mode, prevTimer.duration / 60, prevTimer.task)
     playCompletionSound(prevTimer.mode)
-    
-    // Dispatch completion event for floating widget and other listeners
-    window.dispatchEvent(new CustomEvent("pomodoro-timer-complete", { 
-      detail: { 
-        mode: prevTimer.mode, 
-        duration: prevTimer.duration, 
-        task: prevTimer.task 
-      } 
-    }))
-    
-    // Clear timer state completely
-    const defaultState = {
-      isActive: false,
-      isPaused: false,
-      mode: "pomodoro",
-      duration: 1500,
-      timeLeft: 1500,
-      startTimestamp: null,
-      task: "",
-    }
-    
-    setTimer(defaultState)
-    saveTimer(defaultState)
-    
-    // Clear any existing intervals
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
+    // Optionally, dispatch a global event for other listeners
+    window.dispatchEvent(new CustomEvent("pomodoro-timer-complete", { detail: prevTimer }))
+    // Clear timer state
+    setTimer({ ...getInitialTimerState(), isActive: false })
+    saveTimer({ ...getInitialTimerState(), isActive: false })
   }
 
   useEffect(() => {

@@ -231,18 +231,8 @@ export default function RemindersPage() {
       }
       if (editingReminder) {
         ReminderManager.updateReminder(reminder)
-        
-        // Dispatch event for background service
-        window.dispatchEvent(new CustomEvent("reminder-updated", { 
-          detail: { reminder } 
-        }))
       } else {
         ReminderManager.addReminder(reminder)
-        
-        // Dispatch event for background service
-        window.dispatchEvent(new CustomEvent("reminder-added", { 
-          detail: { reminder } 
-        }))
       }
       if (notificationsEnabled) {
         if (NotificationService.isSupported() && Notification.permission !== 'granted') {
@@ -254,35 +244,6 @@ export default function RemindersPage() {
             body: `Your reminder has been set up successfully`
           }
         );
-      }
-      // AUTOMATION: Save for push notification
-      console.log('Saving reminder for push notification:', {
-        title: reminder.title,
-        body: reminder.description || 'You have a scheduled reminder!',
-        time: reminder.scheduledTime.toISOString(),
-        data: { type: reminder.type, ...reminder.data }
-      });
-      
-      try {
-        const response = await fetch('/api/save-reminder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: reminder.title,
-            body: reminder.description || 'You have a scheduled reminder!',
-            time: reminder.scheduledTime.toISOString(),
-            data: { type: reminder.type, ...reminder.data }
-          })
-        });
-        
-        const result = await response.json();
-        console.log('Reminder saved for push notification:', result);
-        
-        if (!response.ok) {
-          console.error('Failed to save reminder for push notification:', result);
-        }
-      } catch (error) {
-        console.error('Error saving reminder for push notification:', error);
       }
       loadReminders()
       setIsDialogOpen(false)
@@ -307,12 +268,6 @@ export default function RemindersPage() {
 
   const deleteReminder = (id: string | number) => {
     ReminderManager.removeReminder(id)
-    
-    // Dispatch event for background service
-    window.dispatchEvent(new CustomEvent("reminder-deleted", { 
-      detail: { reminderId: id } 
-    }))
-    
     loadReminders()
   }
 
@@ -346,22 +301,6 @@ export default function RemindersPage() {
           <strong>Notifications are disabled.</strong> To receive reminders when the app is closed or in the background, please enable notifications in your browser settings.
         </div>
       )}
-      
-      {/* Push Notification Status */}
-      <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded">
-        <div className="flex items-center gap-2 mb-2">
-          <Bell className="h-4 w-4" />
-          <strong>Push Notification Status</strong>
-        </div>
-        <div className="text-sm space-y-1">
-          <div>✅ Reminder page configured for push notifications</div>
-          <div>✅ Automated scheduler ready (run: npm run scheduler:watch)</div>
-          <div>✅ FCM integration active</div>
-          <div className="text-xs mt-2">
-            <strong>To test:</strong> Create a reminder for 1-2 minutes from now, then wait for the notification!
-          </div>
-        </div>
-      </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>

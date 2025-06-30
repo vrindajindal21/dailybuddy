@@ -9,8 +9,6 @@ import { GlobalNotificationService } from "../components/global-notification-ser
 import { SmartPopupSystem } from "../components/smart-popup-system"
 import { PomodoroBackgroundService } from "../components/pomodoro-background-service"
 import { PomodoroFloatingWidget } from "../components/pomodoro-floating-widget"
-import { MedicationBackgroundService } from "../components/medication-background-service"
-import { ReminderBackgroundService } from "../components/reminder-background-service"
 import { ReminderManager } from "../lib/reminder-manager"
 import RootClientLayout from "../components/RootClientLayout"
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister"
