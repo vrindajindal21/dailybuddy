@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "npm run generate-sw && next build",
-    "dev": "npm run generate-sw && next dev",
+    "dev": "next dev",
+    "build": "next build",
     "lint": "next lint",
     "start": "next start",
     "scheduler": "node scripts/send-due-reminders.js",
