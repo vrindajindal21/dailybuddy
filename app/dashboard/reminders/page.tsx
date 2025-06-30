@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -99,6 +99,14 @@ export default function RemindersPage() {
   const [notificationPermission, setNotificationPermission] = useState<string>(typeof window !== 'undefined' ? Notification.permission : 'default')
   const [showPermissionAlert, setShowPermissionAlert] = useState(false)
 
+  // Reference for notification interval
+  const notificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track shown notifications to prevent duplicates
+  const shownNotificationsRef = useRef(new Set());
+
+  const [isMounted, setIsMounted] = useState(true);
+
   useEffect(() => {
     loadReminders()
     // Fallback: Register service worker if not already registered
@@ -117,34 +125,56 @@ export default function RemindersPage() {
   }, [])
 
   useEffect(() => {
+    if (!isMounted) return;
+    
+    // Clear any previous interval
+    if (notificationIntervalRef.current) {
+      clearInterval(notificationIntervalRef.current);
+    }
+
+    // Set up interval to check for due reminders every minute
     const interval = setInterval(() => {
       const now = new Date();
       reminders.forEach((reminder) => {
+        // Create a unique ID for this reminder's notification
+        const notificationId = `${reminder.id}-${reminder.scheduledTime}`;
+
         if (
-          reminder.notificationsEnabled &&
+          reminder.notificationEnabled &&
           !reminder.completed &&
           reminder.scheduledTime &&
-          Math.abs(new Date(reminder.scheduledTime).getTime() - now.getTime()) < 60000 && // within 1 minute
+          (now.getTime() - new Date(reminder.scheduledTime).getTime()) <= 60000 && // due within the last minute
+          (now.getTime() - new Date(reminder.scheduledTime).getTime()) >= 0 && // not future
+          !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
+          // Mark this notification as shown
+          shownNotificationsRef.current.add(notificationId);
+
           NotificationService.showNotification(
-            `🔔 Reminder: ${reminder.title}`,
+            `⏰ ${reminder.title}`,
             {
-              body: reminder.description || '',
-              icon: '/android-chrome-192x192.png',
-              requireInteraction: true,
-              tag: `reminder-${reminder.id}`,
-              data: reminder,
-            },
-            'default',
-            reminder.volume || 70
+              body: reminder.description || "Time for your reminder!",
+              requireInteraction: true
+            }
           );
         }
       });
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [reminders]);
+    }, 60000); // check every minute
+
+    // Store interval reference
+    notificationIntervalRef.current = interval;
+
+    // Clean up function
+    return () => {
+      if (notificationIntervalRef.current) {
+        clearInterval(notificationIntervalRef.current);
+      }
+      // Clear shown notifications on unmount
+      shownNotificationsRef.current.clear();
+    };
+  }, [isMounted, reminders]);
 
   const loadReminders = () => {
     const allReminders = ReminderManager.getAllReminders()

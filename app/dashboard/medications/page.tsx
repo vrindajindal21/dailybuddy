@@ -170,6 +170,9 @@ export default function MedicationsPage() {
   const [addError, setAddError] = useState("");
   const [editError, setEditError] = useState("");
 
+  // Track shown notifications to prevent duplicates
+  const shownNotificationsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     setIsMounted(true)
     
@@ -984,12 +987,24 @@ export default function MedicationsPage() {
     notificationIntervalRef.current = setInterval(() => {
       const now = new Date();
       todaysMedications.forEach((dose) => {
+        // Create a unique ID for this dose's notification
+        const notificationId = `${dose.id}-${dose.scheduleTime.toISOString()}`;
+
+        // Only show notification if:
+        // 1. Notifications are enabled
+        // 2. The dose is becoming due now (within the last minute)
+        // 3. We haven't shown this notification before
         if (
           dose.notificationsEnabled &&
-          Math.abs(dose.scheduleTime.getTime() - now.getTime()) < 60000 && // within 1 minute
+          (now.getTime() - dose.scheduleTime.getTime()) <= 60000 && // due within the last minute
+          (now.getTime() - dose.scheduleTime.getTime()) >= 0 && // not future
+          !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
+          // Mark this notification as shown
+          shownNotificationsRef.current.add(notificationId);
+
           NotificationService.showMedicationReminder(
             `💊 Time to take ${dose.name}`,
             `Dosage: ${dose.dosage}${dose.instructions ? ", " + dose.instructions : ""}`,
@@ -1002,10 +1017,14 @@ export default function MedicationsPage() {
         }
       });
     }, 60000); // check every minute
+
+    // Clean up function
     return () => {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
       }
+      // Clear shown notifications on unmount
+      shownNotificationsRef.current.clear();
     };
   }, [isMounted, todaysMedications]);
 
