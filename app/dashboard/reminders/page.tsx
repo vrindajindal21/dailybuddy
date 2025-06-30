@@ -107,6 +107,85 @@ export default function RemindersPage() {
 
   const [isMounted, setIsMounted] = useState(true);
 
+  // Audio settings
+  const [soundVolume, setSoundVolume] = useState(70)
+  const [selectedSound, setSelectedSound] = useState("bell")
+  const audioContextRef = useRef<AudioContext | null>(null)
+
+  // Initialize audio context
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+        if (AudioContext) {
+          audioContextRef.current = new AudioContext()
+        }
+      } catch (error) {
+        console.warn("AudioContext not supported:", error)
+      }
+    }
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+    }
+  }, [])
+
+  const playNotificationSound = () => {
+    try {
+      if (!audioContextRef.current) return
+
+      const audioContext = audioContextRef.current
+      if (audioContext.state === "suspended") {
+        audioContext.resume()
+      }
+
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      // Sound presets with different characteristics
+      const soundPresets: Record<string, { frequency: number; duration: number; type: OscillatorType }> = {
+        bell: { frequency: 830, duration: 1.5, type: "sine" },
+        chime: { frequency: 1000, duration: 1.0, type: "sine" },
+        beep: { frequency: 800, duration: 0.3, type: "square" },
+        ding: { frequency: 1200, duration: 0.8, type: "triangle" },
+      }
+
+      const preset = soundPresets[selectedSound] || soundPresets.bell
+
+      oscillator.type = preset.type
+      oscillator.frequency.value = preset.frequency
+
+      const normalizedVolume = Math.max(0, Math.min(1, soundVolume / 100))
+      gainNode.gain.value = normalizedVolume
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      const now = audioContext.currentTime
+      gainNode.gain.setValueAtTime(normalizedVolume, now)
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + preset.duration)
+
+      oscillator.start(now)
+      oscillator.stop(now + preset.duration)
+    } catch (error) {
+      console.error("Error playing notification sound:", error)
+      // Fallback: try to play a simple beep
+      try {
+        const normalizedVolume = Math.max(0, Math.min(1, soundVolume / 100))
+        const audio = new Audio(
+          "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT",
+        )
+        audio.volume = normalizedVolume
+        audio.play().catch(() => {
+          // Silent fallback if even this fails
+        })
+      } catch (fallbackError) {
+        console.warn("All audio playback methods failed")
+      }
+    }
+  }
+
   useEffect(() => {
     loadReminders()
     // Fallback: Register service worker if not already registered
@@ -152,12 +231,34 @@ export default function RemindersPage() {
           // Mark this notification as shown
           shownNotificationsRef.current.add(notificationId);
 
+          // Play notification sound if enabled
+          if (soundEnabled) {
+            playNotificationSound();
+          }
+
           NotificationService.showNotification(
             `⏰ ${reminder.title}`,
             {
               body: reminder.description || "Time for your reminder!",
-              requireInteraction: true
-            }
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              vibrate: [200, 100, 200],
+              tag: notificationId
+            } as NotificationOptions & { vibrate?: number[] },
+            selectedSound,
+            soundVolume
+          );
+
+          // Dispatch in-app popup globally
+          window.dispatchEvent(
+            new CustomEvent('inAppNotification', {
+              detail: {
+                title: `⏰ ${reminder.title}`,
+                options: {
+                  body: reminder.description || "Time for your reminder!",
+                },
+              },
+            })
           );
         }
       });
@@ -174,7 +275,7 @@ export default function RemindersPage() {
       // Clear shown notifications on unmount
       shownNotificationsRef.current.clear();
     };
-  }, [isMounted, reminders]);
+  }, [isMounted, reminders, soundEnabled, selectedSound, soundVolume]);
 
   const loadReminders = () => {
     const allReminders = ReminderManager.getAllReminders()

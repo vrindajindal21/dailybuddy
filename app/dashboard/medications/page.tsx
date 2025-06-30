@@ -156,7 +156,10 @@ export default function MedicationsPage() {
   const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false)
   const [use12HourFormat, setUse12HourFormat] = useState(true)
 
-  // Audio context for Web Audio API
+  // Audio settings
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [soundVolume, setSoundVolume] = useState(70)
+  const [selectedSound, setSelectedSound] = useState("bell")
   const audioContextRef = useRef<AudioContext | null>(null)
 
   // Interval for periodic notifications
@@ -194,57 +197,22 @@ export default function MedicationsPage() {
 
   // Initialize audio context
   useEffect(() => {
-    if (isMounted && typeof window !== "undefined") {
-      // Create audio context on first user interaction to comply with browser policies
-      const initAudioContext = () => {
-        try {
-          let AudioContextClass = window.AudioContext
-          if (!AudioContextClass && 'webkitAudioContext' in window) {
-            AudioContextClass = (window as any).webkitAudioContext
-          }
-          if (AudioContextClass) {
-            audioContextRef.current = new AudioContextClass()
-            console.log("Audio context initialized successfully")
-          } else {
-            console.warn("AudioContext not supported in this browser")
-          }
-        } catch (error) {
-          console.error("Failed to initialize audio context:", error)
+    if (typeof window !== "undefined") {
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+        if (AudioContext) {
+          audioContextRef.current = new AudioContext()
         }
-        document.removeEventListener("click", initAudioContext)
-        document.removeEventListener("touchstart", initAudioContext)
-      }
-
-      document.addEventListener("click", initAudioContext)
-      document.addEventListener("touchstart", initAudioContext)
-
-      // Register service worker for notifications when app is closed
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            console.log("ServiceWorker registration successful with scope: ", registration.scope)
-          })
-          .catch((err) => {
-            console.log("ServiceWorker registration failed: ", err)
-          })
-      }
-
-      return () => {
-        document.removeEventListener("click", initAudioContext)
-        document.removeEventListener("touchstart", initAudioContext)
-
-        // Clean up audio context
-        if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-          try {
-            audioContextRef.current.close()
-          } catch (e) {
-            console.error("Error closing audio context:", e)
-          }
-        }
+      } catch (error) {
+        console.warn("AudioContext not supported:", error)
       }
     }
-  }, [isMounted])
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+    }
+  }, [])
 
   // Load medications from localStorage
   useEffect(() => {
@@ -1005,20 +973,39 @@ export default function MedicationsPage() {
           // Mark this notification as shown
           shownNotificationsRef.current.add(notificationId);
 
-          NotificationService.showMedicationReminder(
+          // Play notification sound if enabled
+          if (soundEnabled) {
+            playNotificationSound();
+          }
+
+          NotificationService.showNotification(
             `💊 Time to take ${dose.name}`,
-            `Dosage: ${dose.dosage}${dose.instructions ? ", " + dose.instructions : ""}`,
             {
-              id: dose.id,
-              time: dose.dueTime,
-              color: dose.color,
-            }
+              body: `Dosage: ${dose.dosage}${dose.instructions ? "\n" + dose.instructions : ""}`,
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              vibrate: [200, 100, 200],
+              tag: notificationId
+            } as NotificationOptions & { vibrate?: number[] },
+            selectedSound,
+            soundVolume
+          );
+
+          // Dispatch in-app popup globally
+          window.dispatchEvent(
+            new CustomEvent('inAppNotification', {
+              detail: {
+                title: `💊 Time to take ${dose.name}`,
+                options: {
+                  body: `Dosage: ${dose.dosage}${dose.instructions ? "\n" + dose.instructions : ""}`,
+                },
+              },
+            })
           );
         }
       });
     }, 60000); // check every minute
 
-    // Clean up function
     return () => {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
@@ -1026,7 +1013,62 @@ export default function MedicationsPage() {
       // Clear shown notifications on unmount
       shownNotificationsRef.current.clear();
     };
-  }, [isMounted, todaysMedications]);
+  }, [isMounted, todaysMedications, soundEnabled, selectedSound, soundVolume]);
+
+  const playNotificationSound = () => {
+    try {
+      if (!audioContextRef.current) return
+
+      const audioContext = audioContextRef.current
+      if (audioContext.state === "suspended") {
+        audioContext.resume()
+      }
+
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      // Sound presets with different characteristics
+      const soundPresets: Record<string, { frequency: number; duration: number; type: OscillatorType }> = {
+        bell: { frequency: 830, duration: 1.5, type: "sine" },
+        chime: { frequency: 1000, duration: 1.0, type: "sine" },
+        beep: { frequency: 800, duration: 0.3, type: "square" },
+        ding: { frequency: 1200, duration: 0.8, type: "triangle" },
+      }
+
+      const preset = soundPresets[selectedSound] || soundPresets.bell
+
+      oscillator.type = preset.type
+      oscillator.frequency.value = preset.frequency
+
+      const normalizedVolume = Math.max(0, Math.min(1, soundVolume / 100))
+      gainNode.gain.value = normalizedVolume
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      const now = audioContext.currentTime
+      gainNode.gain.setValueAtTime(normalizedVolume, now)
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + preset.duration)
+
+      oscillator.start(now)
+      oscillator.stop(now + preset.duration)
+    } catch (error) {
+      console.error("Error playing notification sound:", error)
+      // Fallback: try to play a simple beep
+      try {
+        const normalizedVolume = Math.max(0, Math.min(1, soundVolume / 100))
+        const audio = new Audio(
+          "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT",
+        )
+        audio.volume = normalizedVolume
+        audio.play().catch(() => {
+          // Silent fallback if even this fails
+        })
+      } catch (fallbackError) {
+        console.warn("All audio playback methods failed")
+      }
+    }
+  }
 
   if (!isMounted) {
     return null
