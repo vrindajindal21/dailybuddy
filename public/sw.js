@@ -7,12 +7,44 @@ const POMODORO_TIMER_KEY = "global_pomodoro_timer"
 let backgroundTimers = new Map()
 let backgroundReminders = new Map()
 
+// --- OFFLINE SUPPORT: Cache all static assets and main routes ---
+const STATIC_ASSETS = [
+  '/',
+  '/dashboard',
+  '/dashboard/analytics',
+  '/dashboard/budget',
+  '/dashboard/fun',
+  '/dashboard/goals',
+  '/dashboard/habits',
+  '/dashboard/health',
+  '/dashboard/medications',
+  '/dashboard/pomodoro',
+  '/dashboard/reminders',
+  '/dashboard/study',
+  '/dashboard/tasks',
+  '/dashboard/timetable',
+  '/dashboard/tutorial',
+  '/favicon.ico',
+  '/manifest.json',
+  '/site.webmanifest',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/placeholder-logo.svg',
+  '/placeholder-user.jpg',
+  '/placeholder.jpg',
+  '/placeholder.svg',
+  // Add more static assets as needed
+];
+
 self.addEventListener("install", (event) => {
   console.log('[sw.js] Service Worker installing...')
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+      .then((cache) => cache.addAll([...urlsToCache, ...STATIC_ASSETS]))
       .then(() => self.skipWaiting())
   )
 })
@@ -668,45 +700,75 @@ self.addEventListener("activate", (event) => {
 
 // Add a handler for medication reminders similar to Pomodoro
 function handleMedicationReminder(reminder) {
-  const notificationTitle = `💊 Time to take ${reminder.name || reminder.title}`;
-  const notificationBody = `Dosage: ${reminder.dosage || ''}${reminder.instructions ? '\n' + reminder.instructions : ''}`;
-  const options = {
-    body: notificationBody,
-    icon: "/android-chrome-192x192.png",
-    badge: "/android-chrome-192x192.png",
-    tag: `medication-${reminder.id}`,
-    requireInteraction: true,
-    vibrate: [200, 100, 200],
-    silent: false,
-    data: {
-      url: "/dashboard/medications",
-      type: "medication",
-      reminderId: reminder.id
-    },
-    actions: [
-      {
-        action: "taken",
-        title: "✅ Taken"
-      },
-      {
-        action: "snooze",
-        title: "⏰ Snooze"
-      },
-      {
-        action: "view",
-        title: "👁 View"
-      }
-    ]
-  };
-  self.registration.showNotification(notificationTitle, options);
-  // Also send a message to any open clients for in-app popups
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'MEDICATION_REMINDER',
-        reminder: reminder
+  const dedupeKey = `medication-shown-${reminder.id}-${reminder.scheduledTime}`;
+  // Only show if not already shown
+  self.caches.open('medication-dedupe').then(async (cache) => {
+    const match = await cache.match(dedupeKey);
+    if (!match) {
+      await cache.put(dedupeKey, new Response('1'));
+      const notificationTitle = `💊 Time to take ${reminder.name || reminder.title}`;
+      const notificationBody = `Dosage: ${reminder.dosage || ''}${reminder.instructions ? '\n' + reminder.instructions : ''}`;
+      const options = {
+        body: notificationBody,
+        icon: "/android-chrome-192x192.png",
+        badge: "/android-chrome-192x192.png",
+        tag: dedupeKey,
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        silent: false,
+        data: {
+          url: "/dashboard/medications",
+          type: "medication",
+          reminderId: reminder.id,
+        },
+        actions: [
+          { action: "taken", title: "Mark as Taken" },
+          { action: "snooze", title: "Snooze 5 min" }
+        ]
+      };
+      self.registration.showNotification(notificationTitle, options);
+      // Post message to all clients for in-app popup
+      self.clients.matchAll({ includeUncontrolled: true, type: "window" }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: "show-popup",
+            detail: {
+              type: "medication-due",
+              title: notificationTitle,
+              message: notificationBody,
+              actions: [
+                { label: "Mark as Taken", action: "taken" },
+                { label: "Snooze 5 min", action: "snooze", variant: "outline" }
+              ]
+            }
+          });
+        });
       });
-    });
+    }
   });
-  console.log('[SW] Medication reminder notification shown:', reminder);
 }
+
+// --- OFFLINE FETCH HANDLER ---
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Serve from cache if available
+      if (response) return response;
+      // Otherwise, fetch from network and cache dynamically
+      return fetch(event.request).then((networkResponse) => {
+        // Only cache GET requests and successful responses
+        if (event.request.method === 'GET' && networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Optionally, return a fallback page or asset if offline and not cached
+        if (event.request.mode === 'navigate') {
+          return caches.match('/');
+        }
+      });
+    })
+  );
+});
