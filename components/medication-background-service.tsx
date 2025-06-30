@@ -210,15 +210,102 @@ export function MedicationBackgroundService() {
 
   const checkForDueMedications = () => {
     const now = new Date()
+    const lastCheck = medicationState.lastChecked ? new Date(medicationState.lastChecked) : new Date(now.getTime() - 60000)
     const todaysReminders = MedicationManager.getTodaysReminders()
     
     todaysReminders.forEach(reminder => {
       // Check if medication is due (within 1 minute of scheduled time)
       const timeDiff = Math.abs(reminder.scheduledTime.getTime() - now.getTime())
-      const isDue = timeDiff <= 60000 && !reminder.completed // Within 1 minute and not completed
-      
-      if (isDue) {
-        showMedicationNotification(reminder)
+      const becameDueSinceLastCheck =
+        reminder.scheduledTime.getTime() <= now.getTime() &&
+        reminder.scheduledTime.getTime() > lastCheck.getTime()
+      // Unique dedupe key per dose occurrence
+      const dedupeKey = `medication-shown-${reminder.id}-${reminder.scheduledTime.toISOString()}`
+      if (
+        timeDiff <= 60000 &&
+        !reminder.completed &&
+        becameDueSinceLastCheck &&
+        !localStorage.getItem(dedupeKey)
+      ) {
+        localStorage.setItem(dedupeKey, "1")
+        const title = `💊 ${reminder.name}`
+        const body = `Time to take ${reminder.dosage}${reminder.instructions ? ` - ${reminder.instructions}` : ''}`
+        // Show browser notification
+        NotificationService.showNotification(title, {
+          body,
+          requireInteraction: true,
+          tag: dedupeKey,
+        }, "medication", 80)
+        // Show in-app notification
+        window.dispatchEvent(
+          new CustomEvent("inAppNotification", {
+            detail: {
+              title,
+              options: {
+                body,
+                actions: [
+                  {
+                    label: "Mark as Taken",
+                    action: () => {
+                      MedicationManager.completeReminder(reminder.id)
+                      toast({
+                        title: "Medication Taken",
+                        description: `${reminder.name} marked as taken`,
+                      })
+                    }
+                  },
+                  {
+                    label: "Snooze 5 min",
+                    action: () => {
+                      toast({
+                        title: "Medication Snoozed",
+                        description: "Reminder will show again in 5 minutes",
+                      })
+                    }
+                  }
+                ],
+              },
+            },
+          })
+        )
+        // Show popup notification
+        const popupDedupeKey = `medication-popup-shown-${dedupeKey}`
+        if (!localStorage.getItem(popupDedupeKey)) {
+          localStorage.setItem(popupDedupeKey, "1")
+          window.dispatchEvent(
+            new CustomEvent("show-popup", {
+              detail: {
+                type: "medication-due",
+                title,
+                message: body,
+                duration: 10000,
+                priority: "high",
+                actions: [
+                  {
+                    label: "Mark as Taken",
+                    action: () => {
+                      MedicationManager.completeReminder(reminder.id)
+                      toast({
+                        title: "Medication Taken",
+                        description: `${reminder.name} marked as taken`,
+                      })
+                    },
+                  },
+                  {
+                    label: "Snooze 5 min",
+                    action: () => {
+                      toast({
+                        title: "Medication Snoozed",
+                        description: "Reminder will show again in 5 minutes",
+                      })
+                    },
+                    variant: "outline"
+                  }
+                ],
+              },
+            })
+          )
+        }
         playMedicationSound(reminder)
       }
     })

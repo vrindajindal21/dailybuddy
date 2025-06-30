@@ -134,6 +134,10 @@ self.addEventListener('message', (event) => {
         }
       };
     });
+  } else if (event.data && event.data.type === 'SCHEDULE_REMINDER' && event.data.reminder && event.data.reminder.type !== 'medication') {
+    const reminder = event.data.reminder;
+    saveGeneralReminderToDB(reminder);
+    scheduleOrFireGeneralReminder(reminder);
   }
 })
 
@@ -208,6 +212,46 @@ async function removeMedicationReminderFromDB(reminderId) {
 
 async function getAllMedicationRemindersFromDB() {
   const db = await openMedicationDB();
+  const tx = db.transaction('reminders', 'readonly');
+  const store = tx.objectStore('reminders');
+  return new Promise((resolve, reject) => {
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// --- IndexedDB Helper for Persistent General Reminders ---
+function openReminderDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ReminderDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('reminders')) {
+        db.createObjectStore('reminders', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveGeneralReminderToDB(reminder) {
+  const db = await openReminderDB();
+  const tx = db.transaction('reminders', 'readwrite');
+  tx.objectStore('reminders').put(reminder);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function removeGeneralReminderFromDB(reminderId) {
+  const db = await openReminderDB();
+  const tx = db.transaction('reminders', 'readwrite');
+  tx.objectStore('reminders').delete(reminderId);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function getAllGeneralRemindersFromDB() {
+  const db = await openReminderDB();
   const tx = db.transaction('reminders', 'readonly');
   const store = tx.objectStore('reminders');
   return new Promise((resolve, reject) => {
@@ -752,9 +796,14 @@ self.addEventListener("activate", (event) => {
         }
       }
       // Restore medication reminders from DB
-      const reminders = await getAllMedicationRemindersFromDB()
-      for (const reminder of reminders) {
+      const medReminders = await getAllMedicationRemindersFromDB()
+      for (const reminder of medReminders) {
         scheduleOrFireMedicationReminder(reminder)
+      }
+      // Restore general reminders from DB
+      const genReminders = await getAllGeneralRemindersFromDB()
+      for (const reminder of genReminders) {
+        scheduleOrFireGeneralReminder(reminder)
       }
       // ... existing keep-alive ...
     })()
@@ -816,6 +865,70 @@ function handleMedicationReminder(reminder) {
               message: notificationBody,
               actions: [
                 { label: "Mark as Taken", action: "taken" },
+                { label: "Snooze 5 min", action: "snooze", variant: "outline" }
+              ]
+            }
+          });
+        });
+      });
+    }
+  });
+}
+
+// --- General Reminder Scheduling ---
+async function scheduleOrFireGeneralReminder(reminder) {
+  const now = Date.now();
+  const scheduledTime = new Date(reminder.scheduledTime).getTime();
+  if (reminder.completed) return;
+  if (scheduledTime <= now) {
+    // If overdue, fire immediately
+    handleReminderNotification(reminder);
+  } else {
+    // Otherwise, schedule with setTimeout (while SW is alive)
+    const timeout = scheduledTime - now;
+    setTimeout(() => handleReminderNotification(reminder), timeout);
+  }
+}
+
+// --- General Reminder Notification Handler ---
+function handleReminderNotification(reminder) {
+  const dedupeKey = `reminder-shown-${reminder.id}-${reminder.scheduledTime}`;
+  self.caches.open('reminder-dedupe').then(async (cache) => {
+    const match = await cache.match(dedupeKey);
+    if (!match) {
+      await cache.put(dedupeKey, new Response('1'));
+      const notificationTitle = `⏰ ${reminder.title || 'Reminder'}`;
+      const notificationBody = reminder.description || 'Time for your reminder!';
+      const options = {
+        body: notificationBody,
+        icon: "/android-chrome-192x192.png",
+        badge: "/android-chrome-192x192.png",
+        tag: dedupeKey,
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        silent: false,
+        data: {
+          url: "/dashboard/reminders",
+          type: "reminder",
+          reminderId: reminder.id,
+        },
+        actions: [
+          { action: "done", title: "Mark as Done" },
+          { action: "snooze", title: "Snooze 5 min" }
+        ]
+      };
+      self.registration.showNotification(notificationTitle, options);
+      // Post message to all clients for in-app popup
+      self.clients.matchAll({ includeUncontrolled: true, type: "window" }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: "show-popup",
+            detail: {
+              type: "reminder-due",
+              title: notificationTitle,
+              message: notificationBody,
+              actions: [
+                { label: "Mark as Done", action: "done" },
                 { label: "Snooze 5 min", action: "snooze", variant: "outline" }
               ]
             }
