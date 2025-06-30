@@ -735,6 +735,16 @@ export default function MedicationsPage() {
       // Remove from medication manager
       MedicationManager.deleteMedication(id)
 
+      // Remove all related notification IDs from notification sync state
+      const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
+      const syncState = JSON.parse(localStorage.getItem(syncKey) || '{}');
+      Object.keys(syncState).forEach((notifId) => {
+        if (notifId.startsWith(id + '-')) {
+          delete syncState[notifId];
+        }
+      });
+      localStorage.setItem(syncKey, JSON.stringify(syncState));
+
       toast({
         title: "Medication deleted",
         description: "Your medication has been deleted and reminders cancelled.",

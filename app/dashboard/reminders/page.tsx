@@ -479,6 +479,16 @@ export default function RemindersPage() {
   const deleteReminder = (id: string | number) => {
     ReminderManager.removeReminder(id)
     loadReminders()
+
+    // Remove related notification ID from notification sync state
+    const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
+    const syncState = JSON.parse(localStorage.getItem(syncKey) || '{}');
+    Object.keys(syncState).forEach((notifId) => {
+      if (notifId.startsWith(id + '-')) {
+        delete syncState[notifId];
+      }
+    });
+    localStorage.setItem(syncKey, JSON.stringify(syncState));
   }
 
   const completeReminder = (id: string | number) => {
