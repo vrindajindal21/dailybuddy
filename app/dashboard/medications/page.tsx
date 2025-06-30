@@ -583,56 +583,6 @@ export default function MedicationsPage() {
   };
 
   const addMedication = useCallback(() => {
-    let hasErrors = false
-    const errorFields = []
-
-    if (!newMedication.name.trim()) {
-      hasErrors = true
-      errorFields.push("name")
-      toast({
-        title: "Error",
-        description: "Medication name is required",
-        variant: "destructive",
-      })
-    }
-
-    if (!newMedication.dosage.trim()) {
-      hasErrors = true
-      errorFields.push("dosage")
-      toast({
-        title: "Error",
-        description: "Medication dosage is required",
-        variant: "destructive",
-      })
-    }
-
-    if (hasErrors) {
-      // Highlight the error fields
-      errorFields.forEach((field) => {
-        const element = document.getElementById(field)
-        if (element) {
-          element.setAttribute("data-error", "true")
-          element.classList.add("border-red-500", "focus:ring-red-500")
-
-          // Remove error styling after 3 seconds or on input
-          element.addEventListener("input", function onInput() {
-            element.removeAttribute("data-error")
-            element.classList.remove("border-red-500", "focus:ring-red-500")
-            element.removeEventListener("input", onInput)
-          })
-
-          setTimeout(() => {
-            if (element.getAttribute("data-error")) {
-              element.removeAttribute("data-error")
-              element.classList.remove("border-red-500", "focus:ring-red-500")
-            }
-          }, 3000)
-        }
-      })
-
-      return
-    }
-
     const medication = {
       id: Date.now(),
       name: newMedication.name,
@@ -649,8 +599,6 @@ export default function MedicationsPage() {
       notes: newMedication.notes,
     }
 
-    console.log('[Medication] Adding medication:', medication);
-
     // Mark notification as shown only if the scheduled time is now or in the past
     const now = new Date();
     const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
@@ -660,11 +608,12 @@ export default function MedicationsPage() {
       const scheduleTime = new Date(now);
       scheduleTime.setHours(hours, minutes, 0, 0);
       const notificationId = `${medication.id}-${scheduleTime.toISOString().split('T')[0]}-${scheduleTime.getHours()}-${scheduleTime.getMinutes()}`;
-      if (scheduleTime <= now) {
+      // Only mark as shown if the time is more than 5 minutes in the past
+      if (scheduleTime.getTime() < now.getTime() - 5 * 60 * 1000) {
         syncState[notificationId] = {
           timestamp: now.getTime(),
           deviceId: localStorage.getItem('deviceId') || 'unknown',
-          title: `💊 Time to take ${medication.name}`,
+          title: `🍊 Time to take ${medication.name}`,
           type: 'medication'
         };
         console.log('[Medication] Marked as already shown on add:', notificationId);
@@ -673,11 +622,10 @@ export default function MedicationsPage() {
     localStorage.setItem(syncKey, JSON.stringify(syncState));
 
     setMedications((prev) => {
-      const updated = [...prev, medication]
-      localStorage.setItem("medications", JSON.stringify(updated))
-      updateTodaysAndUpcomingMedications();
-      return updated
-    })
+      const updated = [...prev, medication];
+      localStorage.setItem("medications", JSON.stringify(updated));
+      return updated;
+    });
     setNewMedication({
       id: 0,
       name: "",
@@ -694,18 +642,16 @@ export default function MedicationsPage() {
       startDate: format(new Date(), "yyyy-MM-dd"),
       endDate: "",
       notes: "",
-    })
-    setIsAddDialogOpen(false)
-
+    });
+    setIsAddDialogOpen(false);
     toast({
       title: "Medication added",
       description: "Your medication has been added successfully.",
-    })
+    });
     setTimeout(() => {
-      console.log('[Medication] Medications after add:', JSON.parse(localStorage.getItem('medications') || '[]'));
       updateTodaysAndUpcomingMedications();
     }, 100);
-  }, [newMedication, toast, updateTodaysAndUpcomingMedications])
+  }, [newMedication, toast, updateTodaysAndUpcomingMedications]);
 
   const updateMedication = useCallback(() => {
     if (!editingMedication) return;
@@ -781,13 +727,15 @@ export default function MedicationsPage() {
       notes: editingMedication.notes,
     }
 
-    setMedications((prev) =>
-      prev.map((medication) =>
+    setMedications((prev) => {
+      const updated = prev.map((medication) =>
         medication.id === editingMedication.id
           ? updatedMedication
           : medication,
-      ),
-    )
+      );
+      localStorage.setItem("medications", JSON.stringify(updated));
+      return updated;
+    });
     setIsEditDialogOpen(false)
     toast({
       title: "Medication updated",

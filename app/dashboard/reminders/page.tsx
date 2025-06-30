@@ -340,8 +340,22 @@ export default function RemindersPage() {
   }, [isMounted]);
 
   const loadReminders = () => {
-    const allReminders = ReminderManager.getAllReminders()
-    setReminders(allReminders.filter(r => r.type !== 'medication'))
+    // Always load from localStorage for latest state
+    const saved = localStorage.getItem('app_reminders');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved).map((r: any) => ({
+          ...r,
+          scheduledTime: new Date(r.scheduledTime),
+          completedAt: r.completedAt ? new Date(r.completedAt) : undefined
+        }));
+        setReminders(parsed.filter((r: any) => r.type !== 'medication'));
+        return;
+      } catch {}
+    }
+    // Fallback to ReminderManager if localStorage is empty or fails
+    const allReminders = ReminderManager.getAllReminders();
+    setReminders(allReminders.filter(r => r.type !== 'medication'));
   }
 
   const resetForm = () => {
@@ -467,7 +481,8 @@ export default function RemindersPage() {
           }
         );
       }
-      loadReminders()
+      // Always reload reminders from localStorage after update
+      loadReminders();
       setIsDialogOpen(false)
       resetForm()
     } catch (error) {

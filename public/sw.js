@@ -85,8 +85,48 @@ self.addEventListener('message', (event) => {
   }
 })
 
+// --- IndexedDB Helper for Persistent Timers ---
+function openPomodoroDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('PomodoroDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('timers')) {
+        db.createObjectStore('timers', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveTimerToDB(timer) {
+  const db = await openPomodoroDB();
+  const tx = db.transaction('timers', 'readwrite');
+  tx.objectStore('timers').put(timer);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function removeTimerFromDB(timerId) {
+  const db = await openPomodoroDB();
+  const tx = db.transaction('timers', 'readwrite');
+  tx.objectStore('timers').delete(timerId);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function getAllTimersFromDB() {
+  const db = await openPomodoroDB();
+  const tx = db.transaction('timers', 'readonly');
+  const store = tx.objectStore('timers');
+  return new Promise((resolve, reject) => {
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 // Pomodoro Timer Functions
-function startBackgroundTimer(timerData) {
+async function startBackgroundTimer(timerData) {
   const timerId = `pomodoro-${Date.now()}`
   const timer = {
     id: timerId,
@@ -101,35 +141,31 @@ function startBackgroundTimer(timerData) {
   }
 
   backgroundTimers.set(timerId, timer)
-  
+  await saveTimerToDB(timer)
   // Set up the countdown - this runs independently in service worker
-  const countdown = setInterval(() => {
+  const countdown = setInterval(async () => {
     const currentTimer = backgroundTimers.get(timerId)
     if (!currentTimer || !currentTimer.isActive || currentTimer.isPaused) {
       clearInterval(countdown)
       return
     }
-
     currentTimer.timeLeft -= 1
     backgroundTimers.set(timerId, currentTimer)
-
+    await saveTimerToDB(currentTimer)
     // Send regular updates to main app (every second)
     sendTimerTick(currentTimer)
-
     // Check if timer is complete
     if (currentTimer.timeLeft <= 0) {
       clearInterval(countdown)
       handleTimerComplete(currentTimer)
       backgroundTimers.delete(timerId)
+      await removeTimerFromDB(timerId)
     }
   }, 1000)
-
   // Store the interval reference
   timer.countdownInterval = countdown
   backgroundTimers.set(timerId, timer)
-
   console.log('[SW] Background Pomodoro timer started (Primary Timer):', timer)
-  
   // Send initial state to main app
   sendTimerTick(timer)
 }
@@ -159,30 +195,33 @@ function sendTimerSync(timerId) {
   }
 }
 
-function stopBackgroundTimer(timerId) {
+async function stopBackgroundTimer(timerId) {
   const timer = backgroundTimers.get(timerId)
   if (timer && timer.countdownInterval) {
     clearInterval(timer.countdownInterval)
   }
   backgroundTimers.delete(timerId)
+  await removeTimerFromDB(timerId)
   console.log('[SW] Background Pomodoro timer stopped:', timerId)
 }
 
-function pauseBackgroundTimer(timerId) {
+async function pauseBackgroundTimer(timerId) {
   const timer = backgroundTimers.get(timerId)
   if (timer) {
     timer.isPaused = true
     backgroundTimers.set(timerId, timer)
+    await saveTimerToDB(timer)
     console.log('[SW] Background Pomodoro timer paused:', timerId)
     sendTimerTick(timer)
   }
 }
 
-function resumeBackgroundTimer(timerId) {
+async function resumeBackgroundTimer(timerId) {
   const timer = backgroundTimers.get(timerId)
   if (timer) {
     timer.isPaused = false
     backgroundTimers.set(timerId, timer)
+    await saveTimerToDB(timer)
     console.log('[SW] Background Pomodoro timer resumed:', timerId)
     sendTimerTick(timer)
   }
@@ -594,3 +633,33 @@ function startKeepAlive() {
     }
   }, 10000) // Every 10 seconds
 }
+
+self.addEventListener("activate", (event) => {
+  console.log('[sw.js] Service Worker activating...')
+  event.waitUntil(
+    (async () => {
+      // ... existing cache cleanup ...
+      // Restore timers from DB
+      const timers = await getAllTimersFromDB()
+      const now = Date.now()
+      for (const timer of timers) {
+        // If timer should have completed while app was closed, fire notification
+        if (timer.isActive && !timer.isPaused) {
+          const elapsed = Math.floor((now - timer.startTime) / 1000)
+          const timeLeft = timer.duration - elapsed
+          if (timeLeft <= 0) {
+            handleTimerComplete(timer)
+            await removeTimerFromDB(timer.id)
+            backgroundTimers.delete(timer.id)
+          } else {
+            timer.timeLeft = timeLeft
+            backgroundTimers.set(timer.id, timer)
+            // Resume countdown
+            startBackgroundTimer({ ...timer, startTime: timer.startTime, duration: timeLeft })
+          }
+        }
+      }
+      // ... existing keep-alive ...
+    })()
+  )
+})
