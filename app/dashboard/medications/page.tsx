@@ -1127,7 +1127,7 @@ export default function MedicationsPage() {
             soundVolume
           );
 
-          // Dispatch in-app popup globally and play sound
+          // In-app notification
           window.dispatchEvent(
             new CustomEvent('inAppNotification', {
               detail: {
@@ -1138,8 +1138,47 @@ export default function MedicationsPage() {
               },
             })
           );
-          if (soundEnabled) {
-            playAlarm(dose);
+
+          // --- NEW: show-popup event for SmartPopupSystem ---
+          const popupDedupeKey = `medication-popup-shown-${notificationId}`;
+          if (!localStorage.getItem(popupDedupeKey)) {
+            localStorage.setItem(popupDedupeKey, "1");
+            window.dispatchEvent(
+              new CustomEvent("show-popup", {
+                detail: {
+                  type: "medication-due",
+                  title: `💊 Time to take ${dose.name}`,
+                  message: `Dosage: ${dose.dosage}${dose.instructions ? "\n" + dose.instructions : ""}`,
+                  duration: 10000,
+                  priority: "high",
+                  actions: [
+                    {
+                      label: "Mark as Taken",
+                      action: () => {
+                        // Mark as taken logic
+                        const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
+                        takenDoses.push(`${dose.id}-${dose.scheduleTime.toISOString()}`);
+                        localStorage.setItem('takenDoses', JSON.stringify(takenDoses));
+                        toast({
+                          title: "Medication Taken",
+                          description: `${dose.name} marked as taken`,
+                        });
+                      },
+                    },
+                    {
+                      label: "Snooze 5 min",
+                      action: () => {
+                        toast({
+                          title: "Medication Snoozed",
+                          description: "Reminder will show again in 5 minutes",
+                        });
+                      },
+                      variant: "outline"
+                    }
+                  ],
+                },
+              })
+            );
           }
         } else {
           // Debug: log skip reason

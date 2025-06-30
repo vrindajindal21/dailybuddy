@@ -82,6 +82,8 @@ self.addEventListener('message', (event) => {
     removeBackgroundReminder(event.data.reminderId)
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER') {
     completeBackgroundReminder(event.data.reminderId)
+  } else if (event.data && event.data.type === 'SCHEDULE_REMINDER' && event.data.reminder && event.data.reminder.type === 'medication') {
+    handleMedicationReminder(event.data.reminder)
   }
 })
 
@@ -663,3 +665,48 @@ self.addEventListener("activate", (event) => {
     })()
   )
 })
+
+// Add a handler for medication reminders similar to Pomodoro
+function handleMedicationReminder(reminder) {
+  const notificationTitle = `💊 Time to take ${reminder.name || reminder.title}`;
+  const notificationBody = `Dosage: ${reminder.dosage || ''}${reminder.instructions ? '\n' + reminder.instructions : ''}`;
+  const options = {
+    body: notificationBody,
+    icon: "/android-chrome-192x192.png",
+    badge: "/android-chrome-192x192.png",
+    tag: `medication-${reminder.id}`,
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
+    silent: false,
+    data: {
+      url: "/dashboard/medications",
+      type: "medication",
+      reminderId: reminder.id
+    },
+    actions: [
+      {
+        action: "taken",
+        title: "✅ Taken"
+      },
+      {
+        action: "snooze",
+        title: "⏰ Snooze"
+      },
+      {
+        action: "view",
+        title: "👁 View"
+      }
+    ]
+  };
+  self.registration.showNotification(notificationTitle, options);
+  // Also send a message to any open clients for in-app popups
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'MEDICATION_REMINDER',
+        reminder: reminder
+      });
+    });
+  });
+  console.log('[SW] Medication reminder notification shown:', reminder);
+}

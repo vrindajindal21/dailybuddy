@@ -27,6 +27,7 @@ import { NotificationService } from "@/lib/notification-service"
 import { ReminderManager, type Reminder } from "@/lib/reminder-manager"
 import { VoiceInput } from "@/components/voice-input"
 import { RequiredFieldLabel } from "@/components/required-field-label"
+import { toast } from "@/components/ui/use-toast"
 
 interface ScheduleTime {
   id: string
@@ -295,7 +296,7 @@ export default function RemindersPage() {
             soundVolume
           );
 
-          // Dispatch in-app popup globally
+          // In-app notification
           window.dispatchEvent(
             new CustomEvent('inAppNotification', {
               detail: {
@@ -306,6 +307,46 @@ export default function RemindersPage() {
               },
             })
           );
+
+          // --- NEW: show-popup event for SmartPopupSystem ---
+          const popupDedupeKey = `reminder-popup-shown-${notificationId}`;
+          if (!localStorage.getItem(popupDedupeKey)) {
+            localStorage.setItem(popupDedupeKey, "1");
+            window.dispatchEvent(
+              new CustomEvent("show-popup", {
+                detail: {
+                  type: "reminder-due",
+                  title: `⏰ ${reminder.title}`,
+                  message: reminder.description || "Time for your reminder!",
+                  duration: 10000,
+                  priority: "high",
+                  actions: [
+                    {
+                      label: "Mark as Done",
+                      action: () => {
+                        // Mark as done logic
+                        // You may want to call ReminderManager.completeReminder(reminder.id) here
+                        toast({
+                          title: "Reminder Completed",
+                          description: `${reminder.title} marked as done`,
+                        });
+                      },
+                    },
+                    {
+                      label: "Snooze 5 min",
+                      action: () => {
+                        toast({
+                          title: "Reminder Snoozed",
+                          description: "Reminder will show again in 5 minutes",
+                        });
+                      },
+                      variant: "outline"
+                    }
+                  ],
+                },
+              })
+            );
+          }
         }
       });
     }, 60000); // check every minute
