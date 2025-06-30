@@ -136,8 +136,8 @@ export default function MedicationsPage() {
     alarmSound: "bell",
     alarmVolume: 70,
     color: "blue",
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: null,
+    startDate: format(new Date(), "yyyy-MM-dd"),
+    endDate: "",
     notes: "",
   })
 
@@ -644,17 +644,40 @@ export default function MedicationsPage() {
       alarmSound: newMedication.alarmSound,
       alarmVolume: newMedication.alarmVolume,
       color: newMedication.color,
-      startDate: typeof newMedication.startDate === 'string' ? newMedication.startDate : format(newMedication.startDate, "yyyy-MM-dd"),
-      endDate: newMedication.endDate ? (typeof newMedication.endDate === 'string' ? newMedication.endDate : format(newMedication.endDate, "yyyy-MM-dd")) : null,
+      startDate: newMedication.startDate ? format(new Date(newMedication.startDate), "yyyy-MM-dd") : "",
+      endDate: newMedication.endDate ? format(new Date(newMedication.endDate), "yyyy-MM-dd") : "",
       notes: newMedication.notes,
     }
 
-    // Add to local state
-    setMedications((prev) => [...prev, medication])
-    
-    // Add to medication manager for background scheduling
-    MedicationManager.addMedication(medication)
-    
+    console.log('[Medication] Adding medication:', medication);
+
+    // Mark notification as shown only if the scheduled time is now or in the past
+    const now = new Date();
+    const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
+    const syncState = JSON.parse(localStorage.getItem(syncKey) || '{}');
+    medication.schedule.forEach((schedule) => {
+      const [hours, minutes] = schedule.time.split(":").map(Number);
+      const scheduleTime = new Date(now);
+      scheduleTime.setHours(hours, minutes, 0, 0);
+      const notificationId = `${medication.id}-${scheduleTime.toISOString().split('T')[0]}-${scheduleTime.getHours()}-${scheduleTime.getMinutes()}`;
+      if (scheduleTime <= now) {
+        syncState[notificationId] = {
+          timestamp: now.getTime(),
+          deviceId: localStorage.getItem('deviceId') || 'unknown',
+          title: `💊 Time to take ${medication.name}`,
+          type: 'medication'
+        };
+        console.log('[Medication] Marked as already shown on add:', notificationId);
+      }
+    });
+    localStorage.setItem(syncKey, JSON.stringify(syncState));
+
+    setMedications((prev) => {
+      const updated = [...prev, medication]
+      localStorage.setItem("medications", JSON.stringify(updated))
+      updateTodaysAndUpcomingMedications();
+      return updated
+    })
     setNewMedication({
       id: 0,
       name: "",
@@ -668,23 +691,28 @@ export default function MedicationsPage() {
       alarmSound: "bell",
       alarmVolume: 70,
       color: "blue",
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: null,
+      startDate: format(new Date(), "yyyy-MM-dd"),
+      endDate: "",
       notes: "",
     })
     setIsAddDialogOpen(false)
 
     toast({
       title: "Medication added",
-      description: "Your medication has been added successfully with background reminders.",
+      description: "Your medication has been added successfully.",
     })
-  }, [newMedication, toast])
+    setTimeout(() => {
+      console.log('[Medication] Medications after add:', JSON.parse(localStorage.getItem('medications') || '[]'));
+      updateTodaysAndUpcomingMedications();
+    }, 100);
+  }, [newMedication, toast, updateTodaysAndUpcomingMedications])
 
   const updateMedication = useCallback(() => {
+    if (!editingMedication) return;
     let hasErrors = false
     const errorFields = []
 
-    if (!editingMedication || !editingMedication.name || !editingMedication.name.trim()) {
+    if (!editingMedication || !editingMedication.name.trim()) {
       hasErrors = true
       errorFields.push("edit-name")
       toast({
@@ -694,7 +722,7 @@ export default function MedicationsPage() {
       })
     }
 
-    if (!editingMedication || !editingMedication.dosage || !editingMedication.dosage.trim()) {
+    if (!editingMedication || !editingMedication.dosage.trim()) {
       hasErrors = true
       errorFields.push("edit-dosage")
       toast({
@@ -705,20 +733,16 @@ export default function MedicationsPage() {
     }
 
     if (hasErrors) {
-      // Highlight the error fields
       errorFields.forEach((field) => {
         const element = document.getElementById(field)
         if (element) {
           element.setAttribute("data-error", "true")
           element.classList.add("border-red-500", "focus:ring-red-500")
-
-          // Remove error styling after 3 seconds or on input
           element.addEventListener("input", function onInput() {
             element.removeAttribute("data-error")
             element.classList.remove("border-red-500", "focus:ring-red-500")
             element.removeEventListener("input", onInput)
           })
-
           setTimeout(() => {
             if (element.getAttribute("data-error")) {
               element.removeAttribute("data-error")
@@ -727,14 +751,22 @@ export default function MedicationsPage() {
           }, 3000)
         }
       })
-
       return
     }
 
-    if (!editingMedication) return
+    // Remove old notification IDs from sync state
+    const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
+    const syncState = JSON.parse(localStorage.getItem(syncKey) || '{}');
+    Object.keys(syncState).forEach((notifId) => {
+      if (notifId.startsWith(editingMedication.id + '-')) {
+        delete syncState[notifId];
+        console.log('[Medication] Removed old notificationId on edit:', notifId);
+      }
+    });
+    localStorage.setItem(syncKey, JSON.stringify(syncState));
 
-    const updatedMedication: MedicationType = {
-      id: editingMedication.id,
+    const updatedMedication = {
+      ...editingMedication,
       name: editingMedication.name,
       dosage: editingMedication.dosage,
       instructions: editingMedication.instructions,
@@ -744,36 +776,27 @@ export default function MedicationsPage() {
       alarmSound: editingMedication.alarmSound,
       alarmVolume: editingMedication.alarmVolume,
       color: editingMedication.color,
-      startDate: typeof editingMedication.startDate === 'string'
-        ? editingMedication.startDate
-        : format(editingMedication.startDate, "yyyy-MM-dd"),
-      endDate: editingMedication.endDate
-        ? (typeof editingMedication.endDate === 'string'
-            ? editingMedication.endDate
-            : format(editingMedication.endDate, "yyyy-MM-dd"))
-        : null,
+      startDate: editingMedication.startDate ? format(new Date(editingMedication.startDate), "yyyy-MM-dd") : "",
+      endDate: editingMedication.endDate ? format(new Date(editingMedication.endDate), "yyyy-MM-dd") : "",
       notes: editingMedication.notes,
     }
 
-    // Update local state
     setMedications((prev) =>
-      prev.map((medication: MedicationType) =>
+      prev.map((medication) =>
         medication.id === editingMedication.id
           ? updatedMedication
           : medication,
       ),
     )
-    
-    // Update in medication manager for background scheduling
-    MedicationManager.updateMedication(editingMedication.id, updatedMedication)
-
     setIsEditDialogOpen(false)
-
     toast({
       title: "Medication updated",
-      description: "Your medication has been updated successfully with background reminders.",
+      description: "Your medication has been updated successfully.",
     })
-  }, [editingMedication, toast])
+    setTimeout(() => {
+      updateTodaysAndUpcomingMedications();
+    }, 100);
+  }, [editingMedication, toast, updateTodaysAndUpcomingMedications])
 
   const deleteMedication = useCallback(
     (id: number) => {
@@ -803,8 +826,8 @@ export default function MedicationsPage() {
   const startEditMedication = useCallback((medication: MedicationType) => {
     setEditingMedication({
       ...medication,
-      startDate: typeof medication.startDate === 'string' ? medication.startDate : format(medication.startDate, "yyyy-MM-dd"),
-      endDate: medication.endDate ? (typeof medication.endDate === 'string' ? medication.endDate : format(medication.endDate, "yyyy-MM-dd")) : '',
+      startDate: medication.startDate ? format(new Date(medication.startDate), "yyyy-MM-dd") : "",
+      endDate: medication.endDate ? format(new Date(medication.endDate), "yyyy-MM-dd") : "",
     })
     setIsEditDialogOpen(true)
   }, [])
@@ -1049,7 +1072,7 @@ export default function MedicationsPage() {
       : new Date();
 
     // Debug log current state
-    console.log('Current medications:', todaysMedications.map(med => ({
+    console.log('[Medication] Current medications:', todaysMedications.map(med => ({
       name: med.name,
       scheduleTime: med.scheduleTime,
       notificationsEnabled: med.notificationsEnabled
@@ -1069,8 +1092,8 @@ export default function MedicationsPage() {
       const now = new Date();
       const lastCheck = lastCheckTimeRef.current;
       // Debug log check times
-      console.log('Checking medications at:', now.toISOString());
-      console.log('Last check was at:', lastCheck.toISOString());
+      console.log('[Medication] Checking medications at:', now.toISOString());
+      console.log('[Medication] Last check was at:', lastCheck.toISOString());
 
       // Skip the first run to avoid spamming notifications on load
       if (isFirstRun) {
@@ -1106,7 +1129,7 @@ export default function MedicationsPage() {
 
         // Debug log notification check
         if (becameDueSinceLastCheck && isToday) {
-          console.log('Potential notification for:', {
+          console.log('[Medication] Potential notification for:', {
             name: dose.name,
             scheduleTime: dose.scheduleTime,
             notificationId,
@@ -1116,13 +1139,6 @@ export default function MedicationsPage() {
           });
         }
 
-        // Only show notification if:
-        // 1. Notifications are enabled
-        // 2. The dose became due since our last check
-        // 3. We haven't shown this notification before
-        // 4. This is today's dose
-        // 5. The dose isn't too old
-        // 6. The dose wasn't scheduled before this device was synced
         if (
           dose.notificationsEnabled &&
           becameDueSinceLastCheck &&
@@ -1134,7 +1150,7 @@ export default function MedicationsPage() {
           Notification.permission === "granted"
         ) {
           // Debug log actual notification
-          console.log('Showing notification for:', {
+          console.log('[Medication] Showing notification for:', {
             name: dose.name,
             scheduleTime: dose.scheduleTime,
             notificationId
@@ -1142,7 +1158,7 @@ export default function MedicationsPage() {
 
           // Play notification sound if enabled (for both browser and in-app)
           if (soundEnabled) {
-            playNotificationSound();
+            playAlarm(dose);
           }
 
           NotificationService.showNotification(
@@ -1175,8 +1191,18 @@ export default function MedicationsPage() {
             })
           );
           if (soundEnabled) {
-            playNotificationSound();
+            playAlarm(dose);
           }
+        } else {
+          // Debug: log skip reason
+          if (!dose.notificationsEnabled) console.log('[Medication] Skipped: notifications disabled');
+          if (!becameDueSinceLastCheck) console.log('[Medication] Skipped: not due since last check');
+          if (!isToday) console.log('[Medication] Skipped: not today');
+          if (isAlreadyShown) console.log('[Medication] Skipped: already shown');
+          if (isTooOld) console.log('[Medication] Skipped: too old');
+          if (isBeforeDeviceSync) console.log('[Medication] Skipped: before device sync');
+          if (!NotificationService.isSupported()) console.log('[Medication] Skipped: notifications not supported');
+          if (Notification.permission !== "granted") console.log('[Medication] Skipped: permission not granted');
         }
       });
     }, 60000); // check every minute

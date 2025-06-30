@@ -62,7 +62,9 @@ self.addEventListener('periodicsync', (event) => {
 
 // Handle messages from the main app
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'POMODORO_TIMER_START') {
+  console.log('[SW] Received message:', event.data)
+  if (event.data && event.data.type === "POMODORO_TIMER_START") {
+    console.log('[SW] Starting background Pomodoro timer:', event.data.timer)
     startBackgroundTimer(event.data.timer)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_STOP') {
     stopBackgroundTimer(event.data.timerId)

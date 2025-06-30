@@ -129,10 +129,13 @@ export class PomodoroManager {
 
   static sendToServiceWorker(type: string, data: any) {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      console.log('[PomodoroManager] Sending to SW:', type, data)
       navigator.serviceWorker.controller.postMessage({
         type,
         ...data
       })
+    } else {
+      console.warn('[PomodoroManager] No SW controller!')
     }
   }
 
