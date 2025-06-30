@@ -310,6 +310,9 @@ export default function MedicationsPage() {
             date: new Date(now),
           };
 
+          // Filter out taken doses
+          if (isDoseTaken(medicationDue)) return;
+
           if (scheduleTime > now) {
             upcomingMeds.push(medicationDue);
           } else {
@@ -327,17 +330,12 @@ export default function MedicationsPage() {
     setUpcomingMedications(upcomingMeds);
   }, [isMounted, medications, formatTime]);
 
-  // Call the new update function when medications change
+  // Call the new update function when medications change or on mount
   useEffect(() => {
-    if (isMounted && medicationsInitialized) {
-      try {
-        localStorage.setItem("medications", JSON.stringify(medications))
-      } catch (e) {
-        console.error("Error saving medications to localStorage:", e)
-      }
+    if (isMounted) {
       updateTodaysAndUpcomingMedications();
     }
-  }, [medications, isMounted, medicationsInitialized, updateTodaysAndUpcomingMedications]);
+  }, [medications, isMounted, updateTodaysAndUpcomingMedications]);
 
   // Save time format preference
   useEffect(() => {
