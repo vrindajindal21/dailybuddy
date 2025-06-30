@@ -246,21 +246,86 @@ export default function MedicationsPage() {
     }
   }, [isMounted])
 
-  // Update today's and upcoming medications (split by time)
+  // Format time based on user preference (12h or 24h)
+  const formatTime = useCallback(
+    (timeString: string) => {
+      if (!use12HourFormat) return timeString // Return 24h format as is
+
+      try {
+        // Parse the 24h time string
+        const date = parse(timeString, "HH:mm", new Date())
+        // Format as 12h time with AM/PM
+        return format(date, "h:mm a")
+      } catch (error) {
+        console.error("Error formatting time:", error)
+        return timeString
+      }
+    },
+    [use12HourFormat],
+  )
+
+  // Refined function to update today's and upcoming medications
   const updateTodaysAndUpcomingMedications = useCallback(() => {
     if (!isMounted) return;
+
     const now = new Date();
-    const todayDateStr = now.toISOString().split('T')[0];
-    const allTodayDoses = getAllScheduledDoses(1).filter(dose => {
-      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
-      return doseDateStr === todayDateStr;
+    const today =
+      now.getDay() === 0
+        ? "sunday"
+        : now.getDay() === 1
+        ? "monday"
+        : now.getDay() === 2
+        ? "tuesday"
+        : now.getDay() === 3
+        ? "wednesday"
+        : now.getDay() === 4
+        ? "thursday"
+        : now.getDay() === 5
+        ? "friday"
+        : "saturday";
+
+    const todaysMeds: ScheduledDose[] = [];
+    const upcomingMeds: ScheduledDose[] = [];
+
+    medications.forEach((medication) => {
+      // Check if medication is active based on start/end dates
+      const startDate = medication.startDate ? new Date(medication.startDate) : null;
+      const endDate = medication.endDate ? new Date(medication.endDate) : null;
+
+      if (startDate && startDate > now) return;
+      if (endDate && endDate < now) return;
+
+      medication.schedule.forEach((schedule) => {
+        if (schedule.days.includes(today)) {
+          const [hours, minutes] = schedule.time.split(":").map(Number);
+          const scheduleTime = new Date(now);
+          scheduleTime.setHours(hours, minutes, 0, 0);
+
+          const medicationDue: ScheduledDose = {
+            ...medication,
+            dueTime: schedule.time,
+            formattedTime: formatTime(schedule.time),
+            scheduleTime,
+            dayName: today,
+            date: new Date(now),
+          };
+
+          if (scheduleTime > now) {
+            upcomingMeds.push(medicationDue);
+          } else {
+            todaysMeds.push(medicationDue);
+          }
+        }
+      });
     });
-    // Split into past (today) and future (upcoming today)
-    const todays = allTodayDoses.filter(dose => dose.scheduleTime <= now);
-    const upcoming = allTodayDoses.filter(dose => dose.scheduleTime > now);
-    setTodaysMedications(todays);
-    setUpcomingMedications(upcoming);
-  }, [isMounted, medications]);
+
+    // Sort by time (with null checks)
+    todaysMeds.sort((a, b) => (a.scheduleTime && b.scheduleTime ? a.scheduleTime.getTime() - b.scheduleTime.getTime() : 0));
+    upcomingMeds.sort((a, b) => (a.scheduleTime && b.scheduleTime ? a.scheduleTime.getTime() - b.scheduleTime.getTime() : 0));
+
+    setTodaysMedications(todaysMeds);
+    setUpcomingMedications(upcomingMeds);
+  }, [isMounted, medications, formatTime]);
 
   // Call the new update function when medications change
   useEffect(() => {
@@ -516,24 +581,6 @@ export default function MedicationsPage() {
     const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
     return takenDoses.includes(`${dose.id}-${dose.scheduleTime.toISOString()}`);
   };
-
-  // Format time based on user preference (12h or 24h)
-  const formatTime = useCallback(
-    (timeString: string) => {
-      if (!use12HourFormat) return timeString // Return 24h format as is
-
-      try {
-        // Parse the 24h time string
-        const date = parse(timeString, "HH:mm", new Date())
-        // Format as 12h time with AM/PM
-        return format(date, "h:mm a")
-      } catch (error) {
-        console.error("Error formatting time:", error)
-        return timeString
-      }
-    },
-    [use12HourFormat],
-  )
 
   const addMedication = useCallback(() => {
     let hasErrors = false
