@@ -115,7 +115,25 @@ self.addEventListener('message', (event) => {
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER') {
     completeBackgroundReminder(event.data.reminderId)
   } else if (event.data && event.data.type === 'SCHEDULE_REMINDER' && event.data.reminder && event.data.reminder.type === 'medication') {
-    handleMedicationReminder(event.data.reminder)
+    const reminder = event.data.reminder;
+    saveMedicationReminderToDB(reminder);
+    scheduleOrFireMedicationReminder(reminder);
+  } else if (event.data && event.data.type === 'REMOVE_REMINDER' && event.data.reminderId) {
+    removeMedicationReminderFromDB(event.data.reminderId);
+  } else if (event.data && event.data.type === 'COMPLETE_REMINDER' && event.data.reminderId) {
+    // Mark as completed in DB
+    openMedicationDB().then(db => {
+      const tx = db.transaction('reminders', 'readwrite');
+      const store = tx.objectStore('reminders');
+      const req = store.get(event.data.reminderId);
+      req.onsuccess = () => {
+        const reminder = req.result;
+        if (reminder) {
+          reminder.completed = true;
+          store.put(reminder);
+        }
+      };
+    });
   }
 })
 
@@ -152,6 +170,46 @@ async function getAllTimersFromDB() {
   const db = await openPomodoroDB();
   const tx = db.transaction('timers', 'readonly');
   const store = tx.objectStore('timers');
+  return new Promise((resolve, reject) => {
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// --- IndexedDB Helper for Persistent Medication Reminders ---
+function openMedicationDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('MedicationDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('reminders')) {
+        db.createObjectStore('reminders', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveMedicationReminderToDB(reminder) {
+  const db = await openMedicationDB();
+  const tx = db.transaction('reminders', 'readwrite');
+  tx.objectStore('reminders').put(reminder);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function removeMedicationReminderFromDB(reminderId) {
+  const db = await openMedicationDB();
+  const tx = db.transaction('reminders', 'readwrite');
+  tx.objectStore('reminders').delete(reminderId);
+  return tx.complete || tx.done || new Promise((res) => tx.oncomplete = res);
+}
+
+async function getAllMedicationRemindersFromDB() {
+  const db = await openMedicationDB();
+  const tx = db.transaction('reminders', 'readonly');
+  const store = tx.objectStore('reminders');
   return new Promise((resolve, reject) => {
     const req = store.getAll();
     req.onsuccess = () => resolve(req.result);
@@ -693,10 +751,30 @@ self.addEventListener("activate", (event) => {
           }
         }
       }
+      // Restore medication reminders from DB
+      const reminders = await getAllMedicationRemindersFromDB()
+      for (const reminder of reminders) {
+        scheduleOrFireMedicationReminder(reminder)
+      }
       // ... existing keep-alive ...
     })()
   )
 })
+
+// --- Medication Reminder Scheduling ---
+async function scheduleOrFireMedicationReminder(reminder) {
+  const now = Date.now();
+  const scheduledTime = new Date(reminder.scheduledTime).getTime();
+  if (reminder.completed) return;
+  if (scheduledTime <= now) {
+    // If overdue, fire immediately
+    handleMedicationReminder(reminder);
+  } else {
+    // Otherwise, schedule with setTimeout (while SW is alive)
+    const timeout = scheduledTime - now;
+    setTimeout(() => handleMedicationReminder(reminder), timeout);
+  }
+}
 
 // Add a handler for medication reminders similar to Pomodoro
 function handleMedicationReminder(reminder) {
