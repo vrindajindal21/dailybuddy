@@ -998,6 +998,10 @@ export default function MedicationsPage() {
       clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
     }
 
+    // On first mount, set lastCheckTimeRef to now and skip the first notification check
+    let isFirstRun = true;
+    lastCheckTimeRef.current = new Date();
+
     // Set up interval to check for due medications every minute
     notificationIntervalRef.current = setInterval(() => {
       const now = new Date();
@@ -1005,6 +1009,13 @@ export default function MedicationsPage() {
       // Debug log check times
       console.log('Checking medications at:', now.toISOString());
       console.log('Last check was at:', lastCheck.toISOString());
+
+      // Skip the first run to avoid spamming notifications on load
+      if (isFirstRun) {
+        isFirstRun = false;
+        lastCheckTimeRef.current = now;
+        return;
+      }
 
       todaysMedications.forEach((dose) => {
         // Create a unique ID for this dose's notification
