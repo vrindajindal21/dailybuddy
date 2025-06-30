@@ -148,8 +148,10 @@ export class ReminderManager {
     this.reminders.set(reminder.id, reminder)
     this.scheduleReminder(reminder)
     this.saveReminders()
-    // Send to service worker for background scheduling
-    this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    // Only send to service worker if not medication
+    if (reminder.type !== 'medication') {
+      this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    }
     return reminder.id
   }
 
@@ -166,8 +168,10 @@ export class ReminderManager {
       this.scheduleReminder(reminder)
     }
     this.saveReminders()
-    // Update in service worker
-    this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    // Only update in service worker if not medication
+    if (reminder.type !== 'medication') {
+      this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    }
     return true
   }
 

@@ -318,10 +318,10 @@ export class MedicationManager {
                 soundVolume: schedule.alarmVolume
               }
               this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
-              // Also add to ReminderManager for in-app notifications
-              ReminderManager.addReminder(reminderObj)
+              // Only add to ReminderManager if you want in-app popups, not for general reminders page
+              // ReminderManager.addReminder(reminderObj) // <-- REMOVE or comment out this line to avoid mixing
               // Dispatch in-app popup (show-popup) for medication
-              if (typeof window !== 'undefined') {
+              if (typeof window !== 'undefined')
                 window.dispatchEvent(
                   new CustomEvent('show-popup', {
                     detail: {
@@ -334,7 +334,6 @@ export class MedicationManager {
                         {
                           label: 'Taken',
                           action: () => {
-                            // Mark as taken (could call MedicationManager.completeReminder if needed)
                             window.dispatchEvent(new CustomEvent('medication-taken', { detail: { id: reminderObj.id } }))
                           }
                         },
@@ -348,7 +347,6 @@ export class MedicationManager {
                     }
                   })
                 )
-              }
             }
           }
         }

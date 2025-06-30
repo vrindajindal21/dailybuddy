@@ -11,6 +11,8 @@ import { PomodoroFloatingWidget } from "./pomodoro-floating-widget";
 import { InAppNotification } from "./in-app-notification";
 import PWARegister from "./pwa-register";
 import { NotificationPermissionDialog } from "./notification-permission-dialog";
+import { MedicationBackgroundService } from "./medication-background-service";
+import { ReminderBackgroundService } from "./reminder-background-service";
 
 export default function RootClientLayout({ children }: { children: React.ReactNode }) {
   // Font size logic
@@ -65,6 +67,8 @@ export default function RootClientLayout({ children }: { children: React.ReactNo
           <GlobalNotificationService />
           <SmartPopupSystem />
           <PomodoroBackgroundService />
+          <MedicationBackgroundService />
+          <ReminderBackgroundService />
           <PomodoroFloatingWidget />
           <NotificationPermissionDialog />
         </LanguageProvider>
