@@ -7,6 +7,7 @@ import { ReminderManager } from "@/lib/reminder-manager"
 
 // Reminder state keys for localStorage
 const REMINDER_STATE_KEY = "reminder_background_state"
+const REMINDER_SYNC_KEY = "reminder_sync_state"
 
 function getInitialReminderState() {
   if (typeof window !== "undefined") {
@@ -18,6 +19,7 @@ function getInitialReminderState() {
     currentReminder: null,
     nextReminder: null,
     lastChecked: null,
+    lastSync: null,
   }
 }
 
@@ -26,10 +28,44 @@ export function ReminderBackgroundService() {
   const [reminderState, setReminderState] = useState(getInitialReminderState())
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Save reminder state to localStorage
   const saveReminderState = (state: any) => {
     localStorage.setItem(REMINDER_STATE_KEY, JSON.stringify(state))
+  }
+
+  // Sync reminders with service worker
+  const syncRemindersWithServiceWorker = () => {
+    if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+      const allReminders = ReminderManager.getAllReminders()
+      const activeReminders = allReminders.filter(r => !r.completed)
+      
+      // Send reminders to service worker for background scheduling
+      activeReminders.forEach(reminder => {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'SCHEDULE_REMINDER',
+          reminder: {
+            id: reminder.id,
+            title: `🔔 ${reminder.title}`,
+            body: reminder.description || 'You have a scheduled reminder!',
+            scheduledTime: reminder.scheduledTime.toISOString(),
+            type: 'reminder',
+            completed: reminder.completed
+          }
+        })
+      })
+
+      // Update sync state
+      const newState = {
+        ...reminderState,
+        lastSync: Date.now()
+      }
+      setReminderState(newState)
+      saveReminderState(newState)
+      
+      console.log('[ReminderBackgroundService] Synced', activeReminders.length, 'reminders with service worker')
+    }
   }
 
   // Listen for reminder events from any page
@@ -46,6 +82,9 @@ export function ReminderBackgroundService() {
       }
       setReminderState(newState)
       saveReminderState(newState)
+      
+      // Sync with service worker immediately
+      setTimeout(() => syncRemindersWithServiceWorker(), 100)
     }
 
     const handleReminderUpdated = (e: any) => {
@@ -59,11 +98,22 @@ export function ReminderBackgroundService() {
       }
       setReminderState(newState)
       saveReminderState(newState)
+      
+      // Sync with service worker immediately
+      setTimeout(() => syncRemindersWithServiceWorker(), 100)
     }
 
     const handleReminderDeleted = (e: any) => {
       const { reminderId } = e.detail
       console.log('[ReminderBackgroundService] Reminder deleted:', reminderId)
+      
+      // Remove from service worker
+      if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'REMOVE_REMINDER',
+          reminderId: reminderId
+        })
+      }
       
       // Update state to reflect reminder removal
       const newState = {
@@ -74,14 +124,40 @@ export function ReminderBackgroundService() {
       saveReminderState(newState)
     }
 
+    const handleReminderCompleted = (e: any) => {
+      const { reminderId } = e.detail
+      console.log('[ReminderBackgroundService] Reminder completed:', reminderId)
+      
+      // Complete in service worker
+      if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'COMPLETE_REMINDER',
+          reminderId: reminderId
+        })
+      }
+    }
+
+    // Listen for service worker messages
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data.type === 'REMINDER_COMPLETE') {
+        const reminder = event.data.reminder
+        showReminderNotification(reminder)
+        playReminderSound(reminder)
+      }
+    }
+
     window.addEventListener("reminder-added", handleReminderAdded as EventListener)
     window.addEventListener("reminder-updated", handleReminderUpdated as EventListener)
     window.addEventListener("reminder-deleted", handleReminderDeleted as EventListener)
+    window.addEventListener("reminder-completed", handleReminderCompleted as EventListener)
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage)
     
     return () => {
       window.removeEventListener("reminder-added", handleReminderAdded as EventListener)
       window.removeEventListener("reminder-updated", handleReminderUpdated as EventListener)
       window.removeEventListener("reminder-deleted", handleReminderDeleted as EventListener)
+      window.removeEventListener("reminder-completed", handleReminderCompleted as EventListener)
+      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage)
     }
   }, [reminderState])
 
@@ -90,18 +166,30 @@ export function ReminderBackgroundService() {
     // Initialize reminder manager
     ReminderManager.initialize()
     
-    // Check for due reminders every minute
+    // Check for due reminders every 30 seconds (more frequent than before)
     intervalRef.current = setInterval(() => {
       checkForDueReminders()
-    }, 60000) // Every minute
+    }, 30000) // Every 30 seconds
+
+    // Sync with service worker every 2 minutes
+    syncIntervalRef.current = setInterval(() => {
+      syncRemindersWithServiceWorker()
+    }, 120000) // Every 2 minutes
 
     // Also check immediately on mount
     checkForDueReminders()
+    
+    // Initial sync with service worker
+    setTimeout(() => syncRemindersWithServiceWorker(), 1000)
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
+      }
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current)
+        syncIntervalRef.current = null
       }
     }
   }, [])
@@ -145,6 +233,11 @@ export function ReminderBackgroundService() {
   }
 
   const showReminderNotification = (reminder: any) => {
+    // Deduplication: Only show once per reminder
+    const dedupeKey = `reminder-shown-${reminder.id}`
+    if (localStorage.getItem(dedupeKey)) return
+    localStorage.setItem(dedupeKey, "1")
+    
     const title = `🔔 ${reminder.title}`
     const body = reminder.description || 'You have a scheduled reminder!'
     

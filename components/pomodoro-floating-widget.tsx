@@ -46,10 +46,10 @@ export function PomodoroFloatingWidget() {
       }
       
       try {
-        const parsed = JSON.parse(stored)
+      const parsed = JSON.parse(stored)
         if (parsed.isActive && parsed.timeLeft > 0) {
-          setTimer(parsed)
-        } else {
+        setTimer(parsed)
+      } else {
           setTimer(null)
         }
       } catch (error) {

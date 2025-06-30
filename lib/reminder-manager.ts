@@ -150,6 +150,12 @@ export class ReminderManager {
     this.saveReminders()
     // Send to service worker for background scheduling
     this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('reminder-added', { detail: { reminder } }))
+    }
+    
     return reminder.id
   }
 
@@ -168,6 +174,12 @@ export class ReminderManager {
     this.saveReminders()
     // Update in service worker
     this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('reminder-updated', { detail: { reminder } }))
+    }
+    
     return true
   }
 
@@ -183,6 +195,12 @@ export class ReminderManager {
     this.saveReminders()
     // Remove from service worker
     this.sendToServiceWorker('REMOVE_REMINDER', { reminderId: id })
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('reminder-deleted', { detail: { reminderId: id } }))
+    }
+    
     return true
   }
 
@@ -198,6 +216,12 @@ export class ReminderManager {
     this.saveReminders()
     // Notify service worker
     this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId: id })
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('reminder-completed', { detail: { reminderId: id } }))
+    }
+    
     return true
   }
 

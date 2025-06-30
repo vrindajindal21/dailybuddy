@@ -7,6 +7,7 @@ import { MedicationManager } from "@/lib/medication-manager"
 
 // Medication state keys for localStorage
 const MEDICATION_STATE_KEY = "medication_background_state"
+const MEDICATION_SYNC_KEY = "medication_sync_state"
 
 function getInitialMedicationState() {
   if (typeof window !== "undefined") {
@@ -18,6 +19,7 @@ function getInitialMedicationState() {
     currentMedication: null,
     nextReminder: null,
     lastChecked: null,
+    lastSync: null,
   }
 }
 
@@ -26,10 +28,44 @@ export function MedicationBackgroundService() {
   const [medicationState, setMedicationState] = useState(getInitialMedicationState())
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Save medication state to localStorage
   const saveMedicationState = (state: any) => {
     localStorage.setItem(MEDICATION_STATE_KEY, JSON.stringify(state))
+  }
+
+  // Sync medications with service worker
+  const syncMedicationsWithServiceWorker = () => {
+    if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+      const todaysReminders = MedicationManager.getTodaysReminders()
+      const activeReminders = todaysReminders.filter(r => !r.completed)
+      
+      // Send medications to service worker for background scheduling
+      activeReminders.forEach(reminder => {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'SCHEDULE_REMINDER',
+          reminder: {
+            id: reminder.id,
+            title: `💊 ${reminder.name}`,
+            body: `Time to take ${reminder.dosage}${reminder.instructions ? ` - ${reminder.instructions}` : ''}`,
+            scheduledTime: reminder.scheduledTime.toISOString(),
+            type: 'medication',
+            completed: reminder.completed
+          }
+        })
+      })
+
+      // Update sync state
+      const newState = {
+        ...medicationState,
+        lastSync: Date.now()
+      }
+      setMedicationState(newState)
+      saveMedicationState(newState)
+      
+      console.log('[MedicationBackgroundService] Synced', activeReminders.length, 'medications with service worker')
+    }
   }
 
   // Listen for medication events from any page
@@ -46,6 +82,9 @@ export function MedicationBackgroundService() {
       }
       setMedicationState(newState)
       saveMedicationState(newState)
+      
+      // Sync with service worker immediately
+      setTimeout(() => syncMedicationsWithServiceWorker(), 100)
     }
 
     const handleMedicationUpdated = (e: any) => {
@@ -59,11 +98,22 @@ export function MedicationBackgroundService() {
       }
       setMedicationState(newState)
       saveMedicationState(newState)
+      
+      // Sync with service worker immediately
+      setTimeout(() => syncMedicationsWithServiceWorker(), 100)
     }
 
     const handleMedicationDeleted = (e: any) => {
       const { medicationId } = e.detail
       console.log('[MedicationBackgroundService] Medication deleted:', medicationId)
+      
+      // Remove from service worker
+      if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'REMOVE_REMINDER',
+          reminderId: medicationId
+        })
+      }
       
       // Update state to reflect medication removal
       const newState = {
@@ -74,14 +124,40 @@ export function MedicationBackgroundService() {
       saveMedicationState(newState)
     }
 
+    const handleMedicationCompleted = (e: any) => {
+      const { reminderId } = e.detail
+      console.log('[MedicationBackgroundService] Medication completed:', reminderId)
+      
+      // Complete in service worker
+      if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.controller?.postMessage({
+          type: 'COMPLETE_REMINDER',
+          reminderId: reminderId
+        })
+      }
+    }
+
+    // Listen for service worker messages
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data.type === 'REMINDER_COMPLETE' && event.data.reminder.type === 'medication') {
+        const reminder = event.data.reminder
+        showMedicationNotification(reminder)
+        playMedicationSound(reminder)
+      }
+    }
+
     window.addEventListener("medication-added", handleMedicationAdded as EventListener)
     window.addEventListener("medication-updated", handleMedicationUpdated as EventListener)
     window.addEventListener("medication-deleted", handleMedicationDeleted as EventListener)
+    window.addEventListener("medication-completed", handleMedicationCompleted as EventListener)
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage)
     
     return () => {
       window.removeEventListener("medication-added", handleMedicationAdded as EventListener)
       window.removeEventListener("medication-updated", handleMedicationUpdated as EventListener)
       window.removeEventListener("medication-deleted", handleMedicationDeleted as EventListener)
+      window.removeEventListener("medication-completed", handleMedicationCompleted as EventListener)
+      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage)
     }
   }, [medicationState])
 
@@ -90,18 +166,30 @@ export function MedicationBackgroundService() {
     // Initialize medication manager
     MedicationManager.initialize()
     
-    // Check for due medications every minute
+    // Check for due medications every 30 seconds (more frequent than before)
     intervalRef.current = setInterval(() => {
       checkForDueMedications()
-    }, 60000) // Every minute
+    }, 30000) // Every 30 seconds
+
+    // Sync with service worker every 2 minutes
+    syncIntervalRef.current = setInterval(() => {
+      syncMedicationsWithServiceWorker()
+    }, 120000) // Every 2 minutes
 
     // Also check immediately on mount
     checkForDueMedications()
+    
+    // Initial sync with service worker
+    setTimeout(() => syncMedicationsWithServiceWorker(), 1000)
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
+      }
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current)
+        syncIntervalRef.current = null
       }
     }
   }, [])
@@ -145,6 +233,11 @@ export function MedicationBackgroundService() {
   }
 
   const showMedicationNotification = (reminder: any) => {
+    // Deduplication: Only show once per medication
+    const dedupeKey = `medication-shown-${reminder.id}`
+    if (localStorage.getItem(dedupeKey)) return
+    localStorage.setItem(dedupeKey, "1")
+    
     const title = `💊 ${reminder.name}`
     const body = `Time to take ${reminder.dosage}${reminder.instructions ? ` - ${reminder.instructions}` : ''}`
     

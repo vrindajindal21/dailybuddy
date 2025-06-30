@@ -195,6 +195,11 @@ export class MedicationManager {
     this.saveSchedules()
     this.generateReminders()
     
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('medication-added', { detail: { medication } }))
+    }
+    
     return medicationId
   }
 
@@ -239,6 +244,11 @@ export class MedicationManager {
     this.saveSchedules()
     this.generateReminders()
     
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('medication-updated', { detail: { medication } }))
+    }
+    
     return true
   }
 
@@ -258,6 +268,11 @@ export class MedicationManager {
     
     this.saveSchedules()
     this.saveReminders()
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('medication-deleted', { detail: { medicationId } }))
+    }
     
     return true
   }
@@ -365,6 +380,11 @@ export class MedicationManager {
     
     // Notify service worker
     this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId })
+    
+    // Dispatch event for background services
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('medication-completed', { detail: { reminderId } }))
+    }
     
     return true
   }

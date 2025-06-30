@@ -35,6 +35,8 @@ self.addEventListener("activate", (event) => {
       .then(() => {
         // Start keep-alive mechanism
         startKeepAlive()
+        // Start periodic reminder checks
+        startPeriodicReminderChecks()
         return Promise.resolve()
       })
   )
@@ -46,8 +48,12 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(handlePomodoroSync())
   } else if (event.tag === 'reminder-sync') {
     event.waitUntil(handleReminderSync())
+  } else if (event.tag === 'medication-sync') {
+    event.waitUntil(handleMedicationSync())
   } else if (event.tag === 'background-timer-sync') {
     event.waitUntil(syncPomodoroTimers())
+  } else if (event.tag === 'background-reminder-check') {
+    event.waitUntil(checkBackgroundReminders())
   }
 })
 
@@ -57,6 +63,8 @@ self.addEventListener('periodicsync', (event) => {
     event.waitUntil(updateBackgroundItems())
   } else if (event.tag === 'pomodoro-sync') {
     event.waitUntil(syncPomodoroTimers())
+  } else if (event.tag === 'reminder-periodic-check') {
+    event.waitUntil(checkBackgroundReminders())
   }
 })
 
@@ -80,6 +88,8 @@ self.addEventListener('message', (event) => {
     removeBackgroundReminder(event.data.reminderId)
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER') {
     completeBackgroundReminder(event.data.reminderId)
+  } else if (event.data && event.data.type === 'REMINDER_SYNC_REQUEST') {
+    sendReminderSync()
   }
 })
 
@@ -375,6 +385,18 @@ async function handleReminderSync() {
   })
 }
 
+async function handleMedicationSync() {
+  console.log('[SW] Handling medication sync')
+  const clients = await self.clients.matchAll()
+  clients.forEach(client => {
+    client.postMessage({
+      type: 'MEDICATION_SYNC',
+      reminders: Array.from(backgroundReminders.values())
+        .filter(reminder => reminder.type === 'medication')
+    })
+  })
+}
+
 async function updateBackgroundItems() {
   console.log('[SW] Updating background items')
   const clients = await self.clients.matchAll()
@@ -591,4 +613,40 @@ function startKeepAlive() {
       })
     }
   }, 10000) // Every 10 seconds
+}
+
+function startPeriodicReminderChecks() {
+  console.log('[SW] Starting periodic reminder checks')
+  
+  // Schedule the first check
+  checkBackgroundReminders().then(() => {
+    // Schedule subsequent checks
+    setInterval(checkBackgroundReminders, 60 * 1000) // 1 minute
+  })
+}
+
+async function checkBackgroundReminders() {
+  console.log('[SW] Checking background reminders')
+  
+  const now = Date.now()
+  const activeReminders = Array.from(backgroundReminders.values())
+    .filter(reminder => reminder.scheduledTime <= now)
+
+  if (activeReminders.length > 0) {
+    for (const reminder of activeReminders) {
+      handleReminderComplete(reminder)
+      removeBackgroundReminder(reminder.id)
+    }
+  }
+}
+
+async function sendReminderSync() {
+  console.log('[SW] Sending reminder sync')
+  const clients = await self.clients.matchAll()
+  clients.forEach(client => {
+    client.postMessage({
+      type: 'REMINDER_SYNC',
+      reminders: Array.from(backgroundReminders.values())
+    })
+  })
 }
