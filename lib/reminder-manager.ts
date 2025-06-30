@@ -148,7 +148,6 @@ export class ReminderManager {
     this.reminders.set(reminder.id, reminder)
     this.scheduleReminder(reminder)
     this.saveReminders()
-    // Only send to service worker if not medication
     if (reminder.type !== 'medication') {
       this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
     }
@@ -168,7 +167,6 @@ export class ReminderManager {
       this.scheduleReminder(reminder)
     }
     this.saveReminders()
-    // Only update in service worker if not medication
     if (reminder.type !== 'medication') {
       this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder })
     }
@@ -185,7 +183,6 @@ export class ReminderManager {
     this.cancelReminder(id)
     this.reminders.delete(id)
     this.saveReminders()
-    // Remove from service worker
     this.sendToServiceWorker('REMOVE_REMINDER', { reminderId: id })
     return true
   }
@@ -200,7 +197,6 @@ export class ReminderManager {
     reminder.completedAt = new Date()
     this.cancelReminder(id)
     this.saveReminders()
-    // Notify service worker
     this.sendToServiceWorker('COMPLETE_REMINDER', { reminderId: id })
     return true
   }

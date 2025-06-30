@@ -39,19 +39,15 @@ export function ReminderBackgroundService() {
   const syncRemindersWithServiceWorker = () => {
     if (typeof window !== "undefined" && 'serviceWorker' in navigator) {
       const allReminders = ReminderManager.getAllReminders()
-      const activeReminders = allReminders.filter(r => !r.completed)
+      const activeReminders = allReminders.filter(r => !r.completed && r.type !== 'medication')
       
       // Send reminders to service worker for background scheduling
       activeReminders.forEach(reminder => {
         navigator.serviceWorker.controller?.postMessage({
           type: 'SCHEDULE_REMINDER',
           reminder: {
-            id: reminder.id,
-            title: `🔔 ${reminder.title}`,
-            body: reminder.description || 'You have a scheduled reminder!',
-            scheduledTime: reminder.scheduledTime.toISOString(),
-            type: 'reminder',
-            completed: reminder.completed
+            ...reminder,
+            scheduledTime: reminder.scheduledTime instanceof Date ? reminder.scheduledTime.toISOString() : reminder.scheduledTime,
           }
         })
       })
@@ -139,7 +135,7 @@ export function ReminderBackgroundService() {
 
     // Listen for service worker messages
     const handleServiceWorkerMessage = (event: MessageEvent) => {
-      if (event.data.type === 'REMINDER_COMPLETE') {
+      if (event.data.type === 'REMINDER_COMPLETE' && event.data.reminder.type !== 'medication') {
         const reminder = event.data.reminder
         showReminderNotification(reminder)
         playReminderSound(reminder)
@@ -238,8 +234,8 @@ export function ReminderBackgroundService() {
     if (localStorage.getItem(dedupeKey)) return
     localStorage.setItem(dedupeKey, "1")
     
-    const title = `🔔 ${reminder.title}`
-    const body = reminder.description || 'You have a scheduled reminder!'
+    const title = `⏰ ${reminder.title}`
+    const body = reminder.description || "Time for your reminder!"
     
     // Show browser notification
     NotificationService.showNotification(title, {
