@@ -64,7 +64,7 @@ export function PomodoroFloatingWidget() {
         if (prev.timeLeft <= 1) {
           // Timer complete, stop
           window.dispatchEvent(new CustomEvent("stop-pomodoro-timer"))
-          return { ...prev, timeLeft: 0, isActive: false }
+          return null // Hide widget immediately
         }
         const updated = { ...prev, timeLeft: prev.timeLeft - 1 }
         // Persist to localStorage
@@ -75,6 +75,13 @@ export function PomodoroFloatingWidget() {
     }, 1000)
     return () => clearInterval(interval)
   }, [timer?.isActive, timer?.isPaused])
+
+  // Hide widget if timer is stopped from another tab or component
+  useEffect(() => {
+    const handleStop = () => setTimer(null)
+    window.addEventListener("stop-pomodoro-timer", handleStop)
+    return () => window.removeEventListener("stop-pomodoro-timer", handleStop)
+  }, [])
 
   // Listen for global start/stop events
   useEffect(() => {

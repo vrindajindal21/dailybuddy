@@ -119,7 +119,7 @@ export default function RemindersPage() {
 
   const loadReminders = () => {
     const allReminders = ReminderManager.getAllReminders()
-    setReminders(allReminders)
+    setReminders(allReminders.filter(r => r.type !== 'medication'))
   }
 
   const resetForm = () => {
@@ -280,14 +280,28 @@ export default function RemindersPage() {
     NotificationService.playSound(soundType as any, volume[0])
   }
 
+  // Helper: Get only the next occurrence for each recurring reminder
+  const getUniqueNextReminders = (remindersList: Reminder[]) => {
+    const unique: { [key: string]: Reminder } = {}
+    remindersList.forEach(reminder => {
+      // Use a composite key for recurring reminders (title + type + recurringPattern)
+      const key = reminder.recurring ? `${reminder.title}|${reminder.type}|${reminder.recurringPattern || ''}` : reminder.id
+      if (!unique[key] || reminder.scheduledTime < unique[key].scheduledTime) {
+        unique[key] = reminder
+      }
+    })
+    return Object.values(unique)
+  }
+
   const getTodaysReminders = () => {
-    return reminders.filter((reminder) => isToday((reminder as any).scheduledTime) && !reminder.completed)
+    const todayReminders = reminders.filter((reminder) => isToday((reminder as any).scheduledTime) && !reminder.completed && reminder.type !== 'medication')
+    return getUniqueNextReminders(todayReminders)
   }
 
   const getUpcomingReminders = () => {
-    return reminders
-      .filter((reminder) => (reminder as any).scheduledTime > new Date() && !isToday((reminder as any).scheduledTime))
-      .slice(0, 5)
+    const upcomingReminders = reminders
+      .filter((reminder) => (reminder as any).scheduledTime > new Date() && !isToday((reminder as any).scheduledTime) && reminder.type !== 'medication')
+    return getUniqueNextReminders(upcomingReminders).slice(0, 5)
   }
 
   const getCategoryColor = (type: string) => {
@@ -637,7 +651,7 @@ export default function RemindersPage() {
             ) : (
               <ScrollArea className="h-96">
                 <div className="space-y-3">
-                  {reminders.map((reminder) => (
+                  {getUniqueNextReminders(reminders).map((reminder) => (
                     <div
                       key={reminder.id}
                       className={`flex items-center justify-between p-3 border rounded-lg ${
