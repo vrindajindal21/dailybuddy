@@ -177,6 +177,16 @@ export default function MedicationsPage() {
   const shownNotificationsRef = useRef<Set<string>>(new Set());
   const lastCheckTimeRef = useRef<Date>(new Date());
 
+  // Load shown notifications from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('shown-medication-notifications');
+      if (saved) {
+        shownNotificationsRef.current = new Set(JSON.parse(saved));
+      }
+    }
+  }, []);
+
   useEffect(() => {
     setIsMounted(true)
     
@@ -962,26 +972,37 @@ export default function MedicationsPage() {
 
       todaysMedications.forEach((dose) => {
         // Create a unique ID for this dose's notification
-        const notificationId = `${dose.id}-${dose.scheduleTime.toISOString()}`;
+        const doseDate = new Date(dose.scheduleTime);
+        const notificationId = `${dose.id}-${doseDate.toISOString().split('T')[0]}-${doseDate.getHours()}-${doseDate.getMinutes()}`;
 
         // Calculate if this dose became due since our last check
         const becameDueSinceLastCheck = 
           dose.scheduleTime.getTime() <= now.getTime() && // is due now
           dose.scheduleTime.getTime() > lastCheck.getTime(); // became due after our last check
 
+        // Check if this is today's dose
+        const isToday = doseDate.toISOString().split('T')[0] === now.toISOString().split('T')[0];
+
         // Only show notification if:
         // 1. Notifications are enabled
         // 2. The dose became due since our last check
         // 3. We haven't shown this notification before
+        // 4. This is today's dose
         if (
           dose.notificationsEnabled &&
           becameDueSinceLastCheck &&
+          isToday &&
           !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
           // Mark this notification as shown
           shownNotificationsRef.current.add(notificationId);
+          // Save to localStorage
+          localStorage.setItem(
+            'shown-medication-notifications',
+            JSON.stringify(Array.from(shownNotificationsRef.current))
+          );
 
           // Play notification sound if enabled
           if (soundEnabled) {
@@ -1022,8 +1043,26 @@ export default function MedicationsPage() {
       }
       // Clear shown notifications on unmount
       shownNotificationsRef.current.clear();
+      // Reset last check time on unmount
+      lastCheckTimeRef.current = new Date();
     };
   }, [isMounted, todaysMedications, soundEnabled, selectedSound, soundVolume]);
+
+  // Clear shown notifications at midnight
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const checkMidnight = () => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        shownNotificationsRef.current.clear();
+        localStorage.setItem('shown-medication-notifications', '[]');
+      }
+    };
+
+    const interval = setInterval(checkMidnight, 60000);
+    return () => clearInterval(interval);
+  }, [isMounted]);
 
   const playNotificationSound = () => {
     try {

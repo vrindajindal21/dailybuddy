@@ -204,6 +204,17 @@ export default function RemindersPage() {
     setNotificationPermission(Notification.permission)
   }, [])
 
+  // Load shown notifications from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('shown-reminder-notifications');
+      if (saved) {
+        shownNotificationsRef.current = new Set(JSON.parse(saved));
+      }
+    }
+  }, []);
+
+  // Reminder notification logic
   useEffect(() => {
     if (!isMounted) return;
     
@@ -220,7 +231,10 @@ export default function RemindersPage() {
 
       reminders.forEach((reminder) => {
         // Create a unique ID for this reminder's notification
-        const notificationId = `${reminder.id}-${reminder.scheduledTime}`;
+        const reminderDate = reminder.scheduledTime ? new Date(reminder.scheduledTime) : null;
+        const notificationId = reminderDate ? 
+          `${reminder.id}-${reminderDate.toISOString().split('T')[0]}-${reminderDate.getHours()}-${reminderDate.getMinutes()}` :
+          `${reminder.id}`;
 
         // Calculate if this reminder became due since our last check
         const becameDueSinceLastCheck = 
@@ -228,17 +242,28 @@ export default function RemindersPage() {
           new Date(reminder.scheduledTime).getTime() <= now.getTime() && // is due now
           new Date(reminder.scheduledTime).getTime() > lastCheck.getTime(); // became due after our last check
 
+        // Check if this is today's reminder
+        const isToday = reminderDate ? 
+          reminderDate.toISOString().split('T')[0] === now.toISOString().split('T')[0] :
+          false;
+
         if (
           reminder.notificationEnabled &&
           !reminder.completed &&
           reminder.scheduledTime &&
           becameDueSinceLastCheck &&
+          isToday &&
           !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
           // Mark this notification as shown
           shownNotificationsRef.current.add(notificationId);
+          // Save to localStorage
+          localStorage.setItem(
+            'shown-reminder-notifications',
+            JSON.stringify(Array.from(shownNotificationsRef.current))
+          );
 
           // Play notification sound if enabled
           if (soundEnabled) {
@@ -281,12 +306,26 @@ export default function RemindersPage() {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current);
       }
-      // Clear shown notifications on unmount
-      shownNotificationsRef.current.clear();
       // Reset last check time on unmount
       lastCheckTimeRef.current = new Date();
     };
   }, [isMounted, reminders, soundEnabled, selectedSound, soundVolume]);
+
+  // Clear shown notifications at midnight
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const checkMidnight = () => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        shownNotificationsRef.current.clear();
+        localStorage.setItem('shown-reminder-notifications', '[]');
+      }
+    };
+
+    const interval = setInterval(checkMidnight, 60000);
+    return () => clearInterval(interval);
+  }, [isMounted]);
 
   const loadReminders = () => {
     const allReminders = ReminderManager.getAllReminders()
