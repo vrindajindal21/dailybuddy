@@ -45,7 +45,6 @@ const DAYS_OF_WEEK = [
 ]
 
 const REMINDER_CATEGORIES = [
-  { value: "medication", label: "Medication", color: "bg-blue-500" },
   { value: "health", label: "Health", color: "bg-green-500" },
   { value: "study", label: "Study", color: "bg-purple-500" },
   { value: "work", label: "Work", color: "bg-orange-500" },
@@ -81,7 +80,7 @@ export default function RemindersPage() {
   // Form state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [category, setCategory] = useState("medication")
+  const [category, setCategory] = useState("general")
   const [scheduleTimes, setScheduleTimes] = useState<ScheduleTime[]>([
     { id: "1", time: "08:00", days: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
   ])
@@ -117,6 +116,36 @@ export default function RemindersPage() {
     setNotificationPermission(Notification.permission)
   }, [])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      reminders.forEach((reminder) => {
+        if (
+          reminder.notificationsEnabled &&
+          !reminder.completed &&
+          reminder.scheduledTime &&
+          Math.abs(new Date(reminder.scheduledTime).getTime() - now.getTime()) < 60000 && // within 1 minute
+          NotificationService.isSupported() &&
+          Notification.permission === "granted"
+        ) {
+          NotificationService.showNotification(
+            `🔔 Reminder: ${reminder.title}`,
+            {
+              body: reminder.description || '',
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              tag: `reminder-${reminder.id}`,
+              data: reminder,
+            },
+            'default',
+            reminder.volume || 70
+          );
+        }
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [reminders]);
+
   const loadReminders = () => {
     const allReminders = ReminderManager.getAllReminders()
     setReminders(allReminders.filter(r => r.type !== 'medication'))
@@ -125,7 +154,7 @@ export default function RemindersPage() {
   const resetForm = () => {
     setTitle("")
     setDescription("")
-    setCategory("medication")
+    setCategory("general")
     setScheduleTimes([
       { id: "1", time: "08:00", days: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
     ])
@@ -369,16 +398,13 @@ export default function RemindersPage() {
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {REMINDER_CATEGORIES.map((cat) => (
+                    {REMINDER_CATEGORIES.filter(cat => cat.value !== "medication").map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-                          {cat.label}
-                        </div>
+                        {cat.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

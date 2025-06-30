@@ -41,6 +41,7 @@ import { Slider } from "@/components/ui/slider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MedicationManager } from "@/lib/medication-manager"
+import { NotificationService } from "@/lib/notification-service"
 
 type MedicationType = {
   id: number;
@@ -144,8 +145,8 @@ export default function MedicationsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [notificationPermission, setNotificationPermission] = useState("default")
-  const [todaysMedications, setTodaysMedications] = useState<MedicationType[]>([])
-  const [upcomingMedications, setUpcomingMedications] = useState<MedicationType[]>([])
+  const [todaysMedications, setTodaysMedications] = useState<ScheduledDose[]>([])
+  const [upcomingMedications, setUpcomingMedications] = useState<ScheduledDose[]>([])
   const [filter, setFilter] = useState("all")
   const [isMounted, setIsMounted] = useState(false)
   const [medicationsInitialized, setMedicationsInitialized] = useState(false)
@@ -272,7 +273,23 @@ export default function MedicationsPage() {
     }
   }, [isMounted, medicationsInitialized])
 
-  // Save medications to localStorage when they change
+  // Update today's and upcoming medications (split by time)
+  const updateTodaysAndUpcomingMedications = useCallback(() => {
+    if (!isMounted) return;
+    const now = new Date();
+    const todayDateStr = now.toISOString().split('T')[0];
+    const allTodayDoses = getAllScheduledDoses(1).filter(dose => {
+      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
+      return doseDateStr === todayDateStr;
+    });
+    // Split into past (today) and future (upcoming today)
+    const todays = allTodayDoses.filter(dose => dose.scheduleTime <= now);
+    const upcoming = allTodayDoses.filter(dose => dose.scheduleTime > now);
+    setTodaysMedications(todays);
+    setUpcomingMedications(upcoming);
+  }, [isMounted, medications]);
+
+  // Call the new update function when medications change
   useEffect(() => {
     if (isMounted && medicationsInitialized) {
       try {
@@ -280,9 +297,9 @@ export default function MedicationsPage() {
       } catch (e) {
         console.error("Error saving medications to localStorage:", e)
       }
-      updateTodaysMedications()
+      updateTodaysAndUpcomingMedications();
     }
-  }, [medications, isMounted, medicationsInitialized])
+  }, [medications, isMounted, medicationsInitialized, updateTodaysAndUpcomingMedications]);
 
   // Save time format preference
   useEffect(() => {
@@ -526,25 +543,6 @@ export default function MedicationsPage() {
     const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
     return takenDoses.includes(`${dose.id}-${dose.scheduleTime.toISOString()}`);
   };
-
-  // Update today's medications
-  const updateTodaysMedications = useCallback(() => {
-    if (!isMounted) return;
-    const now = new Date();
-    const todayName = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
-    const todayDateStr = now.toISOString().split('T')[0];
-    const todaysDoses = getAllScheduledDoses(1).filter(dose => {
-      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
-      return doseDateStr === todayDateStr;
-    });
-    setTodaysMedications(todaysDoses);
-    // For upcoming, show all future doses (excluding today), and only those not taken
-    const upcoming = getAllScheduledDoses(7).filter(dose => {
-      const doseDateStr = dose.scheduleTime!.toISOString().split('T')[0];
-      return doseDateStr !== todayDateStr && !isDoseTaken(dose);
-    });
-    setUpcomingMedications(upcoming);
-  }, [isMounted, medications]);
 
   // Format time based on user preference (12h or 24h)
   const formatTime = useCallback(
@@ -975,6 +973,42 @@ export default function MedicationsPage() {
     return true;
   });
 
+  // Medication notification logic
+  useEffect(() => {
+    if (!isMounted) return;
+    // Clear any previous interval
+    if (notificationIntervalRef.current) {
+      clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
+    }
+    // Set up interval to check for due medications every minute
+    notificationIntervalRef.current = setInterval(() => {
+      const now = new Date();
+      todaysMedications.forEach((dose) => {
+        if (
+          dose.notificationsEnabled &&
+          Math.abs(dose.scheduleTime.getTime() - now.getTime()) < 60000 && // within 1 minute
+          NotificationService.isSupported() &&
+          Notification.permission === "granted"
+        ) {
+          NotificationService.showMedicationReminder(
+            `💊 Time to take ${dose.name}`,
+            `Dosage: ${dose.dosage}${dose.instructions ? ", " + dose.instructions : ""}`,
+            {
+              id: dose.id,
+              time: dose.dueTime,
+              color: dose.color,
+            }
+          );
+        }
+      });
+    }, 60000); // check every minute
+    return () => {
+      if (notificationIntervalRef.current) {
+        clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
+      }
+    };
+  }, [isMounted, todaysMedications]);
+
   if (!isMounted) {
     return null
   }
@@ -1344,14 +1378,14 @@ export default function MedicationsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Today's Medications</CardTitle>
-            <CardDescription>Medications you need to take today</CardDescription>
+            <CardDescription>Medications you need to take today (already due)</CardDescription>
           </CardHeader>
           <CardContent>
             {todaysMedications.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-6 text-center">
                 <Check className="h-10 w-10 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium">All caught up!</h3>
-                <p className="text-sm text-muted-foreground">No more medications to take today</p>
+                <p className="text-sm text-muted-foreground">No more medications to take right now</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -1435,7 +1469,7 @@ export default function MedicationsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {getAllScheduledDoses(7).map((medication) => (
+                  {filteredMedications.map((medication) => (
                     <div key={medication.id} className="flex items-start gap-3 p-3 border rounded-lg">
                       <div
                         className={`w-2 h-full min-h-[40px] rounded-full ${getMedicationColor(medication.color)}`}
@@ -1453,7 +1487,6 @@ export default function MedicationsPage() {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground">{medication.dosage}</p>
-
                         <div className="mt-2 space-y-1">
                           {medication.schedule.map((schedule, index) => (
                             <div key={index} className="flex items-center text-xs text-muted-foreground">
@@ -1467,11 +1500,9 @@ export default function MedicationsPage() {
                             </div>
                           ))}
                         </div>
-
                         {medication.instructions && (
                           <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{medication.instructions}</p>
                         )}
-
                         <div className="flex flex-wrap items-center gap-2 mt-2">
                           {medication.startDate && (
                             <Badge variant="outline" className="text-xs">
