@@ -219,70 +219,44 @@ export default function RemindersPage() {
   useEffect(() => {
     if (!isMounted) return;
     
-    // Clear any previous interval
     if (notificationIntervalRef.current) {
       clearInterval(notificationIntervalRef.current);
     }
-
-    // On first mount, set lastCheckTimeRef to now and skip the first notification check
     let isFirstRun = true;
     lastCheckTimeRef.current = new Date();
-
-    // Set up interval to check for due reminders every minute
     const interval = setInterval(() => {
       const now = new Date();
       const lastCheck = lastCheckTimeRef.current;
-      // Skip the first run to avoid spamming notifications on load
       if (isFirstRun) {
         isFirstRun = false;
         lastCheckTimeRef.current = now;
         return;
       }
       lastCheckTimeRef.current = now;
-
       reminders.forEach((reminder) => {
-        // Skip medication-type reminders
         if (reminder.type === 'medication') return;
-        // Create a unique ID for this reminder's notification
         const reminderDate = reminder.scheduledTime ? new Date(reminder.scheduledTime) : null;
-        const notificationId = reminderDate ? 
-          `${reminder.id}-${reminderDate.toISOString().split('T')[0]}-${reminderDate.getHours()}-${reminderDate.getMinutes()}` :
-          `${reminder.id}`;
-
-        // Calculate if this reminder became due since our last check
-        const becameDueSinceLastCheck = 
+        const notificationId = reminderDate ? `${reminder.id}-${reminderDate.toISOString()}` : `${reminder.id}`;
+        const becameDueSinceLastCheck =
           reminder.scheduledTime &&
-          new Date(reminder.scheduledTime).getTime() <= now.getTime() && // is due now
-          new Date(reminder.scheduledTime).getTime() > lastCheck.getTime(); // became due after our last check
-
-        // Check if this is today's reminder
-        const isToday = reminderDate ? 
-          reminderDate.toISOString().split('T')[0] === now.toISOString().split('T')[0] :
-          false;
-
+          new Date(reminder.scheduledTime).getTime() <= now.getTime() &&
+          new Date(reminder.scheduledTime).getTime() > lastCheck.getTime();
+        const isToday = reminderDate ? reminderDate.toISOString().split('T')[0] === now.toISOString().split('T')[0] : false;
+        const dedupeKey = `reminder-shown-${notificationId}`;
         if (
           reminder.notificationEnabled &&
           !reminder.completed &&
           reminder.scheduledTime &&
           becameDueSinceLastCheck &&
           isToday &&
-          !shownNotificationsRef.current.has(notificationId) &&
+          !localStorage.getItem(dedupeKey) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
         ) {
-          // Mark this notification as shown
-          shownNotificationsRef.current.add(notificationId);
-          // Save to localStorage
-          localStorage.setItem(
-            'shown-reminder-notifications',
-            JSON.stringify(Array.from(shownNotificationsRef.current))
-          );
-
-          // Play notification sound if enabled
+          localStorage.setItem(dedupeKey, "1");
           if (soundEnabled) {
             playNotificationSound();
           }
-
           NotificationService.showNotification(
             `⏰ ${reminder.title}`,
             {
@@ -295,8 +269,6 @@ export default function RemindersPage() {
             selectedSound,
             soundVolume
           );
-
-          // In-app notification
           window.dispatchEvent(
             new CustomEvent('inAppNotification', {
               detail: {
@@ -307,8 +279,6 @@ export default function RemindersPage() {
               },
             })
           );
-
-          // --- NEW: show-popup event for SmartPopupSystem ---
           const popupDedupeKey = `reminder-popup-shown-${notificationId}`;
           if (!localStorage.getItem(popupDedupeKey)) {
             localStorage.setItem(popupDedupeKey, "1");
@@ -324,8 +294,6 @@ export default function RemindersPage() {
                     {
                       label: "Mark as Done",
                       action: () => {
-                        // Mark as done logic
-                        // You may want to call ReminderManager.completeReminder(reminder.id) here
                         toast({
                           title: "Reminder Completed",
                           description: `${reminder.title} marked as done`,
@@ -349,17 +317,12 @@ export default function RemindersPage() {
           }
         }
       });
-    }, 60000); // check every minute
-
-    // Store interval reference
+    }, 60000);
     notificationIntervalRef.current = interval;
-
-    // Clean up function
     return () => {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current);
       }
-      // Reset last check time on unmount
       lastCheckTimeRef.current = new Date();
     };
   }, [isMounted, reminders, soundEnabled, selectedSound, soundVolume]);
@@ -510,6 +473,15 @@ export default function RemindersPage() {
         ReminderManager.updateReminder(reminder)
       } else {
         ReminderManager.addReminder(reminder)
+      }
+      // Mark dedupe key as shown if scheduledTime is in the past or within 5 minutes ago
+      if (notificationsEnabled && reminder.scheduledTime) {
+        const now = new Date();
+        const scheduledTime = new Date(reminder.scheduledTime);
+        const dedupeKey = `reminder-shown-${reminder.id}-${scheduledTime.toISOString()}`;
+        if (scheduledTime.getTime() <= now.getTime() && scheduledTime.getTime() > now.getTime() - 5 * 60 * 1000) {
+          localStorage.setItem(dedupeKey, "1");
+        }
       }
       if (notificationsEnabled) {
         if (NotificationService.isSupported() && Notification.permission !== 'granted') {
