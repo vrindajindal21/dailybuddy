@@ -1,5 +1,4 @@
 import { NotificationService } from "./notification-service"
-import { ReminderManager } from "./reminder-manager"
 
 export interface MedicationSchedule {
   id: string
@@ -318,8 +317,6 @@ export class MedicationManager {
                 soundVolume: schedule.alarmVolume
               }
               this.sendToServiceWorker('SCHEDULE_REMINDER', { reminder: reminderObj })
-              // Only add to ReminderManager if you want in-app popups, not for general reminders page
-              // ReminderManager.addReminder(reminderObj) // <-- REMOVE or comment out this line to avoid mixing
               // Dispatch in-app popup (show-popup) for medication
               if (typeof window !== 'undefined')
                 window.dispatchEvent(
