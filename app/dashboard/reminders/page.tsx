@@ -101,7 +101,8 @@ export default function RemindersPage() {
 
   // Reference for notification interval
   const notificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
+  const lastCheckTimeRef = useRef<Date>(new Date());
+  
   // Track shown notifications to prevent duplicates
   const shownNotificationsRef = useRef(new Set());
 
@@ -214,16 +215,24 @@ export default function RemindersPage() {
     // Set up interval to check for due reminders every minute
     const interval = setInterval(() => {
       const now = new Date();
+      const lastCheck = lastCheckTimeRef.current;
+      lastCheckTimeRef.current = now;
+
       reminders.forEach((reminder) => {
         // Create a unique ID for this reminder's notification
         const notificationId = `${reminder.id}-${reminder.scheduledTime}`;
+
+        // Calculate if this reminder became due since our last check
+        const becameDueSinceLastCheck = 
+          reminder.scheduledTime &&
+          new Date(reminder.scheduledTime).getTime() <= now.getTime() && // is due now
+          new Date(reminder.scheduledTime).getTime() > lastCheck.getTime(); // became due after our last check
 
         if (
           reminder.notificationEnabled &&
           !reminder.completed &&
           reminder.scheduledTime &&
-          (now.getTime() - new Date(reminder.scheduledTime).getTime()) <= 60000 && // due within the last minute
-          (now.getTime() - new Date(reminder.scheduledTime).getTime()) >= 0 && // not future
+          becameDueSinceLastCheck &&
           !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
@@ -274,6 +283,8 @@ export default function RemindersPage() {
       }
       // Clear shown notifications on unmount
       shownNotificationsRef.current.clear();
+      // Reset last check time on unmount
+      lastCheckTimeRef.current = new Date();
     };
   }, [isMounted, reminders, soundEnabled, selectedSound, soundVolume]);
 

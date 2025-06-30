@@ -175,6 +175,7 @@ export default function MedicationsPage() {
 
   // Track shown notifications to prevent duplicates
   const shownNotificationsRef = useRef<Set<string>>(new Set());
+  const lastCheckTimeRef = useRef<Date>(new Date());
 
   useEffect(() => {
     setIsMounted(true)
@@ -947,25 +948,34 @@ export default function MedicationsPage() {
   // Medication notification logic
   useEffect(() => {
     if (!isMounted) return;
+    
     // Clear any previous interval
     if (notificationIntervalRef.current) {
       clearInterval(notificationIntervalRef.current as NodeJS.Timeout);
     }
+
     // Set up interval to check for due medications every minute
     notificationIntervalRef.current = setInterval(() => {
       const now = new Date();
+      const lastCheck = lastCheckTimeRef.current;
+      lastCheckTimeRef.current = now;
+
       todaysMedications.forEach((dose) => {
         // Create a unique ID for this dose's notification
         const notificationId = `${dose.id}-${dose.scheduleTime.toISOString()}`;
 
+        // Calculate if this dose became due since our last check
+        const becameDueSinceLastCheck = 
+          dose.scheduleTime.getTime() <= now.getTime() && // is due now
+          dose.scheduleTime.getTime() > lastCheck.getTime(); // became due after our last check
+
         // Only show notification if:
         // 1. Notifications are enabled
-        // 2. The dose is becoming due now (within the last minute)
+        // 2. The dose became due since our last check
         // 3. We haven't shown this notification before
         if (
           dose.notificationsEnabled &&
-          (now.getTime() - dose.scheduleTime.getTime()) <= 60000 && // due within the last minute
-          (now.getTime() - dose.scheduleTime.getTime()) >= 0 && // not future
+          becameDueSinceLastCheck &&
           !shownNotificationsRef.current.has(notificationId) &&
           NotificationService.isSupported() &&
           Notification.permission === "granted"
