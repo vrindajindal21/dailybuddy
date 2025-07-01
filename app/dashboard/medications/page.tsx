@@ -649,7 +649,104 @@ export default function MedicationsPage() {
     setTimeout(() => {
       updateTodaysAndUpcomingMedications();
     }, 100);
-  }, [newMedication, toast, updateTodaysAndUpcomingMedications]);
+
+    // --- IMMEDIATE NOTIFICATION LOGIC (like Pomodoro) ---
+    // If the next scheduled dose is due now (within 1 minute), trigger notification, in-app, and popup immediately
+    if (newMedication.notificationsEnabled && newMedication.schedule && newMedication.schedule.length > 0) {
+      const now = new Date();
+      const today = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      // Find the next scheduled dose for today
+      const nextDose = newMedication.schedule
+        .filter((sch: { days: string[] }) => sch.days.includes(today))
+        .map((sch: { time: string }) => {
+          const [hours, minutes] = sch.time.split(":").map(Number);
+          const doseTime = new Date(now);
+          doseTime.setHours(hours, minutes, 0, 0);
+          return doseTime;
+        })
+        .find((doseTime: Date) => Math.abs(doseTime.getTime() - now.getTime()) <= 60000); // within 1 minute
+      if (nextDose && NotificationService.isSupported() && Notification.permission === "granted") {
+        const immediateNotificationId = `${newMedication.id}-${nextDose.toISOString().split('T')[0]}-${nextDose.getHours()}-${nextDose.getMinutes()}`;
+        // Avoid duplicate
+        const syncStateImmediate = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+        const isAlreadyShown = syncStateImmediate[immediateNotificationId] && (Date.now() - syncStateImmediate[immediateNotificationId].timestamp < 5 * 60 * 1000);
+        if (!isAlreadyShown) {
+          // Play notification sound if enabled
+          if (soundEnabled) {
+            playAlarm(newMedication);
+          }
+          NotificationService.showNotification(
+            `💊 Time to take ${newMedication.name}`,
+            {
+              body: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              tag: immediateNotificationId,
+              data: {
+                type: 'medication',
+                id: newMedication.id,
+                scheduleTime: nextDose.toISOString()
+              },
+              vibrate: [200, 100, 200],
+            } as NotificationOptions & { vibrate?: number[] },
+            selectedSound,
+            soundVolume
+          );
+          // In-app notification
+          window.dispatchEvent(
+            new CustomEvent('inAppNotification', {
+              detail: {
+                title: `💊 Time to take ${newMedication.name}`,
+                options: {
+                  body: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+                },
+              },
+            })
+          );
+          // Popup
+          const popupDedupeKey = `medication-popup-shown-${immediateNotificationId}`;
+          if (!localStorage.getItem(popupDedupeKey)) {
+            localStorage.setItem(popupDedupeKey, "1");
+            window.dispatchEvent(
+              new CustomEvent("show-popup", {
+                detail: {
+                  type: "medication-due",
+                  title: `💊 Time to take ${newMedication.name}`,
+                  message: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+                  duration: 10000,
+                  priority: "high",
+                  actions: [
+                    {
+                      label: "Mark as Taken",
+                      action: () => {
+                        const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
+                        takenDoses.push(`${newMedication.id}-${nextDose.toISOString()}`);
+                        localStorage.setItem('takenDoses', JSON.stringify(takenDoses));
+                        toast({
+                          title: "Medication Taken",
+                          description: `${newMedication.name} marked as taken`,
+                        });
+                      },
+                    },
+                    {
+                      label: "Snooze 5 min",
+                      action: () => {
+                        toast({
+                          title: "Medication Snoozed",
+                          description: "Reminder will show again in 5 minutes",
+                        });
+                      },
+                      variant: "outline"
+                    }
+                  ],
+                },
+              })
+            );
+          }
+        }
+      }
+    }
+  }, [newMedication, toast, updateTodaysAndUpcomingMedications, soundEnabled, selectedSound, soundVolume]);
 
   const updateMedication = useCallback(() => {
     if (!editingMedication) return;
@@ -742,7 +839,104 @@ export default function MedicationsPage() {
     setTimeout(() => {
       updateTodaysAndUpcomingMedications();
     }, 100);
-  }, [editingMedication, toast, updateTodaysAndUpcomingMedications])
+
+    // --- IMMEDIATE NOTIFICATION LOGIC (like Pomodoro) ---
+    // If the next scheduled dose is due now (within 1 minute), trigger notification, in-app, and popup immediately
+    if (updatedMedication.notificationsEnabled && updatedMedication.schedule && updatedMedication.schedule.length > 0) {
+      const now = new Date();
+      const today = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      // Find the next scheduled dose for today
+      const nextDose = updatedMedication.schedule
+        .filter((sch: { days: string[] }) => sch.days.includes(today))
+        .map((sch: { time: string }) => {
+          const [hours, minutes] = sch.time.split(":").map(Number);
+          const doseTime = new Date(now);
+          doseTime.setHours(hours, minutes, 0, 0);
+          return doseTime;
+        })
+        .find((doseTime: Date) => Math.abs(doseTime.getTime() - now.getTime()) <= 60000); // within 1 minute
+      if (nextDose && NotificationService.isSupported() && Notification.permission === "granted") {
+        const immediateNotificationId = `${updatedMedication.id}-${nextDose.toISOString().split('T')[0]}-${nextDose.getHours()}-${nextDose.getMinutes()}`;
+        // Avoid duplicate
+        const syncStateImmediate = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+        const isAlreadyShown = syncStateImmediate[immediateNotificationId] && (Date.now() - syncStateImmediate[immediateNotificationId].timestamp < 5 * 60 * 1000);
+        if (!isAlreadyShown) {
+          // Play notification sound if enabled
+          if (soundEnabled) {
+            playAlarm(updatedMedication);
+          }
+          NotificationService.showNotification(
+            `💊 Time to take ${updatedMedication.name}`,
+            {
+              body: `Dosage: ${updatedMedication.dosage}${updatedMedication.instructions ? "\n" + updatedMedication.instructions : ""}`,
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              tag: immediateNotificationId,
+              data: {
+                type: 'medication',
+                id: updatedMedication.id,
+                scheduleTime: nextDose.toISOString()
+              },
+              vibrate: [200, 100, 200],
+            } as NotificationOptions & { vibrate?: number[] },
+            selectedSound,
+            soundVolume
+          );
+          // In-app notification
+          window.dispatchEvent(
+            new CustomEvent('inAppNotification', {
+              detail: {
+                title: `💊 Time to take ${updatedMedication.name}`,
+                options: {
+                  body: `Dosage: ${updatedMedication.dosage}${updatedMedication.instructions ? "\n" + updatedMedication.instructions : ""}`,
+                },
+              },
+            })
+          );
+          // Popup
+          const popupDedupeKey = `medication-popup-shown-${immediateNotificationId}`;
+          if (!localStorage.getItem(popupDedupeKey)) {
+            localStorage.setItem(popupDedupeKey, "1");
+            window.dispatchEvent(
+              new CustomEvent("show-popup", {
+                detail: {
+                  type: "medication-due",
+                  title: `💊 Time to take ${updatedMedication.name}`,
+                  message: `Dosage: ${updatedMedication.dosage}${updatedMedication.instructions ? "\n" + updatedMedication.instructions : ""}`,
+                  duration: 10000,
+                  priority: "high",
+                  actions: [
+                    {
+                      label: "Mark as Taken",
+                      action: () => {
+                        const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
+                        takenDoses.push(`${updatedMedication.id}-${nextDose.toISOString()}`);
+                        localStorage.setItem('takenDoses', JSON.stringify(takenDoses));
+                        toast({
+                          title: "Medication Taken",
+                          description: `${updatedMedication.name} marked as taken`,
+                        });
+                      },
+                    },
+                    {
+                      label: "Snooze 5 min",
+                      action: () => {
+                        toast({
+                          title: "Medication Snoozed",
+                          description: "Reminder will show again in 5 minutes",
+                        });
+                      },
+                      variant: "outline"
+                    }
+                  ],
+                },
+              })
+            );
+          }
+        }
+      }
+    }
+  }, [editingMedication, toast, updateTodaysAndUpcomingMedications, soundEnabled, selectedSound, soundVolume]);
 
   const deleteMedication = useCallback(
     (id: number) => {
@@ -1005,6 +1199,103 @@ export default function MedicationsPage() {
     );
     if (soundEnabled) {
       playNotificationSound();
+    }
+
+    // --- IMMEDIATE NOTIFICATION LOGIC (like Pomodoro) ---
+    // If the next scheduled dose is due now (within 1 minute), trigger notification, in-app, and popup immediately
+    if (newMedication.notificationsEnabled && newMedication.schedule && newMedication.schedule.length > 0) {
+      const now = new Date();
+      const today = now.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
+      // Find the next scheduled dose for today
+      const nextDose = newMedication.schedule
+        .filter((sch: { days: string[] }) => sch.days.includes(today))
+        .map((sch: { time: string }) => {
+          const [hours, minutes] = sch.time.split(":").map(Number);
+          const doseTime = new Date(now);
+          doseTime.setHours(hours, minutes, 0, 0);
+          return doseTime;
+        })
+        .find((doseTime: Date) => Math.abs(doseTime.getTime() - now.getTime()) <= 60000); // within 1 minute
+      if (nextDose && NotificationService.isSupported() && Notification.permission === "granted") {
+        const immediateNotificationId = `${newMedication.id}-${nextDose.toISOString().split('T')[0]}-${nextDose.getHours()}-${nextDose.getMinutes()}`;
+        // Avoid duplicate
+        const syncStateImmediate = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
+        const isAlreadyShown = syncStateImmediate[immediateNotificationId] && (Date.now() - syncStateImmediate[immediateNotificationId].timestamp < 5 * 60 * 1000);
+        if (!isAlreadyShown) {
+          // Play notification sound if enabled
+          if (soundEnabled) {
+            playAlarm(newMedication);
+          }
+          NotificationService.showNotification(
+            `💊 Time to take ${newMedication.name}`,
+            {
+              body: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+              icon: '/android-chrome-192x192.png',
+              requireInteraction: true,
+              tag: immediateNotificationId,
+              data: {
+                type: 'medication',
+                id: newMedication.id,
+                scheduleTime: nextDose.toISOString()
+              },
+              vibrate: [200, 100, 200],
+            } as NotificationOptions & { vibrate?: number[] },
+            selectedSound,
+            soundVolume
+          );
+          // In-app notification
+          window.dispatchEvent(
+            new CustomEvent('inAppNotification', {
+              detail: {
+                title: `💊 Time to take ${newMedication.name}`,
+                options: {
+                  body: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+                },
+              },
+            })
+          );
+          // Popup
+          const popupDedupeKey = `medication-popup-shown-${immediateNotificationId}`;
+          if (!localStorage.getItem(popupDedupeKey)) {
+            localStorage.setItem(popupDedupeKey, "1");
+            window.dispatchEvent(
+              new CustomEvent("show-popup", {
+                detail: {
+                  type: "medication-due",
+                  title: `💊 Time to take ${newMedication.name}`,
+                  message: `Dosage: ${newMedication.dosage}${newMedication.instructions ? "\n" + newMedication.instructions : ""}`,
+                  duration: 10000,
+                  priority: "high",
+                  actions: [
+                    {
+                      label: "Mark as Taken",
+                      action: () => {
+                        const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
+                        takenDoses.push(`${newMedication.id}-${nextDose.toISOString()}`);
+                        localStorage.setItem('takenDoses', JSON.stringify(takenDoses));
+                        toast({
+                          title: "Medication Taken",
+                          description: `${newMedication.name} marked as taken`,
+                        });
+                      },
+                    },
+                    {
+                      label: "Snooze 5 min",
+                      action: () => {
+                        toast({
+                          title: "Medication Snoozed",
+                          description: "Reminder will show again in 5 minutes",
+                        });
+                      },
+                      variant: "outline"
+                    }
+                  ],
+                },
+              })
+            );
+          }
+        }
+      }
     }
   };
 
