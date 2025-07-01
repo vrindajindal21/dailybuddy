@@ -87,6 +87,7 @@ export class PomodoroManager {
     
     // Create timer data for service worker
     const timerData = {
+      id: `pomodoro-${now}-${Math.random().toString(36).substr(2, 9)}`,
       mode: mode || "pomodoro",
       duration,
       task: task || "",

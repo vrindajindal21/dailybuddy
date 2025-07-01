@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Bell, Clock, Calendar, Volume2, X, Trash2, Edit, CheckCircle } from "lucide-react"
 import { format, isToday, isTomorrow, addDays } from "date-fns"
-import { NotificationService } from "@/lib/notification-service"
+import { NotificationService } from "../../../lib/notification-service"
 import { ReminderManager, type Reminder } from "@/lib/reminder-manager"
 import { VoiceInput } from "@/components/voice-input"
 import { RequiredFieldLabel } from "@/components/required-field-label"
@@ -243,6 +243,7 @@ export default function RemindersPage() {
           new Date(reminder.scheduledTime).getTime() > lastCheck.getTime();
         const isToday = reminderDate ? reminderDate.toISOString().split('T')[0] === now.toISOString().split('T')[0] : false;
         const dedupeKey = `reminder-shown-${notificationId}`;
+        // DEDUPE: Only show if not already shown
         if (
           reminder.notificationEnabled &&
           !reminder.completed &&
@@ -483,16 +484,8 @@ export default function RemindersPage() {
           localStorage.setItem(dedupeKey, "1");
         }
       }
-      if (notificationsEnabled) {
-        if (NotificationService.isSupported() && Notification.permission !== 'granted') {
-          await NotificationService.requestPermission();
-        }
-        NotificationService.showRichNotification(
-          `✅ Reminder Created: ${title}`,
-          {
-            body: `Your reminder has been set up successfully`
-          }
-        );
+      if (notificationsEnabled && NotificationService.isSupported() && Notification.permission !== 'granted') {
+        await NotificationService.requestPermission();
       }
       // Always reload reminders from localStorage after update
       loadReminders();

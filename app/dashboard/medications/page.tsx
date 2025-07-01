@@ -41,7 +41,7 @@ import { Slider } from "@/components/ui/slider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MedicationManager } from "@/lib/medication-manager"
-import { NotificationService } from "@/lib/notification-service"
+import { NotificationService } from "../../../lib/notification-service"
 import { MedicationBackgroundService } from "@/components/medication-background-service"
 
 type MedicationType = {
@@ -616,6 +616,22 @@ export default function MedicationsPage() {
           type: 'medication'
         };
         console.log('[Medication] Marked as already shown on add:', notificationId);
+      } else if (scheduleTime.getTime() > now.getTime()) {
+        // Only schedule for future times
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SCHEDULE_REMINDER',
+            reminder: {
+              id: notificationId,
+              name: medication.name,
+              dosage: medication.dosage,
+              instructions: medication.instructions,
+              scheduledTime: scheduleTime.toISOString(),
+              type: 'medication',
+              title: `💊 Time to take ${medication.name}`,
+            }
+          });
+        }
       }
     });
     localStorage.setItem(syncKey, JSON.stringify(syncState));
@@ -650,14 +666,6 @@ export default function MedicationsPage() {
     setTimeout(() => {
       updateTodaysAndUpcomingMedications();
     }, 100);
-
-    // --- Notify Service Worker to schedule/fix background notification ---
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller && newMedication) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_REMINDER',
-        reminder: { ...newMedication, type: 'medication' }
-      });
-    }
   }, [newMedication, toast, updateTodaysAndUpcomingMedications]);
 
   const updateMedication = useCallback(() => {
@@ -734,6 +742,31 @@ export default function MedicationsPage() {
       notes: editingMedication.notes,
     }
 
+    // Schedule new reminders for future times
+    const now = new Date();
+    updatedMedication.schedule.forEach((schedule) => {
+      const [hours, minutes] = schedule.time.split(":").map(Number);
+      const scheduleTime = new Date(now);
+      scheduleTime.setHours(hours, minutes, 0, 0);
+      const notificationId = `${updatedMedication.id}-${scheduleTime.toISOString().split('T')[0]}-${scheduleTime.getHours()}-${scheduleTime.getMinutes()}`;
+      if (scheduleTime.getTime() > now.getTime()) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SCHEDULE_REMINDER',
+            reminder: {
+              id: notificationId,
+              name: updatedMedication.name,
+              dosage: updatedMedication.dosage,
+              instructions: updatedMedication.instructions,
+              scheduledTime: scheduleTime.toISOString(),
+              type: 'medication',
+              title: `💊 Time to take ${updatedMedication.name}`,
+            }
+          });
+        }
+      }
+    });
+
     setMedications((prev) => {
       const updated = prev.map((medication) =>
         medication.id === editingMedication.id
@@ -751,14 +784,6 @@ export default function MedicationsPage() {
     setTimeout(() => {
       updateTodaysAndUpcomingMedications();
     }, 100);
-
-    // --- Notify Service Worker to schedule/fix background notification ---
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller && editingMedication) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_REMINDER',
-        reminder: { ...editingMedication, type: 'medication' }
-      });
-    }
   }, [editingMedication, toast, updateTodaysAndUpcomingMedications]);
 
   const deleteMedication = useCallback(

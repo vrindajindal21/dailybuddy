@@ -64,9 +64,29 @@ self.addEventListener("activate", (event) => {
         )
       })
       .then(() => self.clients.claim())
-      .then(() => {
+      .then(async () => {
         // Start keep-alive mechanism
         startKeepAlive()
+        // Restore timers from DB
+        const timers = await getAllTimersFromDB()
+        const now = Date.now()
+        for (const timer of timers) {
+          // If timer should have completed while app was closed, fire notification
+          if (timer.isActive && !timer.isPaused) {
+            const elapsed = Math.floor((now - timer.startTime) / 1000)
+            const timeLeft = timer.duration - elapsed
+            if (timeLeft <= 0) {
+              handleTimerComplete(timer)
+              await removeTimerFromDB(timer.id)
+              backgroundTimers.delete(timer.id)
+            } else {
+              timer.timeLeft = timeLeft
+              backgroundTimers.set(timer.id, timer)
+              // Resume countdown
+              startBackgroundTimer({ ...timer, startTime: timer.startTime, duration: timeLeft })
+            }
+          }
+        }
         return Promise.resolve()
       })
   )
@@ -98,8 +118,12 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === "POMODORO_TIMER_START") {
     console.log('[SW] Starting background Pomodoro timer:', event.data.timer)
     startBackgroundTimer(event.data.timer)
+    // Persist timer to IndexedDB
+    saveTimerToDB(event.data.timer)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_STOP') {
     stopBackgroundTimer(event.data.timerId)
+    // Remove timer from IndexedDB
+    removeTimerFromDB(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_PAUSE') {
     pauseBackgroundTimer(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_RESUME') {
@@ -421,6 +445,8 @@ function handleTimerComplete(timer) {
   })
 
   console.log('[SW] Pomodoro timer completed:', timer)
+  removeTimerFromDB(timer.id)
+  backgroundTimers.delete(timer.id)
 }
 
 // Reminder Functions
@@ -715,46 +741,6 @@ function startKeepAlive() {
     }
   }, 10000) // Every 10 seconds
 }
-
-self.addEventListener("activate", (event) => {
-  console.log('[sw.js] Service Worker activating...')
-  event.waitUntil(
-    (async () => {
-      // ... existing cache cleanup ...
-      // Restore timers from DB
-      const timers = await getAllTimersFromDB()
-      const now = Date.now()
-      for (const timer of timers) {
-        // If timer should have completed while app was closed, fire notification
-        if (timer.isActive && !timer.isPaused) {
-          const elapsed = Math.floor((now - timer.startTime) / 1000)
-          const timeLeft = timer.duration - elapsed
-          if (timeLeft <= 0) {
-            handleTimerComplete(timer)
-            await removeTimerFromDB(timer.id)
-            backgroundTimers.delete(timer.id)
-          } else {
-            timer.timeLeft = timeLeft
-            backgroundTimers.set(timer.id, timer)
-            // Resume countdown
-            startBackgroundTimer({ ...timer, startTime: timer.startTime, duration: timeLeft })
-          }
-        }
-      }
-      // Restore medication reminders from DB
-      const medReminders = await getAllMedicationRemindersFromDB()
-      for (const reminder of medReminders) {
-        scheduleOrFireMedicationReminder(reminder)
-      }
-      // Restore general reminders from DB
-      const genReminders = await getAllGeneralRemindersFromDB()
-      for (const reminder of genReminders) {
-        scheduleOrFireGeneralReminder(reminder)
-      }
-      // ... existing keep-alive ...
-    })()
-  )
-})
 
 // --- Medication Reminder Scheduling ---
 async function scheduleOrFireMedicationReminder(reminder) {
