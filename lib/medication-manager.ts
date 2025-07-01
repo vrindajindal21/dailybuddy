@@ -242,6 +242,7 @@ export class MedicationManager {
   }
 
   static deleteMedication(medicationId: number): boolean {
+    console.log('[MedicationManager] Deleting medication:', medicationId)
     // Remove schedules for this medication
     const schedules = Array.from(this.schedules.values()).filter(s => s.medicationId === medicationId)
     schedules.forEach(schedule => {
