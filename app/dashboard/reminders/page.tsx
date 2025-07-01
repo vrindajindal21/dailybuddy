@@ -499,78 +499,79 @@ export default function RemindersPage() {
         if (reminder.scheduledTime) {
           const now = new Date();
           const scheduledTime = new Date(reminder.scheduledTime);
-          if (Math.abs(scheduledTime.getTime() - now.getTime()) <= 60000 && NotificationService.isSupported() && Notification.permission === "granted") {
-            const immediateNotificationId = `${reminder.id}-${scheduledTime.toISOString()}`;
-            // Avoid duplicate
-            const syncStateImmediate = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
-            const isAlreadyShown = syncStateImmediate[immediateNotificationId] && (Date.now() - syncStateImmediate[immediateNotificationId].timestamp < 5 * 60 * 1000);
-            if (!isAlreadyShown) {
-              NotificationService.showNotification(
-                `⏰ ${reminder.title}`,
-                {
-                  body: reminder.description || "Time for your reminder!",
-                  icon: '/android-chrome-192x192.png',
-                  requireInteraction: true,
-                  tag: immediateNotificationId,
-                  data: {
-                    type: 'reminder',
-                    id: reminder.id,
-                    scheduledTime: scheduledTime.toISOString()
+          const dedupeKey = `reminder-shown-${reminder.id}-${scheduledTime.toISOString()}`;
+          if (
+            Math.abs(scheduledTime.getTime() - now.getTime()) <= 60000 &&
+            NotificationService.isSupported() &&
+            Notification.permission === "granted" &&
+            !localStorage.getItem(dedupeKey)
+          ) {
+            NotificationService.showNotification(
+              `⏰ ${reminder.title}`,
+              {
+                body: reminder.description || "Time for your reminder!",
+                icon: '/android-chrome-192x192.png',
+                requireInteraction: true,
+                tag: dedupeKey,
+                data: {
+                  type: 'reminder',
+                  id: reminder.id,
+                  scheduledTime: scheduledTime.toISOString()
+                },
+                vibrate: [200, 100, 200],
+              } as NotificationOptions & { vibrate?: number[] },
+              soundType,
+              volume[0]
+            );
+            // In-app notification
+            window.dispatchEvent(
+              new CustomEvent('inAppNotification', {
+                detail: {
+                  title: `⏰ ${reminder.title}`,
+                  options: {
+                    body: reminder.description || "Time for your reminder!",
                   },
-                  vibrate: [200, 100, 200],
-                } as NotificationOptions & { vibrate?: number[] },
-                soundType,
-                volume[0]
-              );
-              // In-app notification
+                },
+              })
+            );
+            // Popup
+            const popupDedupeKey = `reminder-popup-shown-${dedupeKey}`;
+            if (!localStorage.getItem(popupDedupeKey)) {
+              localStorage.setItem(popupDedupeKey, "1");
               window.dispatchEvent(
-                new CustomEvent('inAppNotification', {
+                new CustomEvent("show-popup", {
                   detail: {
+                    type: "reminder-due",
                     title: `⏰ ${reminder.title}`,
-                    options: {
-                      body: reminder.description || "Time for your reminder!",
-                    },
+                    message: reminder.description || "Time for your reminder!",
+                    duration: 10000,
+                    priority: "high",
+                    actions: [
+                      {
+                        label: "Mark as Done",
+                        action: () => {
+                          toast({
+                            title: "Reminder Completed",
+                            description: `${reminder.title} marked as done`,
+                          });
+                        },
+                      },
+                      {
+                        label: "Snooze 5 min",
+                        action: () => {
+                          toast({
+                            title: "Reminder Snoozed",
+                            description: "Reminder will show again in 5 minutes",
+                          });
+                        },
+                        variant: "outline"
+                      }
+                    ],
                   },
                 })
               );
-              // Popup
-              const popupDedupeKey = `reminder-popup-shown-${immediateNotificationId}`;
-              if (!localStorage.getItem(popupDedupeKey)) {
-                localStorage.setItem(popupDedupeKey, "1");
-                window.dispatchEvent(
-                  new CustomEvent("show-popup", {
-                    detail: {
-                      type: "reminder-due",
-                      title: `⏰ ${reminder.title}`,
-                      message: reminder.description || "Time for your reminder!",
-                      duration: 10000,
-                      priority: "high",
-                      actions: [
-                        {
-                          label: "Mark as Done",
-                          action: () => {
-                            toast({
-                              title: "Reminder Completed",
-                              description: `${reminder.title} marked as done`,
-                            });
-                          },
-                        },
-                        {
-                          label: "Snooze 5 min",
-                          action: () => {
-                            toast({
-                              title: "Reminder Snoozed",
-                              description: "Reminder will show again in 5 minutes",
-                            });
-                          },
-                          variant: "outline"
-                        }
-                      ],
-                    },
-                  })
-                );
-              }
             }
+            localStorage.setItem(dedupeKey, "1");
           }
         }
       }
