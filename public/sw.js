@@ -642,86 +642,34 @@ self.addEventListener("push", (event) => {
 })
 
 self.addEventListener("notificationclick", (event) => {
-  const notification = event.notification
-  const action = event.action
-  const data = notification.data
-
-  console.log('[SW] Notification clicked:', action, data)
-
-  if (action === "start-break") {
-    // Start a break timer
-    const breakTimer = {
-      mode: "break",
-      duration: 300, // 5 minutes
-      task: "Take a break"
-    }
-    startBackgroundTimer(breakTimer)
-  } else if (action === "start-pomodoro") {
-    // Start a new pomodoro timer
-    const pomodoroTimer = {
-      mode: "pomodoro",
-      duration: 1500, // 25 minutes
-      task: ""
-    }
-    startBackgroundTimer(pomodoroTimer)
-  } else if (action === "snooze") {
-    // Snooze the reminder for 5 minutes
-    if (data.type === "reminder" && data.reminderId) {
-      const reminder = backgroundReminders.get(data.reminderId)
-      if (reminder) {
-        const snoozedReminder = {
-          ...reminder,
-          scheduledTime: Date.now() + (5 * 60 * 1000) // 5 minutes from now
-        }
-        scheduleBackgroundReminder(snoozedReminder)
-      }
-    }
-  } else if (action === "complete") {
-    // Handle complete action
-    if (data.type === "reminder" && data.reminderId) {
-      completeBackgroundReminder(data.reminderId)
-    }
-    console.log("Reminder completed")
-  } else {
-    // Default action - open app with robust fallback
-    event.waitUntil(
-      self.clients.matchAll({ type: "window" }).then((clientList) => {
-        let targetUrl = "/dashboard"
-        // Fallback logic for main pages
-        switch (data?.type) {
-          case "medication":
-            targetUrl = "/dashboard/medications"
-            break
-          case "pomodoro":
-            targetUrl = "/dashboard/pomodoro"
-            break
-          case "habit":
-            targetUrl = "/dashboard/habits"
-            break
-          case "reminder":
-          case "task":
-            targetUrl = "/dashboard/reminders"
-            break
-          default:
-            if (data?.url) {
-              targetUrl = data.url
+  event.notification.close();
+  const data = event.notification.data || {};
+  const url = data.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      // Try to focus an open tab
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        if (client.url.includes(url) && 'focus' in client) {
+          client.focus();
+          // Post message to show popup if possible
+          client.postMessage({
+            type: 'show-popup',
+            detail: {
+              type: data.type === 'medication' ? 'medication-due' : 'reminder-due',
+              reminderId: data.reminderId,
+              // Optionally, add more details if needed
             }
-            // else fallback to /dashboard
+          });
+          return;
         }
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && "focus" in client) {
-            client.navigate(targetUrl)
-            return client.focus()
-          }
-        }
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl)
-        }
-      }),
-    )
-  }
-
-  notification.close()
+      }
+      // Otherwise, open a new tab
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+    })
+  );
 })
 
 self.addEventListener("notificationclose", (event) => {
@@ -814,15 +762,14 @@ async function scheduleOrFireMedicationReminder(reminder) {
   const scheduledTime = new Date(reminder.scheduledTime).getTime();
   console.log('[SW] scheduleOrFireMedicationReminder:', { scheduledTime, now, diff: scheduledTime - now, reminder });
   if (reminder.completed) return;
-  if (scheduledTime - now < 30000) {
-    // If overdue or too close to now, fire immediately
-    console.log('[SW] Firing medication reminder immediately');
-    handleMedicationReminder(reminder);
-  } else {
-    // Otherwise, schedule with setTimeout (while SW is alive)
+  if (scheduledTime > now + 30000) {
+    // Only schedule if at least 30 seconds in the future
     const timeout = scheduledTime - now;
     console.log('[SW] Scheduling medication reminder in', timeout, 'ms');
     setTimeout(() => handleMedicationReminder(reminder), timeout);
+  } else {
+    // Do NOT fire instantly for old/overdue reminders
+    console.log('[SW] Skipping old/overdue medication reminder:', reminder);
   }
 }
 
@@ -880,14 +827,16 @@ function handleMedicationReminder(reminder) {
 async function scheduleOrFireGeneralReminder(reminder) {
   const now = Date.now();
   const scheduledTime = new Date(reminder.scheduledTime).getTime();
+  console.log('[SW] scheduleOrFireGeneralReminder:', { scheduledTime, now, diff: scheduledTime - now, reminder });
   if (reminder.completed) return;
-  if (scheduledTime <= now) {
-    // If overdue, fire immediately
-    handleReminderNotification(reminder);
-  } else {
-    // Otherwise, schedule with setTimeout (while SW is alive)
+  if (scheduledTime > now + 30000) {
+    // Only schedule if at least 30 seconds in the future
     const timeout = scheduledTime - now;
+    console.log('[SW] Scheduling general reminder in', timeout, 'ms');
     setTimeout(() => handleReminderNotification(reminder), timeout);
+  } else {
+    // Do NOT fire instantly for old/overdue reminders
+    console.log('[SW] Skipping old/overdue general reminder:', reminder);
   }
 }
 
