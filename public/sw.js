@@ -50,7 +50,7 @@ self.addEventListener("install", (event) => {
 })
 
 self.addEventListener("activate", (event) => {
-  console.log('[sw.js] Service Worker activating...')
+  console.log('[SW] Service Worker activating...')
   event.waitUntil(
     caches
       .keys()
@@ -76,6 +76,7 @@ self.addEventListener("activate", (event) => {
             const elapsed = Math.floor((now - timer.startTime) / 1000)
             const timeLeft = timer.duration - elapsed
             if (timeLeft <= 0) {
+              console.log('[SW] Timer completed while app was closed:', timer)
               handleTimerComplete(timer)
               await removeTimerFromDB(timer.id)
               backgroundTimers.delete(timer.id)
@@ -83,9 +84,22 @@ self.addEventListener("activate", (event) => {
               timer.timeLeft = timeLeft
               backgroundTimers.set(timer.id, timer)
               // Resume countdown
+              console.log('[SW] Restoring timer:', timer)
               startBackgroundTimer({ ...timer, startTime: timer.startTime, duration: timeLeft })
             }
           }
+        }
+        // Restore medication reminders from DB
+        const medReminders = await getAllMedicationRemindersFromDB()
+        for (const reminder of medReminders) {
+          console.log('[SW] Restoring medication reminder:', reminder)
+          scheduleOrFireMedicationReminder(reminder)
+        }
+        // Restore general reminders from DB
+        const genReminders = await getAllGeneralRemindersFromDB()
+        for (const reminder of genReminders) {
+          console.log('[SW] Restoring general reminder:', reminder)
+          scheduleOrFireGeneralReminder(reminder)
         }
         return Promise.resolve()
       })
@@ -121,14 +135,18 @@ self.addEventListener('message', (event) => {
     // Persist timer to IndexedDB
     saveTimerToDB(event.data.timer)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_STOP') {
+    console.log('[SW] Stopping Pomodoro timer:', event.data.timerId)
     stopBackgroundTimer(event.data.timerId)
     // Remove timer from IndexedDB
     removeTimerFromDB(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_PAUSE') {
+    console.log('[SW] Pausing Pomodoro timer:', event.data.timerId)
     pauseBackgroundTimer(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_TIMER_RESUME') {
+    console.log('[SW] Resuming Pomodoro timer:', event.data.timerId)
     resumeBackgroundTimer(event.data.timerId)
   } else if (event.data && event.data.type === 'POMODORO_SYNC_REQUEST') {
+    console.log('[SW] Sync request for Pomodoro timer:', event.data.timerId)
     sendTimerSync(event.data.timerId)
   } else if (event.data && event.data.type === 'MEDICATION_SYNC_REQUEST') {
     sendMedicationSync()
@@ -137,9 +155,9 @@ self.addEventListener('message', (event) => {
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER') {
     completeBackgroundReminder(event.data.reminderId)
   } else if (event.data && event.data.type === 'SCHEDULE_REMINDER' && event.data.reminder && event.data.reminder.type === 'medication') {
-    const reminder = event.data.reminder;
-    saveMedicationReminderToDB(reminder);
-    scheduleOrFireMedicationReminder(reminder);
+    console.log('[SW] Scheduling medication reminder:', event.data.reminder)
+    saveMedicationReminderToDB(event.data.reminder);
+    scheduleOrFireMedicationReminder(event.data.reminder);
   } else if (event.data && event.data.type === 'REMOVE_REMINDER' && event.data.reminderId) {
     removeMedicationReminderFromDB(event.data.reminderId);
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER' && event.data.reminderId) {
@@ -157,9 +175,9 @@ self.addEventListener('message', (event) => {
       };
     });
   } else if (event.data && event.data.type === 'SCHEDULE_REMINDER' && event.data.reminder && event.data.reminder.type !== 'medication') {
-    const reminder = event.data.reminder;
-    saveGeneralReminderToDB(reminder);
-    scheduleOrFireGeneralReminder(reminder);
+    console.log('[SW] Scheduling general reminder:', event.data.reminder)
+    saveGeneralReminderToDB(event.data.reminder);
+    scheduleOrFireGeneralReminder(event.data.reminder);
   }
 })
 
@@ -285,7 +303,8 @@ async function getAllGeneralRemindersFromDB() {
 
 // Pomodoro Timer Functions
 async function startBackgroundTimer(timerData) {
-  const timerId = `pomodoro-${Date.now()}`
+  console.log('[SW] startBackgroundTimer called with:', timerData);
+  const timerId = timerData.id;
   const timer = {
     id: timerId,
     mode: timerData.mode,
@@ -296,6 +315,15 @@ async function startBackgroundTimer(timerData) {
     isPaused: false,
     task: timerData.task || '',
     endTime: (timerData.startTime || Date.now()) + (timerData.duration * 1000)
+  }
+
+  // If a timer with this ID already exists, clear its interval
+  if (backgroundTimers.has(timerId)) {
+    const existing = backgroundTimers.get(timerId);
+    if (existing && existing.countdownInterval) {
+      clearInterval(existing.countdownInterval);
+    }
+    backgroundTimers.delete(timerId);
   }
 
   backgroundTimers.set(timerId, timer)
@@ -747,7 +775,10 @@ async function scheduleOrFireMedicationReminder(reminder) {
   const now = Date.now();
   const scheduledTime = new Date(reminder.scheduledTime).getTime();
   console.log('[SW] scheduleOrFireMedicationReminder:', { scheduledTime, now, diff: scheduledTime - now, reminder });
-  if (reminder.completed) return;
+  if (reminder.completed) {
+    console.log('[SW] Medication reminder already completed:', reminder);
+    return;
+  }
   if (scheduledTime > now + 30000) {
     // Only schedule if at least 30 seconds in the future
     const timeout = scheduledTime - now;
@@ -761,6 +792,7 @@ async function scheduleOrFireMedicationReminder(reminder) {
 
 // Add a handler for medication reminders similar to Pomodoro
 function handleMedicationReminder(reminder) {
+  console.log('[SW] Firing medication notification:', reminder);
   const dedupeKey = `medication-shown-${reminder.id}-${reminder.scheduledTime}`;
   // Only show if not already shown
   self.caches.open('medication-dedupe').then(async (cache) => {
@@ -814,7 +846,10 @@ async function scheduleOrFireGeneralReminder(reminder) {
   const now = Date.now();
   const scheduledTime = new Date(reminder.scheduledTime).getTime();
   console.log('[SW] scheduleOrFireGeneralReminder:', { scheduledTime, now, diff: scheduledTime - now, reminder });
-  if (reminder.completed) return;
+  if (reminder.completed) {
+    console.log('[SW] General reminder already completed:', reminder);
+    return;
+  }
   if (scheduledTime > now + 30000) {
     // Only schedule if at least 30 seconds in the future
     const timeout = scheduledTime - now;
@@ -828,6 +863,7 @@ async function scheduleOrFireGeneralReminder(reminder) {
 
 // --- General Reminder Notification Handler ---
 function handleReminderNotification(reminder) {
+  console.log('[SW] Firing general reminder notification:', reminder);
   const dedupeKey = `reminder-shown-${reminder.id}-${reminder.scheduledTime}`;
   self.caches.open('reminder-dedupe').then(async (cache) => {
     const match = await cache.match(dedupeKey);

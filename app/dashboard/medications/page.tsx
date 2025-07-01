@@ -620,6 +620,15 @@ export default function MedicationsPage() {
       } else if (scheduleTime.getTime() > now.getTime()) {
         // Only schedule for future times
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          console.log('[Medication] Sending SCHEDULE_REMINDER to service worker:', {
+            id: notificationId,
+            name: medication.name,
+            dosage: medication.dosage,
+            instructions: medication.instructions,
+            scheduledTime: scheduleTime.toISOString(),
+            type: 'medication',
+            title: `💊 Time to take ${medication.name}`,
+          });
           navigator.serviceWorker.controller.postMessage({
             type: 'SCHEDULE_REMINDER',
             reminder: {
