@@ -62,6 +62,7 @@ type MedicationType = {
   dueTime?: string;
   formattedTime?: string;
   scheduleTime?: Date;
+  completed?: boolean;
 };
 
 // Add a new type for scheduled doses
@@ -1092,6 +1093,19 @@ export default function MedicationsPage() {
         const isAlreadyShown = syncState[notificationId] && 
           (Date.now() - syncState[notificationId].timestamp < 5 * 60 * 1000);
 
+        // If medication is overdue by more than 5 minutes, mark as shown and complete it for that occurrence
+        if (isTooOld && !dose.completed) {
+          syncState[notificationId] = {
+            timestamp: now.getTime(),
+            deviceId: localStorage.getItem('deviceId') || 'unknown',
+            title: `💊 Time to take ${dose.name}`,
+            type: 'medication'
+          };
+          localStorage.setItem(NotificationService.NOTIFICATION_SYNC_KEY, JSON.stringify(syncState));
+          MedicationManager.completeReminder(String(dose.id));
+          return;
+        }
+
         // Calculate if this dose became due since our last check
         const becameDueSinceLastCheck = 
           // Check if it's within 1 minute of scheduled time
@@ -1181,10 +1195,7 @@ export default function MedicationsPage() {
                     {
                       label: "Mark as Taken",
                       action: () => {
-                        // Mark as taken logic
-                        const takenDoses = JSON.parse(localStorage.getItem('takenDoses') || '[]');
-                        takenDoses.push(`${dose.id}-${dose.scheduleTime.toISOString()}`);
-                        localStorage.setItem('takenDoses', JSON.stringify(takenDoses));
+                        MedicationManager.completeReminder(String(dose.id));
                         toast({
                           title: "Medication Taken",
                           description: `${dose.name} marked as taken`,
@@ -1206,16 +1217,8 @@ export default function MedicationsPage() {
               })
             );
           }
-        } else {
-          // Debug: log skip reason
-          if (!dose.notificationsEnabled) console.log('[Medication] Skipped: notifications disabled');
-          if (!becameDueSinceLastCheck) console.log('[Medication] Skipped: not due since last check');
-          if (!isToday) console.log('[Medication] Skipped: not today');
-          if (isAlreadyShown) console.log('[Medication] Skipped: already shown');
-          if (isTooOld) console.log('[Medication] Skipped: too old');
-          if (isBeforeDeviceSync) console.log('[Medication] Skipped: before device sync');
-          if (!NotificationService.isSupported()) console.log('[Medication] Skipped: notifications not supported');
-          if (Notification.permission !== "granted") console.log('[Medication] Skipped: permission not granted');
+          // Mark as completed for this occurrence
+          MedicationManager.completeReminder(String(dose.id));
         }
       });
     }, 60000); // check every minute

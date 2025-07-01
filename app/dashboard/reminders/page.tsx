@@ -237,12 +237,18 @@ export default function RemindersPage() {
         if (reminder.type === 'medication') return;
         const reminderDate = reminder.scheduledTime ? new Date(reminder.scheduledTime) : null;
         const notificationId = reminderDate ? `${reminder.id}-${reminderDate.toISOString()}` : `${reminder.id}`;
+        const dedupeKey = `reminder-shown-${notificationId}`;
+        // If reminder is overdue by more than 5 minutes, mark as shown and complete it for that occurrence
+        if (reminderDate && reminderDate.getTime() < now.getTime() - 5 * 60 * 1000 && !reminder.completed) {
+          localStorage.setItem(dedupeKey, "1");
+          ReminderManager.completeReminder(reminder.id);
+          return;
+        }
         const becameDueSinceLastCheck =
           reminder.scheduledTime &&
           new Date(reminder.scheduledTime).getTime() <= now.getTime() &&
           new Date(reminder.scheduledTime).getTime() > lastCheck.getTime();
         const isToday = reminderDate ? reminderDate.toISOString().split('T')[0] === now.toISOString().split('T')[0] : false;
-        const dedupeKey = `reminder-shown-${notificationId}`;
         // DEDUPE: Only show if not already shown
         if (
           reminder.notificationEnabled &&
@@ -316,6 +322,8 @@ export default function RemindersPage() {
               })
             );
           }
+          // Mark as completed for this occurrence
+          ReminderManager.completeReminder(reminder.id);
         }
       });
     }, 60000);
