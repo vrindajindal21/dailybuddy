@@ -22,8 +22,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch"
 import { format, parseISO, differenceInDays } from "date-fns"
-import { CalendarIcon, CheckSquare, Clock, Plus, Trash2, Edit, Filter, Bell } from "lucide-react"
-import { NotificationService } from "@/lib/notification-service"
+import { CalendarIcon, CheckSquare, Clock, Plus, Trash2, Edit, Filter } from "lucide-react"
 import * as React from 'react'
 
 type TaskType = {
@@ -35,7 +34,6 @@ type TaskType = {
   priority: string;
   category: string;
   notifyBefore: number;
-  notificationEnabled: boolean;
 };
 
 export default function TasksPage() {
@@ -50,7 +48,6 @@ export default function TasksPage() {
       priority: "high",
       category: "school",
       notifyBefore: 1, // days before due date
-      notificationEnabled: true,
     },
     {
       id: 2,
@@ -61,7 +58,6 @@ export default function TasksPage() {
       priority: "medium",
       category: "school",
       notifyBefore: 2,
-      notificationEnabled: true,
     },
     {
       id: 3,
@@ -72,7 +68,6 @@ export default function TasksPage() {
       priority: "medium",
       category: "school",
       notifyBefore: 3,
-      notificationEnabled: true,
     },
     {
       id: 4,
@@ -83,7 +78,6 @@ export default function TasksPage() {
       priority: "low",
       category: "personal",
       notifyBefore: 1,
-      notificationEnabled: false,
     },
     {
       id: 5,
@@ -94,7 +88,6 @@ export default function TasksPage() {
       priority: "medium",
       category: "personal",
       notifyBefore: 0,
-      notificationEnabled: false,
     },
   ])
 

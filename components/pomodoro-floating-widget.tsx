@@ -61,10 +61,10 @@ export function PomodoroFloatingWidget() {
     const interval = setInterval(() => {
       setTimer((prev) => {
         if (!prev || !prev.isActive || prev.isPaused) return prev
-        if (prev.timeLeft <= 1) {
+        if (prev.timeLeft <= 0) {
           // Timer complete, stop
           window.dispatchEvent(new CustomEvent("stop-pomodoro-timer"))
-          return null // Hide widget immediately
+          return { ...prev, timeLeft: 0, isActive: false } // Show 00:00 for a moment
         }
         const updated = { ...prev, timeLeft: prev.timeLeft - 1 }
         // Persist to localStorage
@@ -134,6 +134,19 @@ export function PomodoroFloatingWidget() {
 
   // Only after all hooks:
   if (!timer || !timer.isActive) {
+    // If timer just finished, show 00:00 for a brief moment before hiding
+    if (timer && timer.timeLeft === 0) {
+      setTimeout(() => setTimer(null), 800)
+      return (
+        <div className={cn(
+          "fixed z-[9999] w-48 shadow-lg rounded-lg border bg-background p-3 select-none pointer-events-auto flex flex-col items-center",
+          collapsed ? "opacity-70" : ""
+        )} style={{ left: position.x, top: position.y }}>
+          <div className="text-sm font-semibold capitalize mb-2">{timer.mode}</div>
+          <div className="text-3xl font-mono mb-3">00:00</div>
+        </div>
+      )
+    }
     return null
   }
 

@@ -84,21 +84,21 @@ export class PomodoroManager {
     window.dispatchEvent(new CustomEvent("pomodoro-stop-repeat"));
     const { duration, mode, task } = e.detail
     const now = Date.now()
-    
+    // Generate a unique timer ID and store it for this session
+    const timerId = this.currentTimerId || `pomodoro-${now}-${Math.random().toString(36).substr(2, 9)}`;
+    this.currentTimerId = timerId;
     // Create timer data for service worker
     const timerData = {
-      id: `pomodoro-${now}-${Math.random().toString(36).substr(2, 9)}`,
+      id: timerId,
       mode: mode || "pomodoro",
       duration,
       task: task || "",
       startTime: now
     }
-    
     // Send to service worker - it will handle all timing
     this.sendToServiceWorker('POMODORO_TIMER_START', {
       timer: timerData
     })
-    
     console.log('[PomodoroManager] Timer start requested to service worker:', timerData)
   }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { NotificationService } from "@/lib/notification-service"
+import { NotificationService } from "../lib/notification-service"
 import { ReminderManager } from "@/lib/reminder-manager"
 
 // Reminder state keys for localStorage
@@ -69,7 +69,6 @@ export function ReminderBackgroundService() {
     const handleReminderAdded = (e: any) => {
       const { reminder } = e.detail
       console.log('[ReminderBackgroundService] Reminder added:', reminder)
-      
       // Update state to reflect new reminder
       const newState = {
         ...reminderState,
@@ -78,7 +77,6 @@ export function ReminderBackgroundService() {
       }
       setReminderState(newState)
       saveReminderState(newState)
-      
       // Sync with service worker immediately
       setTimeout(() => syncRemindersWithServiceWorker(), 100)
     }
@@ -86,7 +84,6 @@ export function ReminderBackgroundService() {
     const handleReminderUpdated = (e: any) => {
       const { reminder } = e.detail
       console.log('[ReminderBackgroundService] Reminder updated:', reminder)
-      
       // Update state to reflect reminder changes
       const newState = {
         ...reminderState,
@@ -94,7 +91,6 @@ export function ReminderBackgroundService() {
       }
       setReminderState(newState)
       saveReminderState(newState)
-      
       // Sync with service worker immediately
       setTimeout(() => syncRemindersWithServiceWorker(), 100)
     }
@@ -162,10 +158,10 @@ export function ReminderBackgroundService() {
     // Initialize reminder manager
     ReminderManager.initialize()
     
-    // Check for due reminders every 30 seconds (more frequent than before)
+    // Check for due reminders every 2 seconds (was 30 seconds)
     intervalRef.current = setInterval(() => {
       checkForDueReminders()
-    }, 30000) // Every 30 seconds
+    }, 2000) // Every 2 seconds
 
     // Sync with service worker every 2 minutes
     syncIntervalRef.current = setInterval(() => {

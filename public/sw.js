@@ -328,8 +328,9 @@ async function startBackgroundTimer(timerData) {
 
   backgroundTimers.set(timerId, timer)
   await saveTimerToDB(timer)
-  // Set up the countdown - this runs independently in service worker
-  const countdown = setInterval(async () => {
+
+  // Immediate tick function
+  const tick = async () => {
     const currentTimer = backgroundTimers.get(timerId)
     if (!currentTimer || !currentTimer.isActive || currentTimer.isPaused) {
       clearInterval(countdown)
@@ -338,6 +339,7 @@ async function startBackgroundTimer(timerData) {
     currentTimer.timeLeft -= 1
     backgroundTimers.set(timerId, currentTimer)
     await saveTimerToDB(currentTimer)
+    console.log('[SW] Pomodoro tick:', currentTimer.timeLeft, 'seconds left');
     // Send regular updates to main app (every second)
     sendTimerTick(currentTimer)
     // Check if timer is complete
@@ -347,13 +349,17 @@ async function startBackgroundTimer(timerData) {
       backgroundTimers.delete(timerId)
       await removeTimerFromDB(timerId)
     }
-  }, 1000)
-  // Store the interval reference
+  }
+
+  // Set up the countdown - this runs independently in service worker
+  const countdown = setInterval(tick, 1000)
   timer.countdownInterval = countdown
   backgroundTimers.set(timerId, timer)
   console.log('[SW] Background Pomodoro timer started (Primary Timer):', timer)
   // Send initial state to main app
   sendTimerTick(timer)
+  // Immediate first tick to avoid 1-second hang
+  tick();
 }
 
 function sendTimerTick(timer) {

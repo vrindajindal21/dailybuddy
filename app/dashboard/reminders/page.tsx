@@ -28,6 +28,7 @@ import { ReminderManager, type Reminder } from "@/lib/reminder-manager"
 import { VoiceInput } from "@/components/voice-input"
 import { RequiredFieldLabel } from "@/components/required-field-label"
 import { toast } from "@/components/ui/use-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ScheduleTime {
   id: string
@@ -74,6 +75,7 @@ const SOUND_TYPES = [
 ]
 
 export default function RemindersPage() {
+  const isMobile = useIsMobile(); // Mobile detection
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null)
@@ -97,8 +99,9 @@ export default function RemindersPage() {
   const [titleError, setTitleError] = useState("")
   const [scheduleError, setScheduleError] = useState("")
 
-  const [notificationPermission, setNotificationPermission] = useState<string>(typeof window !== 'undefined' ? Notification.permission : 'default')
-  const [showPermissionAlert, setShowPermissionAlert] = useState(false)
+  // Notification permission state
+  const [notificationPermission, setNotificationPermission] = useState<string>(typeof window !== 'undefined' ? Notification.permission : 'default');
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false);
 
   // Reference for notification interval
   const notificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -189,7 +192,16 @@ export default function RemindersPage() {
   }
 
   useEffect(() => {
-    loadReminders()
+    loadReminders();
+    // Check notification permission
+    if (typeof window !== 'undefined') {
+      setNotificationPermission(Notification.permission);
+      if (Notification.permission === 'denied') {
+        setShowPermissionAlert(true);
+      } else {
+        setShowPermissionAlert(false);
+      }
+    }
     // Fallback: Register service worker if not already registered
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistration().then((reg) => {
@@ -198,12 +210,7 @@ export default function RemindersPage() {
         }
       })
     }
-    // Check notification permission
-    if (Notification.permission === 'denied') {
-      setShowPermissionAlert(true)
-    }
-    setNotificationPermission(Notification.permission)
-  }, [])
+  }, []);
 
   // Load shown notifications from localStorage
   useEffect(() => {
@@ -570,25 +577,29 @@ export default function RemindersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className={
+      isMobile
+        ? "container mx-auto p-2 space-y-4 min-h-screen bg-white dark:bg-gray-900"
+        : "container mx-auto p-6 space-y-6 min-h-screen bg-white dark:bg-gray-900"
+    }>
       {showPermissionAlert && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded text-sm sm:text-base">
           <strong>Notifications are disabled.</strong> To receive reminders when the app is closed or in the background, please enable notifications in your browser settings.
         </div>
       )}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-4">
+      <div className={isMobile ? "flex flex-col gap-2 px-1" : "flex items-center justify-between px-2 sm:px-4"}>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reminders</h2>
-          <p className="text-muted-foreground text-base sm:text-lg">Never miss an important reminder</p>
+          <h1 className={isMobile ? "text-xl font-bold" : "text-3xl font-bold"}>Reminders</h1>
+          <p className={isMobile ? "text-muted-foreground text-sm" : "text-muted-foreground"}>Manage your daily reminders and notifications</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+            <Button onClick={resetForm} className={isMobile ? "w-full mt-2" : undefined}>
               <Plus className="mr-2 h-4 w-4" />
               Add Reminder
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className={isMobile ? "max-w-full max-h-[95vh] p-2 overflow-y-auto" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
             <DialogHeader>
               <DialogTitle>{editingReminder ? "Edit Reminder" : "Add New Reminder"}</DialogTitle>
               <DialogDescription>Create a new reminder with notifications</DialogDescription>
@@ -809,20 +820,17 @@ export default function RemindersPage() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center px-2 sm:px-4">
-        {/* ...existing filter/search bar if any... */}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4">
+      <div className={isMobile ? "grid grid-cols-1 gap-2 px-1" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-4"}>
         {/* Today's Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className={isMobile ? "p-2" : undefined}>
+          <CardHeader className={isMobile ? "p-2 pb-0" : undefined}>
+            <CardTitle className={isMobile ? "flex items-center gap-2 text-lg" : "flex items-center gap-2"}>
               <Bell className="h-5 w-5" />
               Today's Reminders
             </CardTitle>
-            <CardDescription>{getTodaysReminders().length} reminders for today</CardDescription>
+            <CardDescription className={isMobile ? "text-xs" : undefined}>{getTodaysReminders().length} reminders for today</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className={isMobile ? "p-2 pt-0" : undefined}>
             {getTodaysReminders().length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No reminders for today</p>
             ) : (
@@ -856,14 +864,14 @@ export default function RemindersPage() {
         </Card>
 
         {/* Upcoming Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className={isMobile ? "p-2" : undefined}>
+          <CardHeader className={isMobile ? "p-2 pb-0" : undefined}>
+            <CardTitle className={isMobile ? "flex items-center gap-2 text-lg" : "flex items-center gap-2"}>
               <Calendar className="h-5 w-5" />
               Upcoming Reminders
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className={isMobile ? "p-2 pt-0" : undefined}>
             {getUpcomingReminders().length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No upcoming reminders</p>
             ) : (
@@ -898,12 +906,12 @@ export default function RemindersPage() {
         </Card>
 
         {/* All Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Reminders</CardTitle>
-            <CardDescription>{reminders.length} total reminders</CardDescription>
+        <Card className={isMobile ? "p-2" : undefined}>
+          <CardHeader className={isMobile ? "p-2 pb-0" : undefined}>
+            <CardTitle className={isMobile ? "text-lg" : undefined}>All Reminders</CardTitle>
+            <CardDescription className={isMobile ? "text-xs" : undefined}>{reminders.length} total reminders</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className={isMobile ? "p-2 pt-0" : undefined}>
             {reminders.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No reminders created yet</p>
             ) : (

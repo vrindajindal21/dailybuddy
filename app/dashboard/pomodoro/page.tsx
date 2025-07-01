@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useLanguage } from "@/components/language-provider"
-import { NotificationService } from '@/lib/notification-service'
+import { NotificationService } from '../../../lib/notification-service'
 
 interface PomodoroSession {
   id: string
@@ -493,33 +493,10 @@ export default function PomodoroPage() {
     }
 
     // Auto-start next session
-    if (timer.mode === "pomodoro") {
-      const nextMode = (sessionCount + 1) % longBreakInterval === 0 ? "longBreak" : "shortBreak"
-      setTimer({
-        ...timer,
-        mode: nextMode,
-        timeLeft: getDefaultDuration(nextMode),
-        startTimestamp: Date.now(),
-      })
-
-      if (autoStartBreaks) {
-        setTimeout(() => {
-          startTimer()
-        }, 2000)
-      }
-    } else {
-      setTimer({
-        ...timer,
-        mode: "pomodoro",
-        timeLeft: getDefaultDuration("pomodoro"),
-        startTimestamp: Date.now(),
-      })
-
-      if (autoStartPomodoros) {
-        setTimeout(() => {
-          startTimer()
-        }, 2000)
-      }
+    if (timer.mode === "pomodoro" && autoStartBreaks) {
+      startTimer()
+    } else if (timer.mode !== "pomodoro" && autoStartPomodoros) {
+      startTimer()
     }
   }, [
     timer,

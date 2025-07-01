@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { NotificationService } from "@/lib/notification-service"
+import { NotificationService } from "../lib/notification-service"
 import { MedicationManager } from "@/lib/medication-manager"
 
 // Medication state keys for localStorage
@@ -166,10 +166,10 @@ export function MedicationBackgroundService() {
     // Initialize medication manager
     MedicationManager.initialize()
     
-    // Check for due medications every 30 seconds (more frequent than before)
+    // Check for due medications every 2 seconds (was 30 seconds)
     intervalRef.current = setInterval(() => {
       checkForDueMedications()
-    }, 30000) // Every 30 seconds
+    }, 2000) // Every 2 seconds
 
     // Sync with service worker every 2 minutes
     syncIntervalRef.current = setInterval(() => {
