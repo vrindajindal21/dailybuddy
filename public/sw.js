@@ -108,8 +108,6 @@ self.addEventListener('message', (event) => {
     sendTimerSync(event.data.timerId)
   } else if (event.data && event.data.type === 'MEDICATION_SYNC_REQUEST') {
     sendMedicationSync()
-  } else if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
-    scheduleBackgroundReminder(event.data.reminder)
   } else if (event.data && event.data.type === 'REMOVE_REMINDER') {
     removeBackgroundReminder(event.data.reminderId)
   } else if (event.data && event.data.type === 'COMPLETE_REMINDER') {
