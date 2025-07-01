@@ -1008,21 +1008,7 @@ export default function MedicationsPage() {
       localStorage.setItem("medications", JSON.stringify(updated));
       return updated;
     });
-
-    // Show in-app notification and play sound
-    window.dispatchEvent(
-      new CustomEvent('inAppNotification', {
-        detail: {
-          title: `💊 Medication Added`,
-          options: {
-            body: `${newMedication.name} has been added to your schedule.`,
-          },
-        },
-      })
-    );
-    if (soundEnabled) {
-      playNotificationSound();
-    }
+    // INSTANT NOTIFICATION AND SOUND REMOVED
   };
 
   // Medication notification logic
