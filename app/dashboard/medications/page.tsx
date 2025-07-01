@@ -936,6 +936,14 @@ export default function MedicationsPage() {
         }
       }
     }
+
+    // --- Notify Service Worker to schedule/fix background notification ---
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_REMINDER',
+        reminder: { ...updatedMedication, type: 'medication' }
+      });
+    }
   }, [editingMedication, toast, updateTodaysAndUpcomingMedications, soundEnabled, selectedSound, soundVolume]);
 
   const deleteMedication = useCallback(
