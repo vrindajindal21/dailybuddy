@@ -812,13 +812,16 @@ self.addEventListener("activate", (event) => {
 async function scheduleOrFireMedicationReminder(reminder) {
   const now = Date.now();
   const scheduledTime = new Date(reminder.scheduledTime).getTime();
+  console.log('[SW] scheduleOrFireMedicationReminder:', { scheduledTime, now, diff: scheduledTime - now, reminder });
   if (reminder.completed) return;
-  if (scheduledTime <= now) {
-    // If overdue, fire immediately
+  if (scheduledTime - now < 30000) {
+    // If overdue or too close to now, fire immediately
+    console.log('[SW] Firing medication reminder immediately');
     handleMedicationReminder(reminder);
   } else {
     // Otherwise, schedule with setTimeout (while SW is alive)
     const timeout = scheduledTime - now;
+    console.log('[SW] Scheduling medication reminder in', timeout, 'ms');
     setTimeout(() => handleMedicationReminder(reminder), timeout);
   }
 }
