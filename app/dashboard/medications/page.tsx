@@ -1031,24 +1031,8 @@ export default function MedicationsPage() {
 
   // Handle adding new medication
   const handleAddMedication = (newMedication: any) => {
-    // Don't show notification for newly added medication
-    const notificationId = `${newMedication.id}-${new Date(newMedication.scheduleTime).toISOString().split('T')[0]}-${new Date(newMedication.scheduleTime).getHours()}-${new Date(newMedication.scheduleTime).getMinutes()}`;
-    // Mark this notification as handled in the sync state
-    const syncState = JSON.parse(localStorage.getItem(NotificationService.NOTIFICATION_SYNC_KEY) || '{}');
-    syncState[notificationId] = {
-      timestamp: Date.now(),
-      deviceId: localStorage.getItem('deviceId') || 'unknown',
-      title: `💊 Time to take ${newMedication.name}`,
-      type: 'medication'
-    };
-    localStorage.setItem(NotificationService.NOTIFICATION_SYNC_KEY, JSON.stringify(syncState));
-
-    setMedications((prev) => {
-      const updated = [...prev, newMedication];
-      localStorage.setItem("medications", JSON.stringify(updated));
-      return updated;
-    });
-    // INSTANT NOTIFICATION AND SOUND REMOVED
+    MedicationManager.addMedication(newMedication);
+    setMedications((prev) => [...prev, newMedication]);
   };
 
   // Medication notification logic
