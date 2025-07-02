@@ -601,8 +601,8 @@ export default function RemindersPage() {
           </DialogTrigger>
           <DialogContent className={isMobile ? "max-w-full max-h-[95vh] p-2 overflow-y-auto" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
             <DialogHeader>
-              <DialogTitle>{editingReminder ? "Edit Reminder" : "Add New Reminder"}</DialogTitle>
-              <DialogDescription>Create a new reminder with notifications</DialogDescription>
+              <DialogTitle>Reminder Details</DialogTitle>
+              <DialogDescription>View or edit your reminder information.</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6">

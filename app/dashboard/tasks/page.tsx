@@ -396,8 +396,8 @@ export default function TasksPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
-              <DialogDescription>Create a new task or assignment to track</DialogDescription>
+              <DialogTitle>Task Details</DialogTitle>
+              <DialogDescription>View or edit your task information.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -511,7 +511,7 @@ export default function TasksPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Task</DialogTitle>
-              <DialogDescription>Update your task details</DialogDescription>
+              <DialogDescription>Update your task details below.</DialogDescription>
             </DialogHeader>
             {editingTask && (
               <div className="grid gap-4 py-4">

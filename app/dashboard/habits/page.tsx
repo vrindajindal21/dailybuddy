@@ -275,8 +275,8 @@ export default function HabitsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Habit</DialogTitle>
-              <DialogDescription>Create a new habit to track daily</DialogDescription>
+              <DialogTitle>Habit Details</DialogTitle>
+              <DialogDescription>View or edit your habit information.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -317,8 +317,8 @@ export default function HabitsPage() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Habit</DialogTitle>
-              <DialogDescription>Update your habit details</DialogDescription>
+              <DialogTitle>Habit Details</DialogTitle>
+              <DialogDescription>View or edit your habit information.</DialogDescription>
             </DialogHeader>
             {editingHabit && (
               <div className="grid gap-4 py-4">

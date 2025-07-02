@@ -688,7 +688,7 @@ export default function GoalsPage() {
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Goal</DialogTitle>
-              <DialogDescription>Update your goal details and progress</DialogDescription>
+              <DialogDescription>Update your goal details below.</DialogDescription>
             </DialogHeader>
             {editingGoal && (
               <div className="grid gap-4 py-4">

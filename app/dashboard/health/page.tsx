@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import {
   Activity,
   Heart,
@@ -390,7 +390,8 @@ export default function HealthTrackerPage() {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Log Weight</DialogTitle>
+                        <DialogTitle>Health Record</DialogTitle>
+                        <DialogDescription>View or edit your health record details.</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>

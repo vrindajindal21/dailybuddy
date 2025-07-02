@@ -1317,10 +1317,9 @@ export default function MedicationsPage() {
         <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Enable Notifications</DialogTitle>
+              <DialogTitle>Permission Required</DialogTitle>
               <DialogDescription>
-                Notifications allow you to receive medication reminders even when the app is in the background or closed.
-                This is especially important for medication adherence.
+                Enable notifications to receive medication reminders.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
@@ -1347,8 +1346,8 @@ export default function MedicationsPage() {
           <Dialog open={isAlarmPlaying} onOpenChange={(open) => !open && stopAlarm()}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Medication Reminder</DialogTitle>
-                <DialogDescription>It's time to take your medication</DialogDescription>
+                <DialogTitle>Medication Alarm</DialogTitle>
+                <DialogDescription>It's time to take your medication.</DialogDescription>
               </DialogHeader>
               <div className="flex flex-col items-center justify-center gap-4 py-4">
                 <div
@@ -1399,8 +1398,8 @@ export default function MedicationsPage() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add New Medication</DialogTitle>
-                  <DialogDescription>Add a new medication to your tracking list</DialogDescription>
+                  <DialogTitle>Add Medication</DialogTitle>
+                  <DialogDescription>Add a new medication to your list.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   {/* Medication Name & Dosage */}
