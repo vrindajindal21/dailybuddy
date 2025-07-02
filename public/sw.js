@@ -39,12 +39,24 @@ const STATIC_ASSETS = [
   // Add more static assets as needed
 ];
 
+// Normalize URLs (remove trailing slashes except for root)
+function normalizeUrl(url) {
+  if (url === "/") return url;
+  return url.replace(/\/+$/, "");
+}
+
+const allAssets = Array.from(
+  new Set([...urlsToCache, ...STATIC_ASSETS].map(normalizeUrl))
+);
+
+console.log("[SW] Assets to cache:", allAssets);
+
 self.addEventListener("install", (event) => {
   console.log('[sw.js] Service Worker installing...')
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll([...urlsToCache, ...STATIC_ASSETS]))
+      .then((cache) => cache.addAll(allAssets))
       .then(() => self.skipWaiting())
   )
 })

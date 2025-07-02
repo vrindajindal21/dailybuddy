@@ -9,22 +9,39 @@ import { Button } from "@/components/ui/button"
 import { Bell, BellOff, AlertTriangle } from "lucide-react"
 
 interface NotificationContextType {
-  isSupported: boolean
   permissionState: NotificationPermission
-  requestPermission: () => Promise<boolean>
   showNotification: (
     title: string,
     options?: NotificationOptions,
     soundType?: string,
     volume?: number,
-  ) => Notification | null
+  ) => Promise<boolean>
   playSound: (soundType?: string, volume?: number) => boolean
-  scheduleReminder: (title: string, scheduledTime: Date, type?: string, options?: any) => string | number
+  requestPermission: () => Promise<boolean>
+  isSupported: boolean
+  scheduleReminder: (title: string, scheduledTime: Date, type?: any, options?: any) => string | number
   getUpcomingReminders: (minutes?: number) => any[]
-  cancelReminder: (id: string | number) => boolean
+  cancelReminder: (id: string | number) => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
+
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+async function subscribeUserToPush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: VAPID_PUBLIC_KEY
+    });
+    await fetch('/api/save-push-subscription', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const notifications = useNotifications()
@@ -42,26 +59,40 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const granted = await notifications.requestPermission()
     if (granted) {
       setShowPermissionAlert(false)
+      subscribeUserToPush()
     }
   }
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Notification.permission === 'granted') {
+      subscribeUserToPush();
+    }
+  }, []);
+
   return (
-    <NotificationContext.Provider value={notifications}>
+    <NotificationContext.Provider value={{
+      permissionState: notifications.permissionState,
+      showNotification: notifications.showNotification,
+      playSound: notifications.playSound,
+      requestPermission: notifications.requestPermission,
+      isSupported: notifications.isSupported,
+      scheduleReminder: notifications.scheduleReminder,
+      getUpcomingReminders: notifications.getUpcomingReminders,
+      cancelReminder: notifications.cancelReminder,
+    }}>
       {showPermissionAlert && (
-        <Alert variant="warning" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
+        <Alert variant="default" className="mb-4">
           <AlertTitle>Notifications are disabled</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>Enable notifications to receive important reminders even when the app is in the background.</span>
-            <Button variant="outline" size="sm" className="ml-2" onClick={handleRequestPermission}>
-              {notifications.permissionState === "denied" ? (
-                <BellOff className="mr-2 h-4 w-4" />
-              ) : (
-                <Bell className="mr-2 h-4 w-4" />
-              )}
+          <span>Enable notifications to receive important reminders even when the app is in the background.</span>
+          {notifications.permissionState === "denied" ? (
+            <AlertDescription>
+              You have denied notification permissions. Please enable them in your browser settings.
+            </AlertDescription>
+          ) : (
+            <Button onClick={handleRequestPermission}>
               Enable Notifications
             </Button>
-          </AlertDescription>
+          )}
         </Alert>
       )}
       {children}

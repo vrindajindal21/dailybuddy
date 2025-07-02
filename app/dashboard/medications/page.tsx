@@ -798,15 +798,16 @@ export default function MedicationsPage() {
 
   const deleteMedication = useCallback(
     (id: number) => {
-      setMedications((prev) => prev.filter((medication: MedicationType) => medication.id !== id))
-      // Remove from medication manager
-      MedicationManager.deleteMedication(id)
-      // Reload medications from persistent storage to ensure UI matches
-      const savedMedications = localStorage.getItem("medications")
-      if (savedMedications) {
-        const parsed = JSON.parse(savedMedications)
-        setMedications(parsed)
-      }
+      // Remove from medication manager (removes from schedules/reminders)
+      MedicationManager.deleteMedication(id);
+
+      // Remove from medications array and update localStorage
+      setMedications((prev) => {
+        const updated = prev.filter((medication: MedicationType) => medication.id !== id);
+        localStorage.setItem("medications", JSON.stringify(updated));
+        return updated;
+      });
+
       // Remove all related notification IDs from notification sync state
       const syncKey = NotificationService.NOTIFICATION_SYNC_KEY;
       const syncState = JSON.parse(localStorage.getItem(syncKey) || '{}');
@@ -816,10 +817,11 @@ export default function MedicationsPage() {
         }
       });
       localStorage.setItem(syncKey, JSON.stringify(syncState));
+
       toast({
         title: "Medication deleted",
         description: "Your medication has been deleted and reminders cancelled.",
-      })
+      });
     },
     [toast],
   )
